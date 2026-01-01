@@ -67,7 +67,7 @@ namespace atmt {
             Command* m_autonomous_command;
 
 #ifdef AUTOMAT_VEX_
-            vex::brain m_brain;
+            // vex::brain m_brain;
             bool m_uses_vex_competition;
 #endif
 

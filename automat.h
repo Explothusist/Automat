@@ -1,6 +1,7 @@
 
 #include "automat_platform.h" // Determines whether VEX-specific or Esp32-specific code is used
 
+#include "utils.h"
 #include "Command.h"
 #include "InstantCommand.h"
 #include "Trigger.h"

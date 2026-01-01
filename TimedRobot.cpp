@@ -1,11 +1,9 @@
 
 #include "TimedRobot.h"
 
-namespace atmt {
+#include "utils.h"
 
-#ifdef AUTOMAT_VEX_
-    vex::competition m_competition;
-#endif
+namespace atmt {
 
     TimedRobot::TimedRobot():
         TimedRobot(0)
@@ -18,7 +16,7 @@ namespace atmt {
         m_joysticks{ },
         m_autonomous_command{ new Command() },
 #ifdef AUTOMAT_VEX_
-        m_brain{ vex::brain() },
+        // m_brain{ vex::brain() },
         m_uses_vex_competition{ false },
 #endif
         m_state{ Disabled },
