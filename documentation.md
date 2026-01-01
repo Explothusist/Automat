@@ -4,7 +4,7 @@ Automat derives most of its interface and functionality from WPILib, the FRC (FI
 
 To set the architecture, go to `automat_platform.h` and ensure that the appropriate `#define` statement, and only that statement, is uncommented.
 
-Examples of the Automat library in use can be found in Explothusist/Stormbot-Codebase, linked below.
+Examples of the Automat library in use can be found in Explothusist/StormBot-Codebase, linked below.
 
 WPILib: https://docs.wpilib.org/en/stable/docs/software/what-is-wpilib.html
 
@@ -14,26 +14,53 @@ Stormbot-Codebase (usage example): https://github.com/Explothusist/StormBot-Code
 
 # Main Differences from WPILib
 
-The functionality of `TimedRobot`, `RobotContainer`, and `CommandScheduler` are combined into the `TimedRobot` class (in progress: seperate `Robot` and `RobotContainer`). The `main.cpp` file looks more or less like `RobotContainer` did (for now). Read the `TimedRobot` class carefully, as Autonomous and Teleop are handled differently and setup is somewhat different.
+The functionality of `CommandScheduler` are combined into the `TimedRobot` class (i.e. there is no need to directly call the `CommandScheduler`). The  `RobotContainer` file is more or less unchanged. Read the `TimedRobot` class carefully, as Autonomous and Teleop are handled differently and setup is somewhat different.
 
 The `Joystick` class is heavily modified, as is the `Trigger` class. The `Trigger` class itself is only used internally and `Joystick.bindKey()` is used instead. These changes are in part because of how different the `Joystick` class is on the different platform.
+
+# General Structure
+
+The general structure for a WPILib/Automat project looks something like the following:
+
++ src
+    + commands
+        + DriveCommand
+        + LiftCommand
+        + etc.
+    + subsystems
+        + Drivebase
+        + Arm
+        + etc.
+    + Constants
+    + RobotContainer
+    + Robot
+    + main
+
+The `src/commands` folder holds various custom command classes, all derived from `Command`. Each command performs a specific action, like lifting the arm or driving in a direction, using the methods defined by the subsystems in `src/subsystems`. Some code will be in these files, but mostly it will be calling the various subsystem methods at the proper times.  
+The `src/subsystems` folder holds custom subsystem classes, derived from `Subsystem`. Each subsystem contains the low-level code for a motor or small collection of motors such as the drivetrain, robot arm, or claw. The subsystem has methods which are run by the commands in the `src/commands` folder. The bulk of the code will be in these files.  
+The `src/Constants` file is exactly what it sounds like, a central location for all of the semi-arbitrary but nonetheless vitally important numbers.  
+The `src/RobotContainer` file holds a custom `RobotContainer` class, not derived, which contains instances of the subsystems, joysticks, and commands. This setup allows those components to be referenced inside the various loop and trigger methods of the `TimedRobot` class. Very little code will be in this file, merely instantiating classes and setting keybindings.  
+The `src/Robot` file holds a class derived from `TimedRobot`, which contains the main loops and functions of the robot. Very little code will be in this file.  
+The `src/main` file instantiates the class in `src/Robot` and starts the robot's main loop.  
+
+This setup is by no means binding, but seems to work well. For an actual implementation as an example, see Explothusist/StormBot-Codebase (linked above).
 
 # Contents
 
 + Base classes
-    + TimedRobot
-    + Subsystem
-    + Command
-    + Joystick
+    + `TimedRobot`
+    + `Subsystem`
+    + `Command`
+    + `Joystick`
 + Commands
-    + SequentialCommandGroup
-    + InstantCommand
+    + `SequentialCommandGroup`
+    + `InstantCommand`
 
 # Base Classes
 
 ## TimedRobot
 
-This class combines the functionality of `TimedRobot`, `RobotContainer`, and `CommandScheduler` (in progress: seperate `TimedRobot` and `RobotContainer`).
+This class combines the functionality of `TimedRobot` and `CommandScheduler`. Remember to provide a supporting `RobotContainer` (custom class, not derived. See WPILib or examples for more information) in order to reference the subsystems in the robot loops.
 
 In the absence of the FRC FMS (Field Management System), Autonomous and Teleop are controlled either via `vex::competition` or the press of the A button on any connected controller. The first method is obviously only available in the VEX architecture, but the second is available in both architectures. To set which is used in the VEX architecture, use the VEX-specific `setUsesCompetition` method.
 
@@ -46,7 +73,7 @@ If the robot handles its own state, Autonomous is triggered via pressing the A b
 `TimedRobot()`  
 `TimedRobot(int autonomous_length)`
 
-`autonomous_length` defines the number of seconds to spend in the Autonomous mode. Overriden by `vex::competition` if `setUsesCompetition(true)` is called
+`autonomous_length` defines the number of seconds to spend in the Autonomous mode. Overriden by `vex::competition` if `setUsesCompetition(true)` is called.
 
 ### Methods
 

@@ -4,7 +4,7 @@ Automat is a partial imitation of the FRC (FIRST Robotics Competition) robot con
 
 Automat is still in production and does not include all WPILib features, but it contains all of the basic building blocks. A full catalogue of included features and the few slight differences from WPILib syntax can be found under documentation.md.
 
-Examples of the Automat library in use can be found in Explothusist/Stormbot-Codebase, linked below.
+Examples of the Automat library in use can be found in Explothusist/StormBot-Codebase, linked below.
 
 WPILib: https://docs.wpilib.org/en/stable/docs/software/what-is-wpilib.html
 
