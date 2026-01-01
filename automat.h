@@ -6,4 +6,4 @@
 #include "Trigger.h"
 #include "Joystick.h"        // Uses atmt_platform
 #include "Subsystem.h"
-#include "Robot.h"           // Uses atmt_platform
+#include "TimedRobot.h"           // Uses atmt_platform

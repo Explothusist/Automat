@@ -49,6 +49,7 @@ This setup is by no means binding, but seems to work well. For an actual impleme
 
 + Base classes
     + `TimedRobot`
+    + (`RobotContainer`)
     + `Subsystem`
     + `Command`
     + `Joystick`
