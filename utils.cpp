@@ -6,8 +6,8 @@
 namespace atmt {
     
 #ifdef AUTOMAT_VEX_
-    vex::competition m_competition{ vex::competition() };
-    vex::competition m_brain{ vex::brain() };
+    vex::competition m_competition;
+    vex::brain m_brain;
 #endif
 
     Vector_2D::Vector_2D(double x, double y):

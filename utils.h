@@ -2,13 +2,18 @@
 #ifndef AUTOMAT_UTILS_
 #define AUTOMAT_UTILS_
 
+#include "automat_platform.h"
 #include <string>
 
-namespace atmt {
-    
 #ifdef AUTOMAT_VEX_
-    vex::competition m_competition
-    vex::brain m_brain;
+#include "vex.h"
+#endif
+
+namespace atmt {
+
+#ifdef AUTOMAT_VEX_
+    extern vex::competition m_competition;
+    extern vex::brain m_brain;
 #endif
 
     class Vector_2D;
