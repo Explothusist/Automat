@@ -19,7 +19,7 @@ namespace atmt {
     class Vector_2D;
     class Vector_Polar;
 
-    class Vector_2D { // This and platform prints and template
+    class Vector_2D {
         public:
             Vector_2D(double x, double y);
             ~Vector_2D();
@@ -59,7 +59,7 @@ namespace atmt {
             double m_theta; // In radians
     };
 
-    void print(std::string stuff);
+    void platform_print(std::string stuff);
 
 };
 
