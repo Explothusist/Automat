@@ -18,9 +18,15 @@ namespace atmt {
     };
 
     void Subsystem::setDefaultCommand(Command* command) {
+        if (m_default_command != nullptr) {
+            delete m_default_command;
+        }
         m_default_command = command;
     };
     Command* Subsystem::getDefaultCommand() {
+        if (m_default_command == nullptr) {
+            return nullptr;
+        }
         Command* copy { new Command(*m_default_command) };
         return copy;
     };

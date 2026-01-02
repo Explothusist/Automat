@@ -61,6 +61,9 @@ namespace atmt {
 
     void platform_print(std::string stuff);
 
+    double degreesToRadians(double angle);
+    double radiansToDegrees(double angle);
+
 };
 
 #endif

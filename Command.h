@@ -31,6 +31,8 @@ namespace atmt {
 
             void setId(int id); // For use by atmt::Robot
             int getId();
+
+            // void withTimeout(double seconds); // WORKING HERE
         private:
             bool m_is_first_run;
             bool m_was_interrupted;

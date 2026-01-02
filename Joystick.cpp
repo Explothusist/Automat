@@ -388,7 +388,7 @@ namespace atmt {
                 interpretTrigger(m_temp_triggers[i], true);
                 
                 delete m_temp_triggers[i];
-                m_temp_triggers.erase(std::next(m_temp_triggers.begin(), i-1));
+                m_temp_triggers.erase(m_temp_triggers.begin() + i);
                 i -= 1;
             }
         }
@@ -406,7 +406,7 @@ namespace atmt {
                 interpretTrigger(m_temp_triggers[i], false);
 
                 delete m_temp_triggers[i];
-                m_temp_triggers.erase(std::next(m_temp_triggers.begin(), i-1));
+                m_temp_triggers.erase(m_temp_triggers.begin() + i);
                 i -= 1;
             }
         }
@@ -422,16 +422,19 @@ namespace atmt {
         switch (trigger->getTriggerEffect()) {
             case StartCommand:
                 {
-                    Command* command{ trigger->getCommand() };
-                    command->setId(global_command_id_counter);
-                    global_command_id_counter += 1;
-                    m_triggered_commands.push_back(command);
-                    
-                    if (trigger->getTriggerType() == WhileTrigger) {
-                        if (is_stick) {
-                            m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-                        }else {
-                            m_temp_triggers.push_back(new ButtonEndingTrigger(EndCommand, static_cast<ButtonTrigger*>(trigger), command->getId()));
+                    Command* baseCommand = trigger->getCommand();
+                    if (baseCommand != nullptr) {
+                        Command* command = new Command(*baseCommand);
+                        command->setId(global_command_id_counter);
+                        global_command_id_counter += 1;
+                        m_triggered_commands.push_back(command);
+
+                        if (trigger->getTriggerType() == WhileTrigger) {
+                            if (is_stick) {
+                                m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+                            }else {
+                                m_temp_triggers.push_back(new ButtonEndingTrigger(EndCommand, static_cast<ButtonTrigger*>(trigger), command->getId()));
+                            }
                         }
                     }
                 }

@@ -100,5 +100,12 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
 #endif
     };
+    
+    double degreesToRadians(double angle) {
+        return (angle / 180.0) * M_PI;
+    };
+    double radiansToDegrees(double angle) {
+        return (angle / M_PI) * 180.0;
+    };
 
 };
