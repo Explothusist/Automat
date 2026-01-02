@@ -108,4 +108,50 @@ namespace atmt {
         return (angle / M_PI) * 180.0;
     };
 
+    Timestamp::Timestamp() {
+
+    };
+#ifdef AUTOMAT_VEX_
+    Timestamp::Timestamp(int milliseconds):
+        m_milliseconds{ milliseconds }
+    {
+
+    }
+#endif
+#ifdef AUTOMAT_ESP32_
+    Timestamp::Timestamp() { // Not sure yet
+
+    }
+#endif
+    Timestamp::~Timestamp() {
+
+    };
+
+    int Timestamp::getTimeDifferenceMS(Timestamp timestamp) {
+#ifdef AUTOMAT_VEX_
+        return std::abs(getTimeMS() - timestamp.getTimeMS());
+#endif
+#ifdef AUTOMAT_ESP32_
+        return 0;
+#endif
+    };
+    int Timestamp::getTimeMS() {
+#ifdef AUTOMAT_VEX_
+        return m_milliseconds;
+#endif
+#ifdef AUTOMAT_ESP32_
+        return 0;
+#endif
+    };
+
+    Timestamp getSystemTime() {
+#ifdef AUTOMAT_VEX_
+        return Timestamp(vex::timer::system());
+#endif
+#ifdef AUTOMAT_ESP32_
+        return Timestamp();
+#endif
+    };
+
+
 };

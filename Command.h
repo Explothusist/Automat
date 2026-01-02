@@ -4,7 +4,7 @@
 
 #include <vector>
 
-// #include "Subsystem.h"
+#include "utils.h"
 
 namespace atmt {
 
@@ -29,10 +29,10 @@ namespace atmt {
 
             void usesSubsystem(Subsystem* subsystem); // Call repeatedly for each subsystem used
 
-            void setId(int id); // For use by atmt::Robot
+            void setId(int id); // For use by atmt::Joystick
             int getId();
 
-            // void withTimeout(double seconds); // WORKING HERE
+            Command* withTimeout(double seconds);
         private:
             bool m_is_first_run;
             bool m_was_interrupted;
@@ -40,6 +40,10 @@ namespace atmt {
             std::vector<Subsystem*> m_subsystems;
 
             int m_id;
+
+            bool m_has_timeout;
+            Timestamp m_command_start;
+            double m_seconds_to_run;
     };
 
 }

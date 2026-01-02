@@ -10,6 +10,7 @@
 #include "vex.h"
 #endif
 
+#include "utils.h"
 #include "Subsystem.h"
 #include "Command.h"
 #include "Joystick.h"
@@ -25,7 +26,7 @@ namespace atmt {
     class TimedRobot {
         public:
             TimedRobot();
-            TimedRobot(int autonomous_length);
+            TimedRobot(double autonomous_length);
             ~TimedRobot();
 
             // void robotInit(); // Use constructor instead
@@ -79,8 +80,8 @@ namespace atmt {
             int m_frame_delay;
 
             bool m_first_auto_trigger;
-            int m_autonomous_length;
-            int m_start_of_auto;
+            double m_autonomous_length;
+            Timestamp m_start_of_auto;
 
             void robotInternal();
             void disabledInternal();

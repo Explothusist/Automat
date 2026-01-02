@@ -64,6 +64,30 @@ namespace atmt {
     double degreesToRadians(double angle);
     double radiansToDegrees(double angle);
 
+    class Timestamp {
+        public:
+            Timestamp();
+#ifdef AUTOMAT_VEX_
+            Timestamp(int milliseconds); // vex::timer::system()
+#endif
+#ifdef AUTOMAT_ESP32_
+            Timestamp(); // Not sure yet
+#endif
+            ~Timestamp();
+
+            int getTimeDifferenceMS(Timestamp timestamp); // ms
+            int getTimeMS(); // ms
+        private:
+#ifdef AUTOMAT_VEX_
+            int m_milliseconds;
+#endif
+#ifdef AUTOMAT_ESP32_
+            int m_milliseconds; // Not sure yet
+#endif
+    };
+
+    Timestamp getSystemTime();
+
 };
 
 #endif

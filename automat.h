@@ -3,7 +3,8 @@
 
 #include "utils.h"
 #include "Command.h"
-#include "InstantCommand.h"
+// #include "InstantCommand.h"
+#include "SequentialCommandGroup.h"
 #include "Trigger.h"
 #include "Joystick.h"        // Uses atmt_platform
 #include "Subsystem.h"

@@ -6,11 +6,11 @@
 namespace atmt {
 
     TimedRobot::TimedRobot():
-        TimedRobot(0)
+        TimedRobot(0.0)
     {
 
     };
-    TimedRobot::TimedRobot(int autonomous_length):
+    TimedRobot::TimedRobot(double autonomous_length):
         m_subsystems{ },
         m_commands{ },
         m_joysticks{ },
@@ -26,7 +26,7 @@ namespace atmt {
         m_frame_delay{ 20 },
         m_first_auto_trigger{ true },
         m_autonomous_length{ autonomous_length },
-        m_start_of_auto{ 0 }
+        m_start_of_auto{ Timestamp(0) }
     {
 
     };
@@ -69,22 +69,14 @@ namespace atmt {
                     m_state = Autonomous;
                     m_first_auto_trigger = false;
                     
-#ifdef AUTOMAT_VEX_
-                    m_start_of_auto = vex::timer::system();
-#endif
-#ifdef AUTOMAT_ESP_32_ // WORKING HERE
-#endif
+                    m_start_of_auto = getSystemTime();
                 }
             }else if (m_state == Autonomous) {
-#ifdef AUTOMAT_VEX_
-                int now = vex::timer::system();
+                Timestamp now = getSystemTime();
 
-                if (now - m_start_of_auto > (m_autonomous_length*1000)) {
+                if (now.getTimeDifferenceMS(m_start_of_auto) > (m_autonomous_length*1000)) {
                     m_state = Teleop;
                 }
-#endif
-#ifdef AUTOMAT_ESP_32_ // WORKING HERE
-#endif
             }
 #ifdef AUTOMAT_VEX_
         }

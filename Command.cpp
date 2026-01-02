@@ -6,7 +6,9 @@ namespace atmt {
     Command::Command(): // Put Subsystems as parameters
         m_is_first_run{ true }, // Will be overriden, marks when to run initialize
         m_was_interrupted{ true }, // Set to false when exiting normally, ensures end() runs once
-        m_id{ -1 }
+        m_id{ -1 },
+        m_has_timeout{ false },
+        m_command_start{ Timestamp(0) }
     {
         // usesSubsystem(ex_subsystem); // Call repeatedly for each Subsystem used
     };
@@ -23,6 +25,7 @@ namespace atmt {
 
     bool Command::runLoop() {
         if (m_is_first_run) {
+            m_command_start = getSystemTime();
             initialize(); // User-made
             m_is_first_run = false;
         }
@@ -31,6 +34,14 @@ namespace atmt {
             m_was_interrupted = false;
             end(false);
             return true;
+        }
+        if (m_has_timeout) {
+            Timestamp now = getSystemTime();
+            if (now.getTimeDifferenceMS(m_command_start) > (m_seconds_to_run * 1000)) {
+                m_was_interrupted = true; // Timeout does indeed interrupt
+                end(true);
+                return true;
+            }
         }
         return false;
     };
@@ -67,6 +78,12 @@ namespace atmt {
     };
     int Command::getId() {
         return m_id;
+    };
+
+    Command* Command::withTimeout(double seconds) {
+        m_has_timeout = true;
+        m_seconds_to_run = seconds;
+        return this;
     };
 
     void Command::initialize() {};
