@@ -19,7 +19,10 @@ namespace atmt {
 
     class Joystick {
         public:
+            Joystick();
+#ifdef AUTOMAT_VEX_
             Joystick(JoystickType type);
+#endif
             ~Joystick();
 
             std::vector<Command*> pollEvents();

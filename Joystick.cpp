@@ -335,7 +335,12 @@ namespace atmt {
     };
 #endif
 
+#ifdef AUTOMAT_VEX_
     Joystick::Joystick(JoystickType type):
+#endif
+#ifdef AUTOMAT_ESP32_
+    Joystick::Joystick():
+#endif
         m_triggers{ },
         m_temp_triggers{ },
         m_triggered_commands{ },

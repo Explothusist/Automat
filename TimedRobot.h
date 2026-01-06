@@ -60,6 +60,9 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
             void setUsesCompetition(bool uses_competition); // VEX-specific
 #endif
+#ifdef AUTOMAT_ESP32_
+            void runLoop(); // Esp32-specific
+#endif
 
         private:
             std::vector<Subsystem*> m_subsystems;

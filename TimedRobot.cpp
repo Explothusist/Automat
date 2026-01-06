@@ -106,6 +106,11 @@ namespace atmt {
         m_uses_vex_competition = uses_competition;
     };
 #endif
+#ifdef AUTOMAT_ESP32_
+    void TimedRobot::runLoop() {
+        robotInternal();
+    };
+#endif
     void TimedRobot::startLoop() {
 #ifdef AUTOMAT_VEX_
         if (!m_uses_vex_competition) {
