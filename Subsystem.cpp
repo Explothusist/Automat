@@ -35,5 +35,6 @@ namespace atmt {
     };
 
     void Subsystem::periodic() {};
+    void Subsystem::init() {};
 
 }

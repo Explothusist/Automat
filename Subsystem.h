@@ -13,6 +13,7 @@ namespace atmt {
             Subsystem();
             virtual ~Subsystem();
 
+            virtual void init(); // User-made, runs when loop starts
             virtual void periodic(); // User-made
 
             void runPeriodic();

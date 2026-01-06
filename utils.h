@@ -71,7 +71,7 @@ namespace atmt {
             Timestamp(int milliseconds); // vex::timer::system()
 #endif
 #ifdef AUTOMAT_ESP32_
-            Timestamp(); // Not sure yet
+            Timestamp(unsigned long int milliseconds);
 #endif
             ~Timestamp();
 
@@ -82,11 +82,12 @@ namespace atmt {
             int m_milliseconds;
 #endif
 #ifdef AUTOMAT_ESP32_
-            int m_milliseconds; // Not sure yet
+            unsigned long int m_milliseconds;
 #endif
     };
 
     Timestamp getSystemTime();
+    void systemWait(int milliseconds);
 
 };
 

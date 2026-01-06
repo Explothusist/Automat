@@ -29,9 +29,9 @@ namespace atmt {
             TimedRobot(double autonomous_length);
             ~TimedRobot();
 
-            // void robotInit(); // Use constructor instead
+            virtual void robotInit(); // User-made
             virtual void robotPeriodic(); // User-made
-            // void robotExit(); // Use destructor instead
+            virtual void robotExit(); // User-made
 
             virtual void disabledInit(); // User-made
             virtual void disabledPeriodic(); // User-made

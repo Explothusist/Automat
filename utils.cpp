@@ -2,6 +2,9 @@
 #include "utils.h"
 
 #include <cmath>
+#ifdef AUTOMAT_ESP32_
+#include <Arduino.h>
+#endif
 
 namespace atmt {
     
@@ -98,6 +101,7 @@ namespace atmt {
         m_brain.Screen.print(stuff.c_str());
 #endif
 #ifdef AUTOMAT_ESP32_
+        Serial.println(stuff.c_str());
 #endif
     };
     
@@ -119,7 +123,9 @@ namespace atmt {
     }
 #endif
 #ifdef AUTOMAT_ESP32_
-    Timestamp::Timestamp() { // Not sure yet
+    Timestamp::Timestamp(unsigned long int milliseconds): // Not sure yet
+        m_milliseconds{ milliseconds }
+    {
 
     }
 #endif
@@ -128,19 +134,14 @@ namespace atmt {
     };
 
     int Timestamp::getTimeDifferenceMS(Timestamp timestamp) {
-#ifdef AUTOMAT_VEX_
         return std::abs(getTimeMS() - timestamp.getTimeMS());
-#endif
-#ifdef AUTOMAT_ESP32_
-        return 0;
-#endif
     };
     int Timestamp::getTimeMS() {
 #ifdef AUTOMAT_VEX_
         return m_milliseconds;
 #endif
 #ifdef AUTOMAT_ESP32_
-        return 0;
+        return static_cast<int>(m_milliseconds);
 #endif
     };
 
@@ -149,7 +150,15 @@ namespace atmt {
         return Timestamp(vex::timer::system());
 #endif
 #ifdef AUTOMAT_ESP32_
-        return Timestamp();
+        return Timestamp(millis());
+#endif
+    };
+    void systemWait(int milliseconds) {
+#ifdef AUTOMAT_VEX_
+        vex::wait(milliseconds, vex::msec);
+#endif
+#ifdef AUTOMAT_ESP32_
+        delay(milliseconds);
 #endif
     };
 

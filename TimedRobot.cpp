@@ -31,6 +31,8 @@ namespace atmt {
 
     };
     TimedRobot::~TimedRobot() {
+        robotExit(); // User-made
+        
         m_reseting_state_loop = true;
         clearCommands();
         for (Subsystem* subsystem : m_subsystems) {
@@ -114,15 +116,23 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
         }
 #endif
+        for (Subsystem* subsystem : m_subsystems) {
+            subsystem->init(); // User-made
+        }
+        robotInit(); // User-made
 
         robotInternal();
     };
 
     void TimedRobot::robotInternal() { // bool is_original
+#ifdef AUTOMAT_VEX_
         while (true) {
+#endif
             // if (m_reseting_state_loop && !is_original) {
             //     return; // Kill the loop if it has been replaced by a new one
             // }
+
+            Timestamp loopStart{ getSystemTime() };
 
             pollState(); // FANCY LOOP
 
@@ -152,16 +162,15 @@ namespace atmt {
                 commandScheduler();
             }
 
+            Timestamp loopEnd{ getSystemTime() };
+            int difference{ loopStart.getTimeDifferenceMS(loopEnd) };
+
+            if (difference < m_frame_delay) {
+                systemWait(m_frame_delay - difference);
+            }
 #ifdef AUTOMAT_VEX_
-            vex::wait(m_frame_delay, vex::msec); // Some strange VEX wizardy that is very suspicious
-#endif
-#ifdef AUTOMAT_ESP32_
-#endif
-            // if (m_reseting_state_loop) {
-            //     m_reseting_state_loop = false; // Prevent this loop from killing itself AFTER the wait so that other are cleared
-            // }
-            // robotInternal(false);
         }
+#endif
     };
     void TimedRobot::disabledInternal() {
         if (m_had_state_chage) {
@@ -303,7 +312,9 @@ namespace atmt {
     };
 
 
+    void TimedRobot::robotInit() {};
     void TimedRobot::robotPeriodic() {};
+    void TimedRobot::robotExit() {};
     void TimedRobot::disabledInit() {};
     void TimedRobot::disabledPeriodic() {};
     void TimedRobot::disabledExit() {};
