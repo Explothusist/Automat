@@ -9,12 +9,12 @@ namespace atmt {
 
     };
     Subsystem::~Subsystem() {
-        delete m_default_command;
+        // delete m_default_command;
         m_default_command = nullptr;
     };
 
     void Subsystem::runPeriodic() {
-        periodic();
+        periodic(); // THE PROGRAM CRASHES ON THIS LINE
     };
 
     void Subsystem::setDefaultCommand(Command* command) {
@@ -27,7 +27,7 @@ namespace atmt {
         if (m_default_command == nullptr) {
             return nullptr;
         }
-        Command* copy { new Command(*m_default_command) };
+        Command* copy { m_default_command->clone() };
         return copy;
     };
     bool Subsystem::hasDefaultCommand() {

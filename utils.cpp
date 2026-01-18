@@ -95,13 +95,41 @@ namespace atmt {
         );
     };
 
+#ifdef AUTOMAT_VEX_
+    int m_line_on_screen = 0;
+#endif
     
+    void platform_clear_screen() {
+#ifdef AUTOMAT_VEX_
+        m_brain.Screen.clearScreen();
+        m_brain.Screen.setCursor(1, 1);
+        m_line_on_screen = 0;
+#endif
+#ifdef AUTOMAT_ESP32_
+#endif
+    };
     void platform_print(std::string stuff) {
 #ifdef AUTOMAT_VEX_
         m_brain.Screen.print(stuff.c_str());
 #endif
 #ifdef AUTOMAT_ESP32_
         Serial.println(stuff.c_str());
+#endif
+    };
+    void platform_println(std::string stuff) {
+#ifdef AUTOMAT_VEX_
+        m_line_on_screen += 1;
+        if (m_line_on_screen > 12) { // Nevermind, this is FAR worse
+            m_line_on_screen = 1;
+            m_brain.Screen.clearScreen();
+            m_brain.Screen.setCursor(1, 1);
+        }
+
+        m_brain.Screen.print(stuff.c_str());
+        m_brain.Screen.newLine(); // This is horrendous...
+#endif
+#ifdef AUTOMAT_ESP32_
+        Serial.println((stuff + "\n").c_str());
 #endif
     };
     

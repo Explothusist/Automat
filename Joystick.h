@@ -12,6 +12,8 @@ namespace atmt {
 
     class Command;
 
+    void SetReadJoystickEvents(bool to_read);
+
     typedef enum {
         PrimaryJoystick,
         PartnerJoystick

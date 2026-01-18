@@ -59,7 +59,9 @@ namespace atmt {
             double m_theta; // In radians
     };
 
+    void platform_clear_screen();
     void platform_print(std::string stuff);
+    void platform_println(std::string stuff);
 
     double degreesToRadians(double angle);
     double radiansToDegrees(double angle);

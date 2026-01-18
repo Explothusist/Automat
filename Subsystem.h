@@ -15,6 +15,7 @@ namespace atmt {
 
             virtual void init(); // User-made, runs when loop starts
             virtual void periodic(); // User-made
+            // void periodic(); // User-made
 
             void runPeriodic();
             void setDefaultCommand(Command* command);

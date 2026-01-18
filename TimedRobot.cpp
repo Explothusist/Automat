@@ -2,6 +2,7 @@
 #include "TimedRobot.h"
 
 #include "utils.h"
+#include "Joystick.h"
 
 namespace atmt {
 
@@ -14,7 +15,7 @@ namespace atmt {
         m_subsystems{ },
         m_commands{ },
         m_joysticks{ },
-        m_autonomous_command{ new Command() },
+        m_autonomous_command{ nullptr },
 #ifdef AUTOMAT_VEX_
         // m_brain{ vex::brain() },
         m_uses_vex_competition{ false },
@@ -22,7 +23,7 @@ namespace atmt {
         m_state{ Disabled },
         m_old_state{ Disabled },
         m_reseting_state_loop{ false },
-        m_had_state_chage{ false },
+        m_had_state_change{ false },
         m_frame_delay{ 20 },
         m_first_auto_trigger{ true },
         m_autonomous_length{ autonomous_length },
@@ -48,6 +49,8 @@ namespace atmt {
     };
 
     void TimedRobot::pollState() { // FANCY LOOP
+        m_old_state = m_state;
+        m_had_state_change = false;
 #ifdef AUTOMAT_VEX_
         if (m_uses_vex_competition) { // Otherwise uses interrupts
             if (m_competition.isEnabled()) {
@@ -85,7 +88,7 @@ namespace atmt {
 #endif
 
         if (m_state != m_old_state) {
-            m_had_state_chage = true;
+            m_had_state_change = true;
 
             switch (m_old_state) {
                 case Disabled:
@@ -124,6 +127,7 @@ namespace atmt {
         for (Subsystem* subsystem : m_subsystems) {
             subsystem->init(); // User-made
         }
+        SetReadJoystickEvents(true);
         robotInit(); // User-made
 
         robotInternal();
@@ -136,6 +140,30 @@ namespace atmt {
             // if (m_reseting_state_loop && !is_original) {
             //     return; // Kill the loop if it has been replaced by a new one
             // }
+            // platform_print("Robot Internal");
+#ifdef AUTOMAT_VEX_
+            platform_clear_screen();
+            m_brain.Screen.newLine();
+            m_brain.Screen.newLine();
+            m_brain.Screen.newLine();
+            m_brain.Screen.newLine();
+            m_brain.Screen.print("State: ");
+            switch (m_state) {
+                case Disabled:
+                    m_brain.Screen.print("Disabled");
+                    break;
+                case Autonomous: {
+                    m_brain.Screen.print("Autonomous    ");
+                    Timestamp now = getSystemTime();
+                    int left = m_autonomous_length - (now.getTimeDifferenceMS(m_start_of_auto)/1000);
+                    m_brain.Screen.print("%d", left);
+                    break; }
+                case Teleop:
+                    m_brain.Screen.print("Teleop");
+                    break;
+            }
+            m_brain.Screen.newLine();
+#endif
 
             Timestamp loopStart{ getSystemTime() };
 
@@ -159,13 +187,15 @@ namespace atmt {
                     teleopInternal();
                     break;
             }
+            // platform_println("Internals Done, Starting triggers/commands"); // DEBUG
             if (m_state != Disabled) {
-                pollJoystickEvents();
+                pollJoystickEvents(); // Auto starting events are polled in pollState() via another method
 
-                runDefaultCommands();
+                runDefaultCommands(); // WORKING HERE
 
                 commandScheduler();
             }
+            // platform_println("Triggers/Commands done"); // DEBUG
 
             Timestamp loopEnd{ getSystemTime() };
             int difference{ loopStart.getTimeDifferenceMS(loopEnd) };
@@ -178,7 +208,7 @@ namespace atmt {
 #endif
     };
     void TimedRobot::disabledInternal() {
-        if (m_had_state_chage) {
+        if (m_had_state_change) {
             clearCommands();
             disabledInit(); // User-made
         }
@@ -186,16 +216,20 @@ namespace atmt {
         disabledPeriodic(); // User-made
     };
     void TimedRobot::autonomousInternal() {
-        if (m_had_state_chage) {
+        // platform_println("autonomousInternal Begins"); // DEBUG
+        if (m_had_state_change) {
             clearCommands();
-            runCommand(m_autonomous_command);
+            if (m_autonomous_command != nullptr) {
+                runCommand(m_autonomous_command);
+            }
             autonomousInit(); // User-made function
         }
 
         autonomousPeriodic(); // User-made
+        // platform_println("autonomousInternal Ends"); // DEBUG
     };
     void TimedRobot::teleopInternal() {
-        if (m_had_state_chage) {
+        if (m_had_state_change) {
             clearCommands();
             teleopInit(); // User-made
         }
@@ -221,7 +255,10 @@ namespace atmt {
     };
     void TimedRobot::runDefaultCommands() {
         for (Subsystem* subsystem : m_subsystems) {
-            subsystem->runPeriodic();
+#ifdef AUTOMAT_VEX_ // DEBUG
+            m_brain.Screen.print("Subsystem: %p ", subsystem);
+#endif
+            subsystem->runPeriodic(); // THE PROGRAM CRASHES ON THIS LINE
             if (subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
                 runCommand(subsystem->getDefaultCommand());
             }
@@ -313,6 +350,7 @@ namespace atmt {
     };
 
     void TimedRobot::setAutonomousCommand(Command* command) {
+        delete m_autonomous_command;
         m_autonomous_command = command;
     };
 

@@ -21,6 +21,9 @@ namespace atmt {
         }
         m_commands.clear();
     };
+    Command* SequentialCommandGroup::clone() const {
+        return new SequentialCommandGroup(m_commands);
+    };
 
     void SequentialCommandGroup::initialize() {
 

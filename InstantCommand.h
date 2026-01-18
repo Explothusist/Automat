@@ -14,6 +14,7 @@ namespace atmt {
             InstantCommand(std::function<void()> lambda, bool continuous);
             InstantCommand(InstantCommand& command); // Copy constructor
             ~InstantCommand();
+            Command* clone() const override;
 
             void initialize() override; // User-made
             void execute() override; // User-made

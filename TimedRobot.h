@@ -78,7 +78,7 @@ namespace atmt {
             RobotState m_state;
             RobotState m_old_state;
             bool m_reseting_state_loop;
-            bool m_had_state_chage;
+            bool m_had_state_change;
 
             int m_frame_delay;
 

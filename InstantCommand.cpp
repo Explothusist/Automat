@@ -25,6 +25,9 @@ namespace atmt {
     InstantCommand::~InstantCommand() {
         // Will run ~Command() after this is complete
     };
+    Command* InstantCommand::clone() const {
+        return new InstantCommand(m_lambda);
+    };
 
     void InstantCommand::initialize() {
 
