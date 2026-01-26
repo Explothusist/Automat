@@ -191,7 +191,9 @@ namespace atmt {
             if (m_state != Disabled) {
                 pollJoystickEvents(); // Auto starting events are polled in pollState() via another method
 
-                runDefaultCommands(); // WORKING HERE
+                if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
+                    runDefaultCommands();
+                }
 
                 commandScheduler();
             }
@@ -255,9 +257,9 @@ namespace atmt {
     };
     void TimedRobot::runDefaultCommands() {
         for (Subsystem* subsystem : m_subsystems) {
-#ifdef AUTOMAT_VEX_ // DEBUG
-            m_brain.Screen.print("Subsystem: %p ", subsystem);
-#endif
+// #ifdef AUTOMAT_VEX_ // DEBUG
+//             m_brain.Screen.print("Subsystem: %p ", subsystem);
+// #endif
             subsystem->runPeriodic(); // THE PROGRAM CRASHES ON THIS LINE
             if (subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
                 runCommand(subsystem->getDefaultCommand());
