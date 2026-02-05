@@ -91,6 +91,8 @@ namespace atmt {
     Timestamp getSystemTime();
     void systemWait(int milliseconds);
 
+    double getProportional(double value, double input_min, double input_max, double output_min, double output_max);
+
 };
 
 #endif

@@ -190,5 +190,20 @@ namespace atmt {
 #endif
     };
 
+    
+    double getProportional(double value, double input_min, double input_max, double output_min, double output_max) {
+        double abs_value = std::abs(value);
+        double sign = (value >= 0) ? 1 : -1;
+        double output = 0.0;
+        if (abs_value < input_min) {
+            output = 0.0;
+        }else if (abs_value > input_max) {
+            output = output_max;
+        }else {
+            double proportion = (abs_value - input_min) / (input_max - input_min);
+            output = output_min + (proportion * (output_max - output_min));
+        }
+        return output * sign;
+    };
 
 };
