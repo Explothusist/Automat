@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "Command.h"
 // #include "InstantCommand.h"
+#include "EmptyCommand.h"
 #include "SequentialCommandGroup.h"
 #include "Trigger.h"
 #include "Joystick.h"        // Uses atmt_platform
