@@ -99,14 +99,14 @@ namespace atmt {
             std::vector<int> m_command_terminations;
             bool m_autonomous_triggered;
 
-            StickEvent m_stick_state[2];
-            double m_axis_position[6]; // ESP32 and VEX use different subsets, but this is all (enums)
-            ButtonEvent m_button_state[14];
-
 #ifdef AUTOMAT_ESP32_
             PollingMode m_poll_mode;
             std::function<JoystickState()> m_state_function; // For state Continuous
 #endif
+
+            StickEvent m_stick_state[2];
+            double m_axis_position[6]; // ESP32 and VEX use different subsets, but this is all (enums)
+            ButtonEvent m_button_state[14];
     };
 
 }

@@ -23,7 +23,7 @@ namespace atmt {
 
     int global_command_id_counter = 0;
 
-    constexpr int joystick_threshold = 0.3; // Percent
+    constexpr double joystick_threshold = 0.3; // Percent
 
     bool m_read_joystick_events{ false };
 
@@ -430,13 +430,13 @@ namespace atmt {
         m_triggered_commands{ std::vector<Command*>() },
         m_command_terminations{ std::vector<int>() },
         m_autonomous_triggered{ false },
-        m_stick_state{ StickCenter, StickCenter },
-        m_axis_position{ 0, 0, 0, 0 },
-        m_button_state{ ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased },
 #ifdef AUTOMAT_ESP32_
         m_poll_mode{ poll_mode },
-        m_state_function{ state_function }
+        m_state_function{ state_function },
 #endif
+        m_stick_state{ StickCenter, StickCenter },
+        m_axis_position{ 0, 0, 0, 0 },
+        m_button_state{ ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased }
     {
         
 #ifdef AUTOMAT_VEX_
