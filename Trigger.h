@@ -30,6 +30,8 @@ namespace atmt {
         LeftButton,
         DownButton,
         RightButton,
+        StartButton, // ESP32 only
+        SelectButton, // ESP32 only
         L1Button,
         L2Button,
         R1Button,
@@ -44,10 +46,12 @@ namespace atmt {
         WhileTrigger
     } TriggerType;
     typedef enum {
-        Axis1,
-        Axis2,
-        Axis3,
-        Axis4
+        AxisRY,
+        AxisRX,
+        AxisLY,
+        AxisLX,
+        AxisRT, // ESP32 only
+        AxisLT // ESP32 only
     } AxisIndicator;
 
     typedef enum {

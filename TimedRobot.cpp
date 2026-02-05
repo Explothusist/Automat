@@ -268,6 +268,10 @@ namespace atmt {
     };
     void TimedRobot::pollJoystickEvents() {
         for (Joystick* joystick : m_joysticks) {
+#ifdef AUTOMAT_ESP32_
+            joystick->runPollState(); // For PollingMode = Continuous
+#endif
+
             std::vector<Command*> commands = joystick->pollEvents();
             for (Command* command : commands) {
                 runCommand(command);
