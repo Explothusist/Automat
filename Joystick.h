@@ -34,8 +34,8 @@ namespace atmt {
 
     typedef enum {
         PollMode_Manual,
-        PollMode_Continuous,
-        PollMode_ESPNow
+        PollMode_Continuous//,
+        // PollMode_ESPNow
     } PollingMode;
 
     typedef enum {
@@ -56,7 +56,7 @@ namespace atmt {
 #endif
             ~Joystick();
 
-            void init();
+            void init(RobotState* robot_state);
 
             std::vector<Command*> pollEvents();
             std::vector<int> pollEventTerminations();
@@ -70,20 +70,22 @@ namespace atmt {
             void runPollState();
 #endif
 
-            void bindKey(StickIndicator stick, StickEvent event, Command* command);
-            void bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command);
-            void bindKey(ButtonIndicator button, ButtonEvent event, Command* command);
-            void bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command);
+            // void bindKey(StickIndicator stick, StickEvent event, Command* command);
+            // void bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command);
+            // void bindKey(ButtonIndicator button, ButtonEvent event, Command* command);
+            // void bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command);
+            void bindKey(Trigger* trigger, Command* command);
 
-            void bindAutoTrigger(StickIndicator stick, StickEvent event);
-            void bindAutoTrigger(ButtonIndicator button, ButtonEvent event);
+            // void bindAutoTrigger(StickIndicator stick, StickEvent event);
+            // void bindAutoTrigger(ButtonIndicator button, ButtonEvent event);
+            void bindAutoTrigger(Trigger* trigger);
 
             void triggerRawStick(StickIndicator stick, double stick_x, double stick_y);
             void triggerRawAxis(AxisIndicator axis, double value);
             void triggerEvent(StickIndicator stick, StickEvent event);
             void triggerEvent(ButtonIndicator button, ButtonEvent event);
 
-            void interpretTrigger(Trigger* trigger, bool is_stick);
+            void interpretTrigger(Trigger_Event* trigger, bool is_stick);
 
             void setAxisRight(double axis_x, double axis_y);
             void setAxisLeft(double axis_x, double axis_y);
@@ -92,8 +94,8 @@ namespace atmt {
             ButtonEvent getButtonState(ButtonIndicator button);
             int getRawAxis(AxisIndicator axis);
         private:
-            std::vector<Trigger*> m_triggers;
-            std::vector<Trigger*> m_temp_triggers;
+            std::vector<Trigger_Event*> m_triggers;
+            std::vector<Trigger_Event*> m_temp_triggers;
 
             std::vector<Command*> m_triggered_commands;
             std::vector<int> m_command_terminations;
@@ -107,6 +109,8 @@ namespace atmt {
             StickEvent m_stick_state[2];
             double m_axis_position[6]; // ESP32 and VEX use different subsets, but this is all (enums)
             ButtonEvent m_button_state[14];
+
+            RobotState* m_robot_state;
     };
 
 }

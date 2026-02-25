@@ -425,8 +425,8 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
     Joystick::Joystick(PollingMode poll_mode, std::function<JoystickState()> state_function):
 #endif
-        m_triggers{ std::vector<Trigger*>() },
-        m_temp_triggers{ std::vector<Trigger*>() },
+        m_triggers{ std::vector<Trigger_Event*>() },
+        m_temp_triggers{ std::vector<Trigger_Event*>() },
         m_triggered_commands{ std::vector<Command*>() },
         m_command_terminations{ std::vector<int>() },
         m_autonomous_triggered{ false },
@@ -455,14 +455,14 @@ namespace atmt {
     };
 #endif
     Joystick::~Joystick() {
-        for (Trigger* trigger : m_triggers) {
+        for (Trigger_Event* trigger : m_triggers) {
             delete trigger;
         }
         m_triggers.clear();
     };
 
-    void Joystick::init() {
-
+    void Joystick::init(RobotState* robot_state) {
+        m_robot_state = robot_state;
     };
 
     std::vector<Command*> Joystick::pollEvents() {
@@ -523,39 +523,39 @@ namespace atmt {
             }
 
             // Stick Handlers
-            if (new_state.axes[AxisRY] != m_axis_position[AxisRY] || new_state.axes[AxisRX] != m_axis_position[AxisRX]) {
+            if (new_state.axes[RYAxis] != m_axis_position[RYAxis] || new_state.axes[RXAxis] != m_axis_position[RXAxis]) {
                 const double range_min = new_state.axis_range[Range_Min]; // Cast to double
                 const double range_max = new_state.axis_range[Range_Max];
-                double axis_x = (new_state.axes[AxisRX] - range_min) / (range_max - range_min);
-                double axis_y = (new_state.axes[AxisRY] - range_min) / (range_max - range_min);
+                double axis_x = (new_state.axes[RXAxis] - range_min) / (range_max - range_min);
+                double axis_y = (new_state.axes[RYAxis] - range_min) / (range_max - range_min);
                 axis_x = (axis_x * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 axis_y = (axis_y * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 triggerRawStick(RightStick, axis_x, axis_y);
             }
-            if (new_state.axes[AxisLY] != m_axis_position[AxisLY] || new_state.axes[AxisLX] != m_axis_position[AxisLX]) {
+            if (new_state.axes[LYAxis] != m_axis_position[LYAxis] || new_state.axes[LXAxis] != m_axis_position[LXAxis]) {
                 const double range_min = new_state.axis_range[Range_Min]; // Cast to double
                 const double range_max = new_state.axis_range[Range_Max];
-                double axis_x = (new_state.axes[AxisLX] - range_min) / (range_max - range_min);
-                double axis_y = (new_state.axes[AxisLY] - range_min) / (range_max - range_min);
+                double axis_x = (new_state.axes[LXAxis] - range_min) / (range_max - range_min);
+                double axis_y = (new_state.axes[LYAxis] - range_min) / (range_max - range_min);
                 axis_x = (axis_x * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 axis_y = (axis_y * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 triggerRawStick(LeftStick, axis_x, axis_y);
             }
 
             // Trigger Handlers
-            if (new_state.axes[AxisLT] != m_axis_position[AxisLT]) {
+            if (new_state.axes[LTAxis] != m_axis_position[LTAxis]) {
                 const double range_min = new_state.axis_range[Range_Min]; // Cast to double
                 const double range_max = new_state.axis_range[Range_Max];
-                double axis = (new_state.axes[AxisLT] - range_min) / (range_max - range_min);
+                double axis = (new_state.axes[LTAxis] - range_min) / (range_max - range_min);
                 axis = (axis * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
-                triggerRawAxis(AxisLT, axis);
+                triggerRawAxis(LTAxis, axis);
             }
-            if (new_state.axes[AxisRT] != m_axis_position[AxisRT]) {
+            if (new_state.axes[RTAxis] != m_axis_position[RTAxis]) {
                 const double range_min = new_state.axis_range[Range_Min]; // Cast to double
                 const double range_max = new_state.axis_range[Range_Max];
-                double axis = (new_state.axes[AxisRT] - range_min) / (range_max - range_min);
+                double axis = (new_state.axes[RTAxis] - range_min) / (range_max - range_min);
                 axis = (axis * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
-                triggerRawAxis(AxisRT, axis);
+                triggerRawAxis(RTAxis, axis);
             }
         }
     };
@@ -608,12 +608,12 @@ namespace atmt {
         m_axis_position[axis] = value;
         ButtonEvent new_state = (value > joystick_threshold) ? ButtonPressed : ButtonReleased;
         switch (axis) {
-            case AxisLT:
+            case LTAxis:
                 if (new_state != m_button_state[L2Button]) {
                     triggerEvent(L2Button, new_state);
                 }
                 break;
-            case AxisRT:
+            case RTAxis:
                 if (new_state != m_button_state[R2Button]) {
                     triggerEvent(R2Button, new_state);
                 }
@@ -623,7 +623,7 @@ namespace atmt {
     void Joystick::triggerEvent(StickIndicator stick, StickEvent event) {
         m_stick_state[stick] = event;
         for (int i = 0; i < static_cast<int>(m_temp_triggers.size()); i++) {
-            if (m_temp_triggers[i]->matchesEvent(stick, event)) {
+            if (m_temp_triggers[i]->matchesEvent(stick, event, *m_robot_state, this)) {
                 interpretTrigger(m_temp_triggers[i], true);
                 
                 delete m_temp_triggers[i];
@@ -632,8 +632,8 @@ namespace atmt {
             }
         }
 
-        for (Trigger* trigger : m_triggers) {
-            if (trigger->matchesEvent(stick, event)) {
+        for (Trigger_Event* trigger : m_triggers) {
+            if (trigger->matchesEvent(stick, event, *m_robot_state, this)) {
                 interpretTrigger(trigger, true);
             }
         }
@@ -641,7 +641,7 @@ namespace atmt {
     void Joystick::triggerEvent(ButtonIndicator button, ButtonEvent event) {
         m_button_state[button] = event;
         for (int i = 0; i < static_cast<int>(m_temp_triggers.size()); i++) {
-            if (m_temp_triggers[i]->matchesEvent(button, event)) {
+            if (m_temp_triggers[i]->matchesEvent(button, event, *m_robot_state, this)) {
                 interpretTrigger(m_temp_triggers[i], false);
 
                 delete m_temp_triggers[i];
@@ -650,14 +650,14 @@ namespace atmt {
             }
         }
 
-        for (Trigger* trigger : m_triggers) {
-            if (trigger->matchesEvent(button, event)) {
+        for (Trigger_Event* trigger : m_triggers) {
+            if (trigger->matchesEvent(button, event, *m_robot_state, this)) {
                 interpretTrigger(trigger, false);
             }
         }
     };
 
-    void Joystick::interpretTrigger(Trigger* trigger, bool is_stick) {
+    void Joystick::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
         switch (trigger->getTriggerEffect()) {
             case StartCommand:
                 {
@@ -670,9 +670,13 @@ namespace atmt {
 
                         if (trigger->getTriggerType() == WhileTrigger) {
                             if (is_stick) {
-                                m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+                                // m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+                                // m_temp_triggers.push_back(new Trigger_Event(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+                                Trigger* copy = new Trigger(*trigger->getTrigger());
+                                m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
                             }else {
-                                m_temp_triggers.push_back(new ButtonEndingTrigger(EndCommand, static_cast<ButtonTrigger*>(trigger), command->getId()));
+                                Trigger* copy = new Trigger(*trigger->getTrigger());
+                                m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
                             }
                         }
                     }
@@ -693,33 +697,40 @@ namespace atmt {
         }
     };
 
-    void Joystick::bindKey(StickIndicator stick, StickEvent event, Command* command) {
-        bindKey(stick, event, OnTrigger, command);
-    };
-    void Joystick::bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command) {
-        m_triggers.push_back(new StickTrigger(StartCommand, stick, event, type, command));
-    };
-    void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, Command* command) {
-        bindKey(button, event, OnTrigger, command);
-    };
-    void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command) {
-        m_triggers.push_back(new ButtonTrigger(StartCommand, button, event, type, command));
+    // void Joystick::bindKey(StickIndicator stick, StickEvent event, Command* command) {
+    //     bindKey(stick, event, OnTrigger, command);
+    // };
+    // void Joystick::bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command) {
+    //     m_triggers.push_back(new Trigger_Event(StartCommand, stick, event, type, command));
+    // };
+    // void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, Command* command) {
+    //     bindKey(button, event, OnTrigger, command);
+    // };
+    // void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command) {
+    //     m_triggers.push_back(new ButtonTrigger(StartCommand, button, event, type, command));
+    // };
+    void Joystick::bindKey(Trigger* trigger, Command* command) {
+        m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
 
-    void Joystick::bindAutoTrigger(StickIndicator stick, StickEvent event) {
-        m_temp_triggers.push_back(new StickTrigger(StartAutonomous, stick, event));
-    };
-    void Joystick::bindAutoTrigger(ButtonIndicator button, ButtonEvent event) {
-        m_temp_triggers.push_back(new ButtonTrigger(StartAutonomous, button, event));
+    // void Joystick::bindAutoTrigger(StickIndicator stick, StickEvent event) {
+    //     // m_temp_triggers.push_back(new StickTrigger(StartAutonomous, stick, event));
+    //     m_temp_triggers.push_back(new Trigger_Event(StartAutonomous, ));
+    // };
+    // void Joystick::bindAutoTrigger(ButtonIndicator button, ButtonEvent event) {
+    //     m_temp_triggers.push_back(new ButtonTrigger(StartAutonomous, button, event));
+    // };
+    void Joystick::bindAutoTrigger(Trigger* trigger) {
+        m_temp_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
     };
 
     void Joystick::setAxisRight(double axis_x, double axis_y) {
-        m_axis_position[AxisRY] = axis_y; // AxisRY
-        m_axis_position[AxisRX] = axis_x; // AxisRX
+        m_axis_position[RYAxis] = axis_y; // RYAxis
+        m_axis_position[RXAxis] = axis_x; // RXAxis
     };
     void Joystick::setAxisLeft(double axis_x, double axis_y) {
-        m_axis_position[AxisLY] = axis_y; // AxisLY
-        m_axis_position[AxisLX] = axis_x; // AxisLX
+        m_axis_position[LYAxis] = axis_y; // LYAxis
+        m_axis_position[LXAxis] = axis_x; // LXAxis
     };
 
     ButtonEvent Joystick::getButtonState(ButtonIndicator button) {

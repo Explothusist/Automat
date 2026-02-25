@@ -11,6 +11,12 @@
 
 namespace atmt {
 
+    typedef enum {
+        Disabled,
+        Autonomous,
+        Teleop
+    } RobotState;
+
 #ifdef AUTOMAT_VEX_
     extern vex::competition m_competition;
     extern vex::brain m_brain;

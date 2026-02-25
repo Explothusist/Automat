@@ -2,6 +2,8 @@
 #include "TimedRobot.h"
 
 #include "utils.h"
+#include "Subsystem.h"
+#include "Command.h"
 #include "Joystick.h"
 
 namespace atmt {
@@ -119,7 +121,8 @@ namespace atmt {
         if (!m_uses_vex_competition) {
 #endif
             for (Joystick* joystick : m_joysticks) {
-                joystick->bindAutoTrigger(AButton, ButtonPressed);
+                // joystick->bindAutoTrigger(AButton, ButtonPressed);
+                joystick->bindAutoTrigger(new Trigger(AButton, ButtonPressed));
             }
 #ifdef AUTOMAT_VEX_
         }

@@ -1,216 +1,181 @@
 
 #include "Trigger.h"
 
+#include "Joystick.h"
+
 namespace atmt {
 
-    Trigger::Trigger(TriggerEffect effect):
-        m_effect{ effect },
+    Trigger::Trigger():
+        m_stick{ NULLStick },
+        m_stick_event{ StickNULL },
+        m_button{ NULLButton },
+        m_button_event{ ButtonNULL },
+        m_serial_event{ NULLSerial },
+        m_serial_code{ 0 },
         m_type{ OnTrigger },
+        m_modes{ ModeTeleopOnly },
+        m_criteria{ },
+        m_inverted{ false }
+    {
+
+    };
+    Trigger::Trigger(StickIndicator stick, StickEvent event):
+        Trigger()
+    {
+        m_stick = stick;
+        m_stick_event = event;
+    };
+    Trigger::Trigger(ButtonIndicator button, ButtonEvent event):
+        Trigger()
+    {
+        m_button = button;
+        m_button_event = event;
+    };
+    Trigger::Trigger(SerialEvent event, uint8_t code):
+        Trigger()
+    {
+        m_serial_event = event;
+        m_serial_code = code;
+    };
+
+    Trigger* Trigger::setType(TriggerType type) {
+        m_type = type;
+        return this;
+    };
+    Trigger* Trigger::setCriteria(std::shared_ptr<Trigger> criteria) {
+        // if (m_criteria == nullptr) {
+        //     m_criteria = criteria;
+        // }else {
+        //     m_criteria->setCriteria(criteria);
+        // }
+        m_criteria.push_back(criteria);
+        return this;
+    };
+    Trigger* Trigger::inMode(TriggerModes modes) {
+        m_modes = modes;
+        return this;
+    };
+    Trigger* Trigger::invert() {
+        m_inverted = !m_inverted;
+        return this;
+    };
+
+    bool Trigger::matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick) {
+        if (!m_inverted) {
+            return (m_stick == stick && m_stick_event == event && checkMode(state) && checkCriteria(joystick));
+        }else {
+            return ((m_stick == stick && m_stick_event != event) || !checkMode(state) || !checkCriteria(joystick));
+        }
+    };
+    bool Trigger::matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick) {
+        if (!m_inverted) {
+            return (m_button == button && m_button_event == event && checkMode(state) && checkCriteria(joystick));
+        }else {
+            return ((m_button == button && m_button_event != event) || !checkMode(state) || !checkCriteria(joystick));
+        }
+    };
+    bool Trigger::matchesEvent(SerialEvent event, uint8_t code, RobotState state) {
+        if (!m_inverted) {
+            return (m_serial_event == event && m_serial_code == code && checkMode(state));
+        }else {
+            return ((m_serial_event == event && m_serial_code != code) || !checkMode(state));
+        }
+    };
+
+    bool Trigger::checkMode(RobotState state) {
+        switch (m_modes) {
+            case ModeTeleopOnly:
+                return (state == Teleop);
+            case ModeAutonomousOnly:
+                return (state == Autonomous);
+            case ModeTeleopAndAuto:
+                return (state == Teleop || state == Autonomous);
+            case ModeNULL:
+                return false;
+            default:
+                return false;
+        }
+    };
+    bool Trigger::checkCriteria(Joystick* joystick) {
+        // return (m_criteria ? m_criteria->criteriaSatisfied(joystick) : true);
+        for (const std::shared_ptr<Trigger> &trigger : m_criteria) {
+            if (!trigger->criteriaSatisfied(joystick)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    bool Trigger::criteriaSatisfied(Joystick* joystick) {
+        if (!joystick) {
+            return false;
+        }
+        if (m_stick != NULLStick && m_stick_event != StickNULL) {
+            if (joystick->getStickState(m_stick) != m_stick_event) {
+                return false;
+            }
+        }
+        if (m_button != NULLButton && m_button_event != ButtonNULL) {
+            if (joystick->getButtonState(m_button) != m_button_event) {
+                return false;
+            }
+        }
+        // return (m_criteria ? m_criteria->criteriaSatisfied(joystick) : true);
+        // return true;
+        return checkCriteria(joystick);
+    };
+
+    TriggerType Trigger::getTriggerType() {
+        return m_type;
+    };
+
+
+    Trigger_Event::Trigger_Event(TriggerEffect effect, Trigger* trigger):
+        m_effect{ effect },
+        m_trigger{ trigger },
         m_command{ nullptr },
         m_command_id{ -1 }
     {
 
     };
-    Trigger::Trigger(TriggerEffect effect, TriggerType type, Command* command):
-        m_effect{ effect },
-        m_type{ type },
-        m_command{ command },
-        m_command_id{ -1 }
+    Trigger_Event::Trigger_Event(TriggerEffect effect, Trigger* trigger, Command* command):
+        Trigger_Event(effect, trigger)
     {
-
+        m_command = command;
     };
-    Trigger::Trigger(TriggerEffect effect, int command_id):
-        m_effect{ effect },
-        m_type{ OnTrigger },
-        m_command{ nullptr },
-        m_command_id{ command_id }
+    Trigger_Event::Trigger_Event(TriggerEffect effect, Trigger* trigger, int command_id):
+        Trigger_Event(effect, trigger)
     {
-
+        m_command_id = command_id;
     };
-    Trigger::~Trigger() {
-        delete m_command;
-        m_command = nullptr;
-    };
-    bool Trigger::matchesEvent(StickIndicator stick, StickEvent event) { return false; };
-    bool Trigger::matchesEvent(ButtonIndicator button, ButtonEvent event) { return false; };
-    Command* Trigger::getCommand() { return m_command; };
-    TriggerType Trigger::getTriggerType() { return m_type; };
-    TriggerEffect Trigger::getTriggerEffect() { return m_effect; };
-    int Trigger::getCommandId() { return m_command_id; };
-
-    StickTrigger::StickTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, Command* command):
-        Trigger(effect, OnTrigger, command),
-        m_stick{ stick },
-        m_event{ event }
-    {
-
-    };
-    StickTrigger::StickTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, TriggerType type, Command* command):
-        Trigger(effect, type, command),
-        m_stick{ stick },
-        m_event{ event }
-    {
-
-    };
-    StickTrigger::StickTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, int command_id):
-        Trigger(effect, command_id),
-        m_stick{ stick },
-        m_event{ event }
-    {
-
-    };
-    StickTrigger::StickTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event):
-        Trigger(effect),
-        m_stick{ stick },
-        m_event{ event }
-    {
-
-    };
-    StickTrigger::~StickTrigger() {
-        // delete m_command;
-        // m_command = nullptr;
+    Trigger_Event::~Trigger_Event() {
+        delete m_trigger;
+        m_trigger = nullptr;
     };
 
-    bool StickTrigger::matchesEvent(StickIndicator stick, StickEvent event) {
-        if (m_stick == stick && m_event == event) {
-            return true;
-        }
-        return false;
+    bool Trigger_Event::matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick) {
+        return m_trigger->matchesEvent(stick, event, state, joystick);
     };
-    bool StickTrigger::matchesEvent(ButtonIndicator button, ButtonEvent event) {
-        return false;
+    bool Trigger_Event::matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick) {
+        return m_trigger->matchesEvent(button, event, state, joystick);
     };
-
-    ButtonTrigger::ButtonTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, Command* command):
-        Trigger(effect, OnTrigger, command),
-        m_button{ button },
-        m_event{ event }
-    {
-
-    };
-    ButtonTrigger::ButtonTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command):
-        Trigger(effect, type, command),
-        m_button{ button },
-        m_event{ event }
-    {
-
-    };
-    ButtonTrigger::ButtonTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, int command_id):
-        Trigger(effect, command_id),
-        m_button{ button },
-        m_event{ event }
-    {
-
-    };
-    ButtonTrigger::ButtonTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event):
-        Trigger(effect),
-        m_button{ button },
-        m_event{ event }
-    {
-
-    };
-    ButtonTrigger::~ButtonTrigger() {};
-
-    bool ButtonTrigger::matchesEvent(StickIndicator stick, StickEvent event) {
-        return false;
-    };
-    bool ButtonTrigger::matchesEvent(ButtonIndicator button, ButtonEvent event) {
-        if (m_button == button && m_event == event) {
-            return true;
-        }
-        return false;
+    bool Trigger_Event::matchesEvent(SerialEvent event, uint8_t code, RobotState state) {
+        return m_trigger->matchesEvent(event, code, state);
     };
 
-
-
-    // EndingTrigger::EndingTrigger(int command_id):
-    //     m_command_id{ command_id }
-    // {
-
-    // };
-    // EndingTrigger::~EndingTrigger() {};
-    // bool EndingTrigger::matchesEvent(StickIndicator stick, StickEvent event) { return false; };
-    // bool EndingTrigger::matchesEvent(ButtonIndicator button, ButtonEvent event) { return false; };
-
-    // int EndingTrigger::getCommandId() {
-    //     return m_command_id;
-    // };
-
-
-
-    StickEndingTrigger::StickEndingTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, Command* command):
-        StickTrigger(effect, stick, event, command)
-    {
-
+    TriggerEffect Trigger_Event::getTriggerEffect() {
+        return m_effect;
     };
-    StickEndingTrigger::StickEndingTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, TriggerType type, Command* command):
-        StickTrigger(effect, stick, event, type, command)
-    {
-
+    Command* Trigger_Event::getCommand() {
+        return m_command;
     };
-    StickEndingTrigger::StickEndingTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event, int command_id):
-        StickTrigger(effect, stick, event, command_id)
-    {
-
+    TriggerType Trigger_Event::getTriggerType() {
+        return m_trigger->getTriggerType();
     };
-    StickEndingTrigger::StickEndingTrigger(TriggerEffect effect, StickTrigger* trigger, int command_id):
-        StickTrigger(effect, trigger->m_stick, trigger->m_event, command_id)
-    {
-
+    int Trigger_Event::getCommandId() {
+        return m_command_id;
     };
-    StickEndingTrigger::StickEndingTrigger(TriggerEffect effect, StickIndicator stick, StickEvent event):
-        StickTrigger(effect, stick, event)
-    {
-
+    Trigger* Trigger_Event::getTrigger() {
+        return m_trigger;
     };
-    StickEndingTrigger::~StickEndingTrigger() {};
-
-    bool StickEndingTrigger::matchesEvent(StickIndicator stick, StickEvent event) {
-        if (m_stick == stick && m_event != event) { // != is the key to ending trigger
-            return true;
-        }
-        return false;
-    };
-    bool StickEndingTrigger::matchesEvent(ButtonIndicator button, ButtonEvent event) {
-        return false;
-    };
-
-    ButtonEndingTrigger::ButtonEndingTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, Command* command):
-        ButtonTrigger(effect, button, event, command)
-    {
-
-    };
-    ButtonEndingTrigger::ButtonEndingTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command):
-        ButtonTrigger(effect, button, event, type, command)
-    {
-
-    };
-    ButtonEndingTrigger::ButtonEndingTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event, int command_id):
-        ButtonTrigger(effect, button, event, command_id)
-    {
-
-    };
-    ButtonEndingTrigger::ButtonEndingTrigger(TriggerEffect effect, ButtonTrigger* trigger, int command_id):
-        ButtonTrigger(effect, trigger->m_button, trigger->m_event, command_id)
-    {
-
-    };
-    ButtonEndingTrigger::ButtonEndingTrigger(TriggerEffect effect, ButtonIndicator button, ButtonEvent event):
-        ButtonTrigger(effect, button, event)
-    {
-
-    };
-    ButtonEndingTrigger::~ButtonEndingTrigger() {};
-
-    bool ButtonEndingTrigger::matchesEvent(StickIndicator stick, StickEvent event) {
-        return false;
-    };
-    bool ButtonEndingTrigger::matchesEvent(ButtonIndicator button, ButtonEvent event) {
-        if (m_button == button && m_event != event) { // != is the key to ending trigger
-            return true;
-        }
-        return false;
-    };
-
 
 };

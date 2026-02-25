@@ -11,17 +11,12 @@
 #endif
 
 #include "utils.h"
-#include "Subsystem.h"
-#include "Command.h"
-#include "Joystick.h"
+
+class Subsystem;
+class Command;
+class Joystick;
 
 namespace atmt {
-
-    typedef enum {
-        Disabled,
-        Autonomous,
-        Teleop
-    } RobotState;
 
     class TimedRobot {
         public:
