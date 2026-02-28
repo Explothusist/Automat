@@ -12,6 +12,7 @@ namespace atmt {
         m_button_event{ ButtonNULL },
         m_serial_event{ NULLSerial },
         m_serial_code{ 0 },
+        m_serial_code_length{ 0 },
         m_type{ OnTrigger },
         m_modes{ ModeTeleopOnly },
         m_criteria{ },
@@ -31,11 +32,12 @@ namespace atmt {
         m_button = button;
         m_button_event = event;
     };
-    Trigger::Trigger(SerialEvent event, uint8_t code):
+    Trigger::Trigger(SerialEvent event, uint8_t code[], uint8_t length):
         Trigger()
     {
         m_serial_event = event;
-        m_serial_code = code;
+        m_serial_code_length = std::min(length, kMaxPacketSize);
+        memcpy(m_serial_code, code, length);
     };
 
     Trigger* Trigger::setType(TriggerType type) {
@@ -74,12 +76,23 @@ namespace atmt {
             return ((m_button == button && m_button_event != event) || !checkMode(state) || !checkCriteria(joystick));
         }
     };
-    bool Trigger::matchesEvent(SerialEvent event, uint8_t code, RobotState state) {
+    bool Trigger::matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state) {
         if (!m_inverted) {
-            return (m_serial_event == event && m_serial_code == code && checkMode(state));
+            return (m_serial_event == event && serialCodeMatches(code, length) && checkMode(state));
         }else {
-            return ((m_serial_event == event && m_serial_code != code) || !checkMode(state));
+            return ((m_serial_event == event && !serialCodeMatches(code, length)) || !checkMode(state));
         }
+    };
+    bool Trigger::serialCodeMatches(uint8_t code[], uint8_t length) {
+        if (m_serial_code_length != length) {
+            return false;
+        }
+        for (int i = 0; i < length; i++) {
+            if (m_serial_code[i] != code[i]) {
+                return false;
+            }
+        }
+        return true;
     };
 
     bool Trigger::checkMode(RobotState state) {
@@ -158,8 +171,8 @@ namespace atmt {
     bool Trigger_Event::matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick) {
         return m_trigger->matchesEvent(button, event, state, joystick);
     };
-    bool Trigger_Event::matchesEvent(SerialEvent event, uint8_t code, RobotState state) {
-        return m_trigger->matchesEvent(event, code, state);
+    bool Trigger_Event::matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state) {
+        return m_trigger->matchesEvent(event, code, length, state);
     };
 
     TriggerEffect Trigger_Event::getTriggerEffect() {

@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Command.h"
+#include "utils.h"
 
 namespace atmt {
     
@@ -86,7 +87,7 @@ namespace atmt {
             // Trigger(StickIndicator stick, StickEvent event, TriggerType type);
             Trigger(ButtonIndicator button, ButtonEvent event);
             // Trigger(ButtonIndicator button, ButtonEvent event, TriggerType type);
-            Trigger(SerialEvent event, uint8_t code);
+            Trigger(SerialEvent event, uint8_t code[], uint8_t length);
             Trigger(const Trigger &trigger) = default;
             ~Trigger() = default;
 
@@ -97,7 +98,8 @@ namespace atmt {
 
             bool matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick);
             bool matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick);
-            bool matchesEvent(SerialEvent event, uint8_t code, RobotState state);
+            bool matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state);
+            bool serialCodeMatches(uint8_t code[], uint8_t length);
 
             bool checkMode(RobotState state);
             bool checkCriteria(Joystick* joystick);
@@ -113,7 +115,8 @@ namespace atmt {
             ButtonEvent m_button_event;
 
             SerialEvent m_serial_event;
-            uint8_t m_serial_code;
+            uint8_t m_serial_code[kMaxPacketSize];
+            uint8_t m_serial_code_length;
 
             TriggerType m_type;
             TriggerModes m_modes;
@@ -132,7 +135,7 @@ namespace atmt {
 
             bool matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick);
             bool matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick);
-            bool matchesEvent(SerialEvent event, uint8_t code, RobotState state);
+            bool matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state);
 
             TriggerEffect getTriggerEffect();
             Command* getCommand();

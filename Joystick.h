@@ -15,6 +15,8 @@
 namespace atmt {
 
     class Command;
+    // class TimedRobot;
+    class EventHandler;
 
     void SetReadJoystickEvents(bool to_read);
 
@@ -56,11 +58,12 @@ namespace atmt {
 #endif
             ~Joystick();
 
-            void init(RobotState* robot_state);
+            // void init(RobotState* robot_state);
+            void init(RobotState* robot_state, EventHandler* event_handler);
 
-            std::vector<Command*> pollEvents();
-            std::vector<int> pollEventTerminations();
-            bool pollAutonomousTriggers();
+            // std::vector<Command*> pollEvents();
+            // std::vector<int> pollEventTerminations();
+            // bool pollAutonomousTriggers();
 
 #ifdef AUTOMAT_ESP32_
             void updateState(JoystickState new_state);
@@ -85,21 +88,21 @@ namespace atmt {
             void triggerEvent(StickIndicator stick, StickEvent event);
             void triggerEvent(ButtonIndicator button, ButtonEvent event);
 
-            void interpretTrigger(Trigger_Event* trigger, bool is_stick);
+            // void interpretTrigger(Trigger_Event* trigger, bool is_stick);
 
             void setAxisRight(double axis_x, double axis_y);
             void setAxisLeft(double axis_x, double axis_y);
 
             StickEvent getStickState(StickIndicator stick);
             ButtonEvent getButtonState(ButtonIndicator button);
-            int getRawAxis(AxisIndicator axis);
+            double getRawAxis(AxisIndicator axis);
         private:
             std::vector<Trigger_Event*> m_triggers;
             std::vector<Trigger_Event*> m_temp_triggers;
 
-            std::vector<Command*> m_triggered_commands;
-            std::vector<int> m_command_terminations;
-            bool m_autonomous_triggered;
+            // std::vector<Command*> m_triggered_commands;
+            // std::vector<int> m_command_terminations;
+            // bool m_autonomous_triggered;
 
 #ifdef AUTOMAT_ESP32_
             PollingMode m_poll_mode;
@@ -111,6 +114,8 @@ namespace atmt {
             ButtonEvent m_button_state[14];
 
             RobotState* m_robot_state;
+            // TimedRobot* m_robot;
+            EventHandler* m_event_handler;
     };
 
 }

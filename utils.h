@@ -4,6 +4,7 @@
 
 #include "automat_platform.h"
 #include <string>
+#include <cstdint>
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
@@ -98,6 +99,28 @@ namespace atmt {
     void systemWait(int milliseconds);
 
     double getProportional(double value, double input_min, double input_max, double output_min, double output_max);
+    
+    
+    constexpr int kBaudrate = 115200;
+    constexpr int kMaxMessagesPerFrame = 256;
+    constexpr uint8_t kMaxPacketSize = 64;
+
+    typedef struct {
+        uint8_t data[kMaxPacketSize];
+        uint8_t length;
+    } serial_message;
+
+    enum class SerialMessage : uint8_t {
+        // Get_Status = 0xfb,
+        // Status_Processing = 0xfc,
+        // Status_Complete = 0xfd,
+        StartDuplicate = 0xfc,
+        Escape = 0xfd,
+        End = 0xfe,
+        Start = 0xff,
+        // Invalid = 0xfe,
+        // Error = 0xff
+    };
 
 };
 

@@ -9,4 +9,5 @@
 #include "Trigger.h"
 #include "Joystick.h"        // Uses atmt_platform
 #include "Subsystem.h"
+#include "SerialReader.h"
 #include "TimedRobot.h"           // Uses atmt_platform

@@ -1,18 +1,20 @@
 
 #include "Joystick.h"
+#include "TimedRobot.h"
+#include "EventHandler.h"
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
 #endif
 
 #ifdef AUTOMAT_ESP32_
-#include <WifiEspNow.h>
-#include <WifiEspNowBroadcast.h>
+// #include <WifiEspNow.h>
+// #include <WifiEspNowBroadcast.h>
 
 #if defined(ARDUINO_ARCH_ESP8266)
-#include <ESP8266WiFi.h>
+// #include <ESP8266WiFi.h>
 #elif defined(ARDUINO_ARCH_ESP32)
-#include <WiFi.h>
+// #include <WiFi.h>
 #endif
 
 #endif
@@ -21,7 +23,7 @@
 
 namespace atmt {
 
-    int global_command_id_counter = 0;
+    // int global_command_id_counter = 0;
 
     constexpr double joystick_threshold = 0.3; // Percent
 
@@ -375,10 +377,14 @@ namespace atmt {
                 m_controller_primary.ButtonR1.released(buttonR1Released_Primary);
                 m_controller_primary.ButtonR2.pressed(buttonR2Pressed_Primary);
                 m_controller_primary.ButtonR2.released(buttonR2Released_Primary);
-                m_controller_primary.Axis1.changed(leftStickMoved_Primary);
-                m_controller_primary.Axis2.changed(leftStickMoved_Primary);
-                m_controller_primary.Axis3.changed(rightStickMoved_Primary);
-                m_controller_primary.Axis4.changed(rightStickMoved_Primary);
+                // m_controller_primary.Axis1.changed(leftStickMoved_Primary);
+                // m_controller_primary.Axis2.changed(leftStickMoved_Primary);
+                // m_controller_primary.Axis3.changed(rightStickMoved_Primary);
+                // m_controller_primary.Axis4.changed(rightStickMoved_Primary);
+                m_controller_primary.Axis1.changed(rightStickMoved_Primary);
+                m_controller_primary.Axis2.changed(rightStickMoved_Primary);
+                m_controller_primary.Axis3.changed(leftStickMoved_Primary);
+                m_controller_primary.Axis4.changed(leftStickMoved_Primary);
             }
 
             if (!partner_init) {
@@ -407,10 +413,14 @@ namespace atmt {
                 m_controller_partner.ButtonR1.released(buttonR1Released_Partner);
                 m_controller_partner.ButtonR2.pressed(buttonR2Pressed_Partner);
                 m_controller_partner.ButtonR2.released(buttonR2Released_Partner);
-                m_controller_partner.Axis1.changed(leftStickMoved_Partner);
-                m_controller_partner.Axis2.changed(leftStickMoved_Partner);
-                m_controller_partner.Axis3.changed(rightStickMoved_Partner);
-                m_controller_partner.Axis4.changed(rightStickMoved_Partner);
+                // m_controller_partner.Axis1.changed(leftStickMoved_Partner);
+                // m_controller_partner.Axis2.changed(leftStickMoved_Partner);
+                // m_controller_partner.Axis3.changed(rightStickMoved_Partner);
+                // m_controller_partner.Axis4.changed(rightStickMoved_Partner);
+                m_controller_partner.Axis1.changed(rightStickMoved_Partner);
+                m_controller_partner.Axis2.changed(rightStickMoved_Partner);
+                m_controller_partner.Axis3.changed(leftStickMoved_Partner);
+                m_controller_partner.Axis4.changed(leftStickMoved_Partner);
             }
         }
 #endif
@@ -427,9 +437,9 @@ namespace atmt {
 #endif
         m_triggers{ std::vector<Trigger_Event*>() },
         m_temp_triggers{ std::vector<Trigger_Event*>() },
-        m_triggered_commands{ std::vector<Command*>() },
-        m_command_terminations{ std::vector<int>() },
-        m_autonomous_triggered{ false },
+        // m_triggered_commands{ std::vector<Command*>() },
+        // m_command_terminations{ std::vector<int>() },
+        // m_autonomous_triggered{ false },
 #ifdef AUTOMAT_ESP32_
         m_poll_mode{ poll_mode },
         m_state_function{ state_function },
@@ -459,27 +469,35 @@ namespace atmt {
             delete trigger;
         }
         m_triggers.clear();
+        for (Trigger_Event* trigger : m_temp_triggers) {
+            delete trigger;
+        }
+        m_temp_triggers.clear();
     };
 
-    void Joystick::init(RobotState* robot_state) {
+    // void Joystick::init(RobotState* robot_state) {
+    //     m_robot_state = robot_state;
+    // };
+    void Joystick::init(RobotState* robot_state, EventHandler* event_handler) {
+        m_event_handler = event_handler;
         m_robot_state = robot_state;
     };
 
-    std::vector<Command*> Joystick::pollEvents() {
-        std::vector<Command*> commands = m_triggered_commands;
-        m_triggered_commands.clear();
-        return commands;
-    };
-    std::vector<int> Joystick::pollEventTerminations() {
-        std::vector<int> commands = m_command_terminations;
-        m_command_terminations.clear();
-        return commands;
-    };
-    bool Joystick::pollAutonomousTriggers() {
-        bool triggered = m_autonomous_triggered;
-        m_autonomous_triggered = false;
-        return triggered;
-    };
+    // std::vector<Command*> Joystick::pollEvents() {
+    //     std::vector<Command*> commands = m_triggered_commands;
+    //     m_triggered_commands.clear();
+    //     return commands;
+    // };
+    // std::vector<int> Joystick::pollEventTerminations() {
+    //     std::vector<int> commands = m_command_terminations;
+    //     m_command_terminations.clear();
+    //     return commands;
+    // };
+    // bool Joystick::pollAutonomousTriggers() {
+    //     bool triggered = m_autonomous_triggered;
+    //     m_autonomous_triggered = false;
+    //     return triggered;
+    // };
 
 #ifdef AUTOMAT_ESP32_
     void Joystick::updateState(JoystickState new_state) {
@@ -621,81 +639,110 @@ namespace atmt {
         }
     };
     void Joystick::triggerEvent(StickIndicator stick, StickEvent event) {
+        if (!m_robot_state) { // Uninitialized
+            return;
+        }
         m_stick_state[stick] = event;
-        for (int i = 0; i < static_cast<int>(m_temp_triggers.size()); i++) {
+        // for (size_t i = 0; i < m_temp_triggers.size(); i++) {
+        for (size_t i = 0; i < m_temp_triggers.size(); ) {
             if (m_temp_triggers[i]->matchesEvent(stick, event, *m_robot_state, this)) {
-                interpretTrigger(m_temp_triggers[i], true);
+                // interpretTrigger(m_temp_triggers[i], true);
+                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(m_temp_triggers[i], true);
+                if (temp_trigger) {
+                    m_temp_triggers.push_back(temp_trigger);
+                }
                 
                 delete m_temp_triggers[i];
                 m_temp_triggers.erase(m_temp_triggers.begin() + i);
-                i -= 1;
+                // i -= 1;
+            }else {
+                i += 1;
             }
         }
 
         for (Trigger_Event* trigger : m_triggers) {
             if (trigger->matchesEvent(stick, event, *m_robot_state, this)) {
-                interpretTrigger(trigger, true);
+                // interpretTrigger(trigger, true);
+                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(trigger, true);
+                if (temp_trigger) {
+                    m_temp_triggers.push_back(temp_trigger);
+                }
             }
         }
     };
     void Joystick::triggerEvent(ButtonIndicator button, ButtonEvent event) {
+        if (!m_robot_state) { // Uninitialized
+            return;
+        }
         m_button_state[button] = event;
-        for (int i = 0; i < static_cast<int>(m_temp_triggers.size()); i++) {
+        // for (size_t i = 0; i < m_temp_triggers.size(); i++) {
+        for (size_t i = 0; i < m_temp_triggers.size(); ) {
             if (m_temp_triggers[i]->matchesEvent(button, event, *m_robot_state, this)) {
-                interpretTrigger(m_temp_triggers[i], false);
+                // interpretTrigger(m_temp_triggers[i], false);
+                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(m_temp_triggers[i], false);
+                if (temp_trigger) {
+                    m_temp_triggers.push_back(temp_trigger);
+                }
 
                 delete m_temp_triggers[i];
                 m_temp_triggers.erase(m_temp_triggers.begin() + i);
-                i -= 1;
+                // i -= 1;
+            }else {
+                i += 1;
             }
         }
 
         for (Trigger_Event* trigger : m_triggers) {
             if (trigger->matchesEvent(button, event, *m_robot_state, this)) {
-                interpretTrigger(trigger, false);
+                // interpretTrigger(trigger, false);
+                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(trigger, false);
+                if (temp_trigger) {
+                    m_temp_triggers.push_back(temp_trigger);
+                }
             }
         }
     };
 
-    void Joystick::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
-        switch (trigger->getTriggerEffect()) {
-            case StartCommand:
-                {
-                    Command* baseCommand = trigger->getCommand();
-                    if (baseCommand != nullptr) {
-                        Command* command = baseCommand->clone();
-                        command->setId(global_command_id_counter);
-                        global_command_id_counter += 1;
-                        m_triggered_commands.push_back(command);
+    // void Joystick::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
+    //     switch (trigger->getTriggerEffect()) {
+    //         case StartCommand:
+    //             {
+    //                 Command* baseCommand = trigger->getCommand();
+    //                 if (baseCommand != nullptr) {
+    //                     Command* command = baseCommand->clone();
+    //                     // command->setId(global_command_id_counter);
+    //                     // global_command_id_counter += 1;
+    //                     m_robot->assignCommandId(command);
+    //                     m_triggered_commands.push_back(command);
 
-                        if (trigger->getTriggerType() == WhileTrigger) {
-                            if (is_stick) {
-                                // m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-                                // m_temp_triggers.push_back(new Trigger_Event(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-                                Trigger* copy = new Trigger(*trigger->getTrigger());
-                                m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
-                            }else {
-                                Trigger* copy = new Trigger(*trigger->getTrigger());
-                                m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
-                            }
-                        }
-                    }
-                }
-                break;
-            case EndCommand:
-                {
-                    m_command_terminations.push_back(trigger->getCommandId());
-                }
-                break;
-            case StartAutonomous:
-                {
-                    m_autonomous_triggered = true;
-                }
-                break;
-            default:
-                break;
-        }
-    };
+    //                     if (trigger->getTriggerType() == WhileTrigger) {
+    //                         if (is_stick) {
+    //                             // m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+    //                             // m_temp_triggers.push_back(new Trigger_Event(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
+    //                             Trigger* copy = new Trigger(*trigger->getTrigger());
+    //                             m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
+    //                         }else {
+    //                             Trigger* copy = new Trigger(*trigger->getTrigger());
+    //                             m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             break;
+    //         case EndCommand:
+    //             {
+    //                 m_command_terminations.push_back(trigger->getCommandId());
+    //             }
+    //             break;
+    //         case StartAutonomous:
+    //             {
+    //                 m_autonomous_triggered = true;
+    //             }
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // };
 
     // void Joystick::bindKey(StickIndicator stick, StickEvent event, Command* command) {
     //     bindKey(stick, event, OnTrigger, command);
@@ -739,7 +786,7 @@ namespace atmt {
     StickEvent Joystick::getStickState(StickIndicator stick) {
         return m_stick_state[stick];
     };
-    int Joystick::getRawAxis(AxisIndicator axis) {
+    double Joystick::getRawAxis(AxisIndicator axis) {
         return m_axis_position[axis];
     };
 

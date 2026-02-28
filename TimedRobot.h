@@ -12,11 +12,14 @@
 
 #include "utils.h"
 
-class Subsystem;
-class Command;
-class Joystick;
 
 namespace atmt {
+
+    class Subsystem;
+    class Command;
+    class Joystick;
+    class EventHandler;
+    class SerialReader;
 
     class TimedRobot {
         public:
@@ -45,6 +48,7 @@ namespace atmt {
             void runCommand(Command* command);
             void registerSubsystem(Subsystem* subsystem);
             void addJoystick(Joystick* joystick);
+            void addSerialReader(SerialReader* serial);
 
             void setAutonomousCommand(Command* command);
 
@@ -58,11 +62,13 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
             void runLoop(); // Esp32-specific
 #endif
-
         private:
+            EventHandler* m_event_handler;
+
             std::vector<Subsystem*> m_subsystems;
             std::vector<Command*> m_commands;
             std::vector<Joystick*> m_joysticks;
+            std::vector<SerialReader*> m_serial_handlers;
             Command* m_autonomous_command;
 
 #ifdef AUTOMAT_VEX_

@@ -5,6 +5,8 @@
 #include "Subsystem.h"
 #include "Command.h"
 #include "Joystick.h"
+#include "EventHandler.h"
+#include "SerialReader.h"
 
 namespace atmt {
 
@@ -14,9 +16,11 @@ namespace atmt {
 
     };
     TimedRobot::TimedRobot(double autonomous_length):
+        m_event_handler{ },
         m_subsystems{ },
         m_commands{ },
         m_joysticks{ },
+        m_serial_handlers{ },
         m_autonomous_command{ nullptr },
 #ifdef AUTOMAT_VEX_
         // m_brain{ vex::brain() },
@@ -68,9 +72,10 @@ namespace atmt {
 #endif
             if (m_first_auto_trigger) {
                 bool triggered = false;
-                for (Joystick* joystick : m_joysticks) {
-                    triggered = (triggered || joystick->pollAutonomousTriggers());
-                }
+                // for (Joystick* joystick : m_joysticks) {
+                //     triggered = (triggered || joystick->pollAutonomousTriggers());
+                // }
+                triggered = m_event_handler->pollAutonomousTriggers();
 
                 if (triggered) {
                     m_state = Autonomous;
@@ -130,7 +135,8 @@ namespace atmt {
         for (Subsystem* subsystem : m_subsystems) {
             subsystem->init(); // User-made
         }
-        SetReadJoystickEvents(true);
+        // SetReadJoystickEvents(true);
+        SetReadEvents(true);
         robotInit(); // User-made
 
         robotInternal();
@@ -263,27 +269,38 @@ namespace atmt {
 // #ifdef AUTOMAT_VEX_ // DEBUG
 //             m_brain.Screen.print("Subsystem: %p ", subsystem);
 // #endif
-            subsystem->runPeriodic(); // THE PROGRAM CRASHES ON THIS LINE
+            subsystem->runPeriodic();
             if (subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
                 runCommand(subsystem->getDefaultCommand());
             }
         }
     };
     void TimedRobot::pollJoystickEvents() {
-        for (Joystick* joystick : m_joysticks) {
 #ifdef AUTOMAT_ESP32_
+        for (Joystick* joystick : m_joysticks) {
             joystick->runPollState(); // For PollingMode = Continuous
+        }
 #endif
 
-            std::vector<Command*> commands = joystick->pollEvents();
-            for (Command* command : commands) {
-                runCommand(command);
-            }
+            // std::vector<Command*> commands = joystick->pollEvents();
+            // for (Command* command : commands) {
+            //     runCommand(command);
+            // }
 
-            std::vector<int> terminations = joystick->pollEventTerminations();
-            for (int termination : terminations) {
-                endCommand(termination);
-            }
+            // std::vector<int> terminations = joystick->pollEventTerminations();
+            // for (int termination : terminations) {
+            //     endCommand(termination);
+            // }
+        // }
+
+        std::vector<Command*> commands = m_event_handler->pollEvents();
+        for (Command* command : commands) {
+            runCommand(command);
+        }
+
+        std::vector<int> terminations = m_event_handler->pollEventTerminations();
+        for (int termination : terminations) {
+            endCommand(termination);
         }
     };
 
@@ -320,6 +337,13 @@ namespace atmt {
     void TimedRobot::addJoystick(Joystick* joystick) {
         if (!robotHasJoystick(joystick)) {
             m_joysticks.push_back(joystick); // To ensure no duplicates
+        }
+    };
+    void TimedRobot::addSerialReader(SerialReader* serial) {
+        if (!robotHasSubsystem(serial)) {
+            serial->internal_init(&m_state, m_event_handler);
+            m_subsystems.push_back(serial); // To ensure no duplicates
+            m_serial_handlers.push_back(serial);   
         }
     };
 
