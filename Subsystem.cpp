@@ -14,7 +14,7 @@ namespace atmt {
     };
 
     void Subsystem::runPeriodic() {
-        periodic(); // THE PROGRAM CRASHES ON THIS LINE
+        periodic();
     };
 
     void Subsystem::setDefaultCommand(Command* command) {

@@ -67,8 +67,10 @@ namespace atmt {
 
             std::vector<Subsystem*> m_subsystems;
             std::vector<Command*> m_commands;
+#ifdef AUTOMAT_ESP32_
             std::vector<Joystick*> m_joysticks;
-            std::vector<SerialReader*> m_serial_handlers;
+#endif
+            // std::vector<SerialReader*> m_serial_handlers;
             Command* m_autonomous_command;
 
 #ifdef AUTOMAT_VEX_
@@ -94,11 +96,11 @@ namespace atmt {
 
             void commandScheduler();
             void clearCommands();
-            void runDefaultCommands();
-            void pollJoystickEvents();
+            // void runDefaultCommands();
+            void pollEvents();
 
             bool robotHasSubsystem(Subsystem* subsystem);
-            bool robotHasJoystick(Joystick* joystick);
+            // bool robotHasJoystick(Joystick* joystick);
             bool subsystemHasCommand(Subsystem* subsystem);
     };
 

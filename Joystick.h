@@ -7,6 +7,7 @@
 #include "automat_platform.h"
 
 #include "Trigger.h"
+#include "Subsystem.h"
 
 #ifdef AUTOMAT_ESP32_
 #include <functional>
@@ -46,7 +47,7 @@ namespace atmt {
     } RangeComp;
 #endif
 
-    class Joystick {
+    class Joystick : public Subsystem {
         public:
             // Joystick();
 #ifdef AUTOMAT_VEX_
@@ -56,10 +57,13 @@ namespace atmt {
             Joystick(PollingMode poll_mode);
             Joystick(PollingMode poll_mode, std::function<JoystickState()> state_function); // For state = Continuous
 #endif
-            ~Joystick();
+            ~Joystick() override;
+
+            void init() override;
+            void periodic() override;
 
             // void init(RobotState* robot_state);
-            void init(RobotState* robot_state, EventHandler* event_handler);
+            void internal_init(RobotState* robot_state, EventHandler* event_handler);
 
             // std::vector<Command*> pollEvents();
             // std::vector<int> pollEventTerminations();

@@ -475,10 +475,17 @@ namespace atmt {
         m_temp_triggers.clear();
     };
 
+    void Joystick::init() {
+
+    };
+    void Joystick::periodic() {
+
+    };
+
     // void Joystick::init(RobotState* robot_state) {
     //     m_robot_state = robot_state;
     // };
-    void Joystick::init(RobotState* robot_state, EventHandler* event_handler) {
+    void Joystick::internal_init(RobotState* robot_state, EventHandler* event_handler) {
         m_event_handler = event_handler;
         m_robot_state = robot_state;
     };
