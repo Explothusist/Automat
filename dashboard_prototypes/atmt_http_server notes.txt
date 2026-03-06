@@ -1,0 +1,23 @@
+HTTP Server:
+    Sets up Wifi, HTTP Server with given pages and callbacks
+
+Server Prebuilts:
+    Robot Dashboard:
+        Server with that sends dashboard.html like site with configurable 5x5 grid of info tiles
+        Reserve tile and get tile identifier type back, then use to set tile
+        Resends html when tiles change
+        Tile Types:
+            Plain text (title+data)
+            Pure HTML (insert)
+            Robot Info
+            Robot Control (View/Control state (Disabled, Autonomous, Teleop))
+    
+    JPEG Streamer:
+        Server sends html then sends JPEG continuously
+        Configured with a callback to give JPEG each frame
+
+IP Scanner:
+    Python script to poll and list all Atmt devices
+    Pings all IP address it can find
+    Atmt HTTP Server returns special id on <ip_addr>/is_atmt or something
+    Interpets the responses and lists all by type, name, and IP address
