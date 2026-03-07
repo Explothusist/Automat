@@ -25,4 +25,12 @@
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
 #endif
 
+#ifdef ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_
+#include "utilities/PID_Controller.h"
+#endif
+#ifdef ATMT_SUBMODULE_UTILITIES_VECTOR_
+#include "utilities/Vector2.h"
+#include "utilities/Vector3.h"
+#endif
+
 #endif

@@ -21,7 +21,9 @@ namespace atmt {
     class Command;
     class Joystick;
     class EventHandler;
+#ifdef AUTOMAT_SUBMODULE_SERIAL_
     class SerialReader;
+#endif
 
     class TimedRobot {
         public:
@@ -50,7 +52,9 @@ namespace atmt {
             void runCommand(Command* command);
             void registerSubsystem(Subsystem* subsystem);
             void addJoystick(Joystick* joystick);
+#ifdef AUTOMAT_SUBMODULE_SERIAL_
             void addSerialReader(SerialReader* serial);
+#endif
 
             void setAutonomousCommand(Command* command);
 
@@ -110,4 +114,6 @@ namespace atmt {
 
 #endif
 
+#else
+#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use TimedRobot"
 #endif

@@ -41,4 +41,6 @@ namespace atmt {
 
 };
 
+#else
+#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use Subsystem"
 #endif

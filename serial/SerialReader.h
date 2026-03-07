@@ -139,4 +139,6 @@ namespace atmt {
 
 #endif
 
+#else
+#error "Enable ATMT_SUBMODULE_SERIAL_ in automat_submodules.h to use SerialReader"
 #endif

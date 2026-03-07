@@ -360,6 +360,7 @@ namespace atmt {
             // m_joysticks.push_back(joystick); // To ensure no duplicates
         }
     };
+#ifdef AUTOMAT_SUBMODULE_SERIAL_
     void TimedRobot::addSerialReader(SerialReader* serial) {
         if (!robotHasSubsystem(serial)) {
             serial->internal_init(&m_state, m_event_handler);
@@ -367,6 +368,7 @@ namespace atmt {
             // m_serial_handlers.push_back(serial);
         }
     };
+#endif
 
     bool TimedRobot::robotHasSubsystem(Subsystem* subsystem) {
         for (Subsystem* search : m_subsystems) {
@@ -423,4 +425,6 @@ namespace atmt {
     void TimedRobot::teleopExit() {};
 };
 
+#else
+#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use TimedRobot"
 #endif

@@ -156,4 +156,6 @@ namespace atmt {
 
 #endif
 
+#else
+#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use Trigger, Trigger_Event"
 #endif
