@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "automat_platform.h"
+#include "../automat_platform.h"
 
 #include "Trigger.h"
 
@@ -37,7 +37,7 @@ namespace atmt {
             std::vector<int> m_command_terminations;
             bool m_autonomous_triggered;
 
-            bool m_master_event_enable;
+            // bool m_master_event_enable;
 
             // RobotState* m_robot_state;
             // TimedRobot* m_robot;

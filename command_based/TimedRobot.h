@@ -6,13 +6,13 @@
 
 #include <vector>
 
-#include "automat_platform.h"
+#include "../automat_platform.h"
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
 #endif
 
-#include "utils.h"
+#include "../utils.h"
 
 
 namespace atmt {

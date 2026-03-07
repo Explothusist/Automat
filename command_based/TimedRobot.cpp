@@ -3,7 +3,6 @@
 
 #include "TimedRobot.h"
 
-#include "utils.h"
 #include "Subsystem.h"
 #include "Command.h"
 #include "Joystick.h"

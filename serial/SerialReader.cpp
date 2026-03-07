@@ -65,21 +65,22 @@ namespace atmt {
         m_buffer_size{ buffer_size < 0 ? kUARTDefaultBufferSize : buffer_size },
         m_uart_port{ uart_port < 0 ? kUARTDefaultPort : uart_port },
 #endif
-        m_address_code{ address_code },
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
         m_triggers{ std::vector<Trigger_Event*>() },
         m_temp_triggers{ std::vector<Trigger_Event*>() },
         m_robot_state{ nullptr },
         m_event_handler{ nullptr },
 #endif
+        m_address_code{ address_code },
         m_raw_input{ },
         m_messages{ },
         m_to_send{ },
 
-        m_last_message{ 0, 0 },
+        m_last_message{ {0}, 0, 0 },
 
         m_part_has_start{ false },
         m_part_is_duplicate{ false },
+        m_part_sender{ -1 },
         m_part_address{ -1 },
         m_part_length{ -1 },
         m_part_data{ },
@@ -217,11 +218,6 @@ namespace atmt {
                     m_part_is_duplicate = true;
                 }
                 m_raw_input.pop();
-            }else if (m_part_address < 0) {
-                if (!manageSpecial(m_raw_input.front())) {
-                    m_part_address = m_raw_input.front();
-                }
-                m_raw_input.pop();
             }else if (m_part_length < 0) {
                 if (!manageSpecial(m_raw_input.front())) {
                     m_part_length = m_raw_input.front();
@@ -230,6 +226,16 @@ namespace atmt {
                     // }else {
                         // m_part_data = uint8_t[kMaxPacketSize];
                     }
+                }
+                m_raw_input.pop();
+            }else if (m_part_sender < 0) {
+                if (!manageSpecial(m_raw_input.front())) {
+                    m_part_sender = m_raw_input.front();
+                }
+                m_raw_input.pop();
+            }else if (m_part_address < 0) {
+                if (!manageSpecial(m_raw_input.front())) {
+                    m_part_address = m_raw_input.front();
                 }
                 m_raw_input.pop();
             }else if (m_part_datas_input < m_part_length) {
@@ -288,6 +294,7 @@ namespace atmt {
     void SerialReader::resetPartialMessage() {
         m_part_has_start = false;
         m_part_is_duplicate = false;
+        m_part_sender = -1;
         m_part_address = -1;
         m_part_length = -1;
         // if (!m_part_has_end) { // Means that the message was corrupted or incomplete

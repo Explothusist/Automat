@@ -611,6 +611,8 @@ namespace atmt {
             case LeftStick:
                 setAxisLeft(stick_x, stick_y);
                 break;
+            case NULLStick:
+                break;
         }
         StickEvent new_state = StickCenter;
         if (std::abs(stick_x) > std::abs(stick_y)) {
@@ -644,6 +646,16 @@ namespace atmt {
                 if (new_state != m_button_state[R2Button]) {
                     triggerEvent(R2Button, new_state);
                 }
+                break;
+            case RXAxis:
+                break;
+            case RYAxis:
+                break;
+            case LXAxis:
+                break;
+            case LYAxis:
+                break;
+            case NULLAxis:
                 break;
         }
     };

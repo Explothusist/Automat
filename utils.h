@@ -115,6 +115,7 @@ namespace atmt {
     typedef struct {
         uint8_t data[kMaxPacketSize];
         uint8_t length;
+        uint8_t sender;
     } serial_message;
 
     enum class SerialMessage : uint8_t {

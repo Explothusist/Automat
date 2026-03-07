@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "automat_platform.h"
+#include "../automat_platform.h"
 
 #include "Trigger.h"
 #include "Subsystem.h"
@@ -115,9 +115,9 @@ namespace atmt {
             std::function<JoystickState()> m_state_function; // For state Continuous
 #endif
 
-            StickEvent m_stick_state[2];
-            double m_axis_position[6]; // ESP32 and VEX use different subsets, but this is all (enums)
-            ButtonEvent m_button_state[14];
+            StickEvent m_stick_state[3];
+            double m_axis_position[7]; // ESP32 and VEX use different subsets, but this is all (enums)
+            ButtonEvent m_button_state[15];
 
             RobotState* m_robot_state;
             // TimedRobot* m_robot;

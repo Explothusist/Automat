@@ -6,8 +6,8 @@
 
 #include <queue>
 #include <cstdint>
-#include "automat_platform.h"
-#include "utils.h"
+#include "../automat_platform.h"
+#include "../utils.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 #include "../command_based/Subsystem.h"
 #include "../command_based/Trigger.h"
@@ -19,11 +19,12 @@
 
 /*
     Packet format:
-        START -> ADDRESS -> LEN -> DATA ... DATA -> CHKSUM -> END
+        START -> LEN -> SENDER -> ADDRESS -> DATA ... DATA -> CHKSUM -> END
     
         START:  0xfd
+        SENDER: Address of sender
         ADDRESS: Intended recipient
-        CHKSUM: DATA+DATA+...+DATA % 256
+        CHKSUM: LEN+SENDER+ADDRESS+DATA+DATA+...+DATA % 256
         END:    0xfc
 */
 
@@ -123,6 +124,7 @@ namespace atmt {
 
             bool m_part_has_start;
             bool m_part_is_duplicate;
+            int m_part_sender;
             int m_part_address;
             int m_part_length;
             uint8_t m_part_data[kMaxPacketSize];

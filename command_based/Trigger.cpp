@@ -19,8 +19,8 @@ namespace atmt {
         m_serial_code_length{ 0 },
         m_type{ OnTrigger },
         m_modes{ ModeTeleopOnly },
-        m_criteria{ },
-        m_inverted{ false }
+        m_inverted{ false },
+        m_criteria{ }
     {
 
     };
