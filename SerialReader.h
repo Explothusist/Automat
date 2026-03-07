@@ -15,9 +15,10 @@
 
 /*
     Packet format:
-        START -> LEN -> DATA ... DATA -> CHKSUM -> END
+        START -> ADDRESS -> LEN -> DATA ... DATA -> CHKSUM -> END
     
         START:  0xfd
+        ADDRESS: Intended recipient
         CHKSUM: DATA+DATA+...+DATA % 256
         END:    0xfc
 */
@@ -31,10 +32,17 @@ namespace atmt {
     class SerialReader : public Subsystem {
         public:
 #ifdef AUTOMAT_VEX_
-            SerialReader(int port);
+            SerialReader(uint8_t address_code, int port);
 #endif
-#ifdef AUTOMAT_ESP32_
-            SerialReader();
+#ifdef AUTOMAT_ESP32_ARDUINO_
+            SerialReader(uint8_t address_code);
+            SerialReader(uint8_t address_code, int rx_pin, int tx_pin);
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+            SerialReader(uint8_t address_code);
+            SerialReader(uint8_t address_code, int rx_pin, int tx_pin);
+            SerialReader(uint8_t address_code, int rx_pin, int tx_pin, int buffer_size);
+            SerialReader(uint8_t address_code, int rx_pin, int tx_pin, int buffer_size, int uart_port);
 #endif
             ~SerialReader() override;
 
@@ -53,8 +61,9 @@ namespace atmt {
             bool availableMessages();
             bool getNextMessage(uint8_t output[], uint8_t &length);
             // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
-            bool sendMessage(uint8_t message[], uint8_t length);
-            bool sendMessage(uint8_t message[], uint8_t length, int duplicates);
+            bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
+            bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int duplicates);
+            void sendByte(uint8_t byte);
             void flushMessages();
 
             void bindToMessage(Trigger* trigger, Command* command);
@@ -62,19 +71,27 @@ namespace atmt {
 
             void triggerEvent(SerialEvent event, uint8_t code[], uint8_t length);
 
-            std::vector<Command*> pollEvents();
-            std::vector<int> pollEventTerminations();
-            bool pollAutonomousTriggers();
-
         private:
-            std::vector<Trigger_Event*> m_triggers;
-            std::vector<Trigger_Event*> m_temp_triggers;
-
 #ifdef AUTOMAT_VEX_
             vex::motor* m_fake_motor;
             int m_port;
             int m_index;
 #endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+            int m_rx_pin;
+            int m_tx_pin;
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+            int m_rx_pin;
+            int m_tx_pin;
+            int m_buffer_size;
+            int m_uart_port;
+#endif
+            std::vector<Trigger_Event*> m_triggers;
+            std::vector<Trigger_Event*> m_temp_triggers;
+
+            uint8_t m_address_code;
+
             std::queue<uint8_t> m_raw_input;
             // std::queue<uint8_t> m_partial_message;
             std::queue<serial_message> m_messages;
@@ -84,6 +101,7 @@ namespace atmt {
 
             bool m_part_has_start;
             bool m_part_is_duplicate;
+            int m_part_address;
             int m_part_length;
             uint8_t m_part_data[kMaxPacketSize];
             int m_part_datas_input;

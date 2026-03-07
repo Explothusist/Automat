@@ -105,6 +105,13 @@ namespace atmt {
     constexpr int kMaxMessagesPerFrame = 256;
     constexpr uint8_t kMaxPacketSize = 64;
 
+#ifdef AUTOMAT_ESP32_
+    constexpr int kRXDefaultPin = 16;
+    constexpr int kTXDefaultPin = 16;
+    constexpr int kUARTDefaultBufferSize = 1024;  // RX/TX buffer size
+    constexpr int kUARTDefaultPort = 2;  // uart_port_t kUARTDefaultPort = UART_NUM_2
+#endif
+
     typedef struct {
         uint8_t data[kMaxPacketSize];
         uint8_t length;

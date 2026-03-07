@@ -3,6 +3,16 @@
 
 #include "EventHandler.h"
 
+#include <cstring>
+
+#ifdef AUTOMAT_ESP32_ARDUINO_
+#include <Arduino.h>
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+#include "driver/uart.h"
+#include "esp_log.h"
+#endif
+
 namespace atmt {
     
     bool m_read_serial_events{ false };
@@ -12,12 +22,46 @@ namespace atmt {
     };
 
 #ifdef AUTOMAT_VEX_
-    SerialReader::SerialReader(int port):
-        m_triggers{ std::vector<Trigger_Event*>() },
-        m_temp_triggers{ std::vector<Trigger_Event*>() },
+    SerialReader::SerialReader(uint8_t address_code, int port):
         m_fake_motor{ nullptr },
         m_port{ port },
         m_index{ 0 },
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+    SerialReader::SerialReader(uint8_t address_code):
+        SerialReader(address_code, -1, -1)
+    {
+
+    };
+    SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin):
+        m_rx_pin{ rx_pin < 0 ? kRXDefaultPin : rx_pin },
+        m_tx_pin{ tx_pin < 0 ? kTXDefaultPin : tx_pin }
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+    SerialReader::SerialReader(uint8_t address_code):
+        SerialReader(address_code, -1, -1)
+    {
+
+    };
+    SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin):
+        SerialReader(address_code, rx_pin, tx_pin, -1)
+    {
+
+    };
+    SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin, int buffer_size):
+        SerialReader(address_code, rx_pin, tx_pin, buffer_size, -1)
+    {
+
+    };
+    SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin, int buffer_size, int uart_port):
+        m_rx_pin{ rx_pin < 0 ? kRXDefaultPin : rx_pin },
+        m_tx_pin{ tx_pin < 0 ? kTXDefaultPin : tx_pin },
+        m_buffer_size{ buffer_size < 0 ? kUARTDefaultBufferSize : buffer_size },
+        m_uart_port{ uart_port < 0 ? kUARTDefaultPort : uart_port },
+#endif
+        m_address_code{ address_code },
+        m_triggers{ std::vector<Trigger_Event*>() },
+        m_temp_triggers{ std::vector<Trigger_Event*>() },
         m_raw_input{ },
         m_messages{ },
         m_to_send{ },
@@ -26,6 +70,7 @@ namespace atmt {
 
         m_part_has_start{ false },
         m_part_is_duplicate{ false },
+        m_part_address{ -1 },
         m_part_length{ -1 },
         m_part_data{ },
         m_part_datas_input{ 0 },
@@ -38,16 +83,11 @@ namespace atmt {
     {
 
     };
-#endif
-#ifdef AUTOMAT_ESP32_
-    SerialReader::SerialReader()
-    {
-
-    };
-#endif
     SerialReader::~SerialReader() {
+#ifdef AUTOMAT_VEX_
         delete m_fake_motor;
         m_fake_motor = nullptr;
+#endif
         for (Trigger_Event* trigger : m_triggers) {
             delete trigger;
         }
@@ -65,7 +105,26 @@ namespace atmt {
         vexGenericSerialEnable(m_index, 0);
         vexGenericSerialBaudrate(m_index, kBaudrate);
 #endif
-#ifdef AUTOMAT_ESP32_
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        Serial2.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        uart_config_t uart_config = {};
+        uart_config.baud_rate = kBaudrate;
+        uart_config.data_bits = UART_DATA_8_BITS;
+        uart_config.parity = UART_PARITY_DISABLE;
+        uart_config.stop_bits = UART_STOP_BITS_1;
+        uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+        uart_config.source_clk = UART_SCLK_APB;
+
+        // Configure UART parameters
+        uart_param_config(m_uart_port, &uart_config);
+
+        // Set UART pins
+        uart_set_pin(m_uart_port, m_tx_pin, m_rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+
+        // Install driver
+        uart_driver_install(m_uart_port, m_buffer_size, m_buffer_size, 0, nullptr, 0);
 #endif
     };
     void SerialReader::periodic() {
@@ -95,11 +154,40 @@ namespace atmt {
             m_to_send.pop();
             // available_length -= 1;
         }
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        int received_messages = 0;
+        while (Serial2.available() && received_messages < kMaxMessagesPerFrame) {
+            uint8_t raw = Serial2.read();
+            m_raw_input.push(raw);
+            received_messages += 1;
+        }
+
+        while (!m_to_send.empty() && Serial2.availableForWrite) {
+            Serial2.write(m_to_send.front());
+            m_to_send.pop();
+        }
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        uint8_t buf[128];
+        int len = uart_read_bytes(m_uart_port, buf, sizeof(buf), 0); // timeout 0 = non-blocking
+        for (int i = 0; i < len; i++) {
+            m_raw_input.push(buf[i]);
+        }
+
+        while (!m_to_send.empty()) {
+            uint8_t b = static_cast<uint8_t>(m_to_send.front());
+
+            int written = uart_write_bytes(m_uart_port, (const char*)&b, 1);
+            if (written > 0) {
+                m_to_send.pop();
+            } else {
+                break; // UART TX full
+            }
+        }
+#endif
 
         interpretMessages();
-#endif
-#ifdef AUTOMAT_ESP32_
-#endif
     };
     
     void SerialReader::internal_init(RobotState* robot_state, EventHandler* event_handler) {
@@ -116,6 +204,11 @@ namespace atmt {
                 }else if (m_raw_input.front() == static_cast<uint8_t>(SerialMessage::StartDuplicate)) { // 0xfc
                     m_part_has_start = true;
                     m_part_is_duplicate = true;
+                }
+                m_raw_input.pop();
+            }else if (m_part_address < 0) {
+                if (!manageSpecial(m_raw_input.front())) {
+                    m_part_address = m_raw_input.front();
                 }
                 m_raw_input.pop();
             }else if (m_part_length < 0) {
@@ -156,13 +249,15 @@ namespace atmt {
                     //     message.data[i] = m_part_data[i];
                     // }
                     memcpy(message.data, m_part_data, m_part_length);
-                    if (!m_part_is_duplicate) {
-                        addInterpretedMessage(message);
-                    }else {
-                        // serial_message original = m_messages.back();
-                        if (!checkIfMatching(message, m_last_message)) { // If it is not a duplicate of the last packet
+                    if (m_part_address == m_address_code) {
+                        if (!m_part_is_duplicate) {
                             addInterpretedMessage(message);
-                        } // else: we did receive the original packet, so no need to recognize the duplicate
+                        }else {
+                            // serial_message original = m_messages.back();
+                            if (!checkIfMatching(message, m_last_message)) { // If it is not a duplicate of the last packet
+                                addInterpretedMessage(message);
+                            } // else: we did receive the original packet, so no need to recognize the duplicate
+                        }
                     }
                 }
                 resetPartialMessage();
@@ -180,6 +275,7 @@ namespace atmt {
     void SerialReader::resetPartialMessage() {
         m_part_has_start = false;
         m_part_is_duplicate = false;
+        m_part_address = -1;
         m_part_length = -1;
         // if (!m_part_has_end) { // Means that the message was corrupted or incomplete
         //     delete[] m_part_data;
@@ -250,15 +346,10 @@ namespace atmt {
             return false;
         }
     };
-    // void SerialReader::destroyMessage(uint8_t* output, uint8_t &length) {
-    //     delete[] output;
-    //     output = nullptr;
-    //     length = 0;
-    // };
-    bool SerialReader::sendMessage(uint8_t message[], uint8_t length) {
-        return sendMessage(message, length, 1);
+    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
+        return sendMessage(recipient_code, message, length, 1);
     };
-    bool SerialReader::sendMessage(uint8_t message[], uint8_t length, int duplicates) {
+    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int duplicates) {
         if (length > kMaxPacketSize) {
             return false;
         }
@@ -269,25 +360,23 @@ namespace atmt {
                 m_to_send.push(static_cast<int>(SerialMessage::StartDuplicate));
             }
 
-            if (isSpecial(length)) {
-                m_to_send.push(static_cast<uint8_t>(SerialMessage::Escape));
-            }
-            m_to_send.push(length);
+            sendByte(recipient_code);
+            sendByte(length);
             uint8_t checksum = 0;
             for (int j = 0; j < length; j++) {
-                if (isSpecial(message[j])) {
-                    m_to_send.push(static_cast<uint8_t>(SerialMessage::Escape));
-                }
-                m_to_send.push(message[j]);
+                sendByte(message[j]);
                 checksum += message[j];
             }
-            if (isSpecial(checksum)) {
-                m_to_send.push(static_cast<uint8_t>(SerialMessage::Escape));
-            }
-            m_to_send.push(checksum);
+            sendByte(checksum);
             m_to_send.push(static_cast<int>(SerialMessage::End));
         }
         return true;
+    };
+    void SerialReader::sendByte(uint8_t byte) {
+        if (isSpecial(byte)) {
+            m_to_send.push(static_cast<uint8_t>(SerialMessage::Escape));
+        }
+        m_to_send.push(byte);
     };
     void SerialReader::flushMessages() {
         std::queue<serial_message> empty;
@@ -325,6 +414,13 @@ namespace atmt {
                 }
             }
         }
+    };
+
+    void SerialReader::bindToMessage(Trigger* trigger, Command* command) {
+        m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
+    };
+    void SerialReader::bindAutoTrigger(Trigger* trigger) {
+        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
     };
 
 };
