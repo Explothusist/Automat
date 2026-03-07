@@ -1,7 +1,11 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "EventHandler.h"
 #include "Joystick.h"
-#include "SerialReader.h"
+#ifdef ATMT_SUBMODULE_SERIAL_
+#include "../serial/SerialReader.h"
+#endif
 #include "TimedRobot.h"
 
 #ifdef AUTOMAT_VEX_
@@ -14,7 +18,9 @@ namespace atmt {
     
     void SetReadEvents(bool to_read) {
         SetReadJoystickEvents(to_read);
+#ifdef ATMT_SUBMODULE_SERIAL_
         SetReadSerialEvents(to_read);
+#endif
     };
 
     EventHandler::EventHandler():
@@ -26,9 +32,9 @@ namespace atmt {
     {
         
     };
-    EventHandler::~EventHandler() {
+    // EventHandler::~EventHandler() {
 
-    };
+    // };
 
     // void EventHandler::init(RobotState* robot_state, TimedRobot* robot) {
     void EventHandler::init() {
@@ -105,3 +111,5 @@ namespace atmt {
     };
 
 };
+
+#endif

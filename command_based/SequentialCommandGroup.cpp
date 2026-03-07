@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "SequentialCommandGroup.h"
 
@@ -46,3 +48,5 @@ namespace atmt {
     };
 
 };
+
+#endif

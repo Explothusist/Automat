@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_TRIGGER_
 #define AUTOMAT_TRIGGER_
@@ -151,5 +153,7 @@ namespace atmt {
     };
 
 }
+
+#endif
 
 #endif

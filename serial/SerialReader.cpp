@@ -1,7 +1,11 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_SERIAL_
 
 #include "SerialReader.h"
 
-#include "EventHandler.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+#include "../command_based/EventHandler.h"
+#endif
 
 #include <cstring>
 
@@ -15,11 +19,13 @@
 
 namespace atmt {
     
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
     bool m_read_serial_events{ false };
     
     void SetReadSerialEvents(bool to_read) {
         m_read_serial_events = to_read;
     };
+#endif
 
 #ifdef AUTOMAT_VEX_
     SerialReader::SerialReader(uint8_t address_code, int port):
@@ -35,7 +41,7 @@ namespace atmt {
     };
     SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin):
         m_rx_pin{ rx_pin < 0 ? kRXDefaultPin : rx_pin },
-        m_tx_pin{ tx_pin < 0 ? kTXDefaultPin : tx_pin }
+        m_tx_pin{ tx_pin < 0 ? kTXDefaultPin : tx_pin },
 #endif
 #ifdef AUTOMAT_ESP32_ESPIDF_
     SerialReader::SerialReader(uint8_t address_code):
@@ -60,8 +66,12 @@ namespace atmt {
         m_uart_port{ uart_port < 0 ? kUARTDefaultPort : uart_port },
 #endif
         m_address_code{ address_code },
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
         m_triggers{ std::vector<Trigger_Event*>() },
         m_temp_triggers{ std::vector<Trigger_Event*>() },
+        m_robot_state{ nullptr },
+        m_event_handler{ nullptr },
+#endif
         m_raw_input{ },
         m_messages{ },
         m_to_send{ },
@@ -76,10 +86,7 @@ namespace atmt {
         m_part_datas_input{ 0 },
         m_part_checksum{ -1 },
         m_part_has_end{ false },
-        m_part_next_char_escaped{ false },
-
-        m_robot_state{ nullptr },
-        m_event_handler{ nullptr }
+        m_part_next_char_escaped{ false }
     {
 
     };
@@ -88,6 +95,7 @@ namespace atmt {
         delete m_fake_motor;
         m_fake_motor = nullptr;
 #endif
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
         for (Trigger_Event* trigger : m_triggers) {
             delete trigger;
         }
@@ -96,6 +104,7 @@ namespace atmt {
             delete trigger;
         }
         m_temp_triggers.clear();
+#endif
     };
 
     void SerialReader::init() {
@@ -163,7 +172,7 @@ namespace atmt {
             received_messages += 1;
         }
 
-        while (!m_to_send.empty() && Serial2.availableForWrite) {
+        while (!m_to_send.empty() && Serial2.availableForWrite()) {
             Serial2.write(m_to_send.front());
             m_to_send.pop();
         }
@@ -190,10 +199,12 @@ namespace atmt {
         interpretMessages();
     };
     
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
     void SerialReader::internal_init(RobotState* robot_state, EventHandler* event_handler) {
         m_event_handler = event_handler;
         m_robot_state = robot_state;
     };
+#endif
 
     void SerialReader::interpretMessages() {
         while (!m_raw_input.empty()) {
@@ -270,7 +281,9 @@ namespace atmt {
     void SerialReader::addInterpretedMessage(serial_message message) {
         m_messages.push(message);
         m_last_message = message;
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
         triggerEvent(SerialReceive, message.data, message.length);
+#endif
     };
     void SerialReader::resetPartialMessage() {
         m_part_has_start = false;
@@ -384,6 +397,7 @@ namespace atmt {
     };
 
     
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
     void SerialReader::triggerEvent(SerialEvent event, uint8_t code[], uint8_t length) {
         if (!m_robot_state) { // Uninitialized
             return;
@@ -422,5 +436,8 @@ namespace atmt {
     void SerialReader::bindAutoTrigger(Trigger* trigger) {
         m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
     };
+#endif
 
 };
+
+#endif

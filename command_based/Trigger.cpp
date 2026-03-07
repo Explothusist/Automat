@@ -1,7 +1,11 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "Trigger.h"
 
 #include "Joystick.h"
+
+#include <cstring>
 
 namespace atmt {
 
@@ -192,3 +196,5 @@ namespace atmt {
     };
 
 };
+
+#endif

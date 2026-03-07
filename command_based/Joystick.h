@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_JOYSTICK_
 #define AUTOMAT_JOYSTICK_
@@ -123,5 +125,7 @@ namespace atmt {
     };
 
 }
+
+#endif
 
 #endif

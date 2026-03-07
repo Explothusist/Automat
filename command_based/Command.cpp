@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "Command.h"
 
@@ -96,3 +98,5 @@ namespace atmt {
     bool Command::is_finished() {return false;};
 
 }
+
+#endif

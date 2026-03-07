@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "TimedRobot.h"
 
@@ -6,7 +8,9 @@
 #include "Command.h"
 #include "Joystick.h"
 #include "EventHandler.h"
-#include "SerialReader.h"
+#ifdef ATMT_SUBMODULE_SERIAL_
+#include "../serial/SerialReader.h"
+#endif
 
 namespace atmt {
 
@@ -418,4 +422,6 @@ namespace atmt {
     void TimedRobot::teleopInit() {};
     void TimedRobot::teleopPeriodic() {};
     void TimedRobot::teleopExit() {};
-}
+};
+
+#endif

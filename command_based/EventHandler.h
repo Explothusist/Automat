@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_EVENT_HANDLER_
 #define AUTOMAT_EVENT_HANDLER_
@@ -44,5 +46,7 @@ namespace atmt {
     };
 
 }
+
+#endif
 
 #endif

@@ -1,3 +1,6 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+
 #ifndef AUTOMAT_EMPTY_COMMAND_
 #define AUTOMAT_EMPTY_COMMAND_
 
@@ -22,5 +25,7 @@ namespace atmt {
     };
 
 }
+
+#endif
 
 #endif

@@ -22,8 +22,8 @@
 
 #ifdef AUTOMAT_ESP32_
     #if defined(ARDUINO)
-        // #define AUTOMAT_ESP32_ARDUINO_
-    // #elif defined(ESP_PLATFORM)
+        #define AUTOMAT_ESP32_ARDUINO_
+    #elif defined(ESP_PLATFORM)
         #define AUTOMAT_ESP32_ESPIDF_
     #endif
 
