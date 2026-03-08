@@ -9,5 +9,6 @@
 // utilities
 #define ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_ // Enables/Disables PID_Controller
 #define ATMT_SUBMODULE_UTILITIES_VECTOR_ // Enables/Disables Vector2, Vector3
+#define ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_ // Enables/Disables ThreadsafeBuffer
 
 #endif

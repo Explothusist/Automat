@@ -89,7 +89,10 @@ namespace atmt {
         m_part_has_end{ false },
         m_part_next_char_escaped{ false }
     {
-
+        if (m_address_code == KSerialAddressSendAll) {
+            platform_print("Cannot Set Address to 0xFF (Reserved for SendMessageAll)");
+            m_address_code = 0;
+        }
     };
     SerialReader::~SerialReader() {
 #ifdef AUTOMAT_VEX_
@@ -266,7 +269,7 @@ namespace atmt {
                     //     message.data[i] = m_part_data[i];
                     // }
                     memcpy(message.data, m_part_data, m_part_length);
-                    if (m_part_address == m_address_code) {
+                    if (m_part_address == m_address_code || m_part_address == KSerialAddressSendAll) {
                         if (!m_part_is_duplicate) {
                             addInterpretedMessage(message);
                         }else {
@@ -352,17 +355,18 @@ namespace atmt {
         return (!m_messages.empty());
     };
     bool SerialReader::getNextMessage(uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return getNextMessage(output, length, sender);
+    };
+    bool SerialReader::getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
         if (availableMessages()) {
             serial_message message = m_messages.front();
             m_messages.pop();
             length = message.length;
-            // for (int i = 0; i < length; i++) {
-            //     output[i] = message.data[i];
-            // }
+            sender = message.sender;
             memcpy(output, message.data, length);
             return true;
         }else {
-            // return static_cast<uint8_t>(SerialMessage::Error);
             return false;
         }
     };
@@ -380,9 +384,14 @@ namespace atmt {
                 m_to_send.push(static_cast<int>(SerialMessage::StartDuplicate));
             }
 
-            sendByte(recipient_code);
-            sendByte(length);
             uint8_t checksum = 0;
+            checksum += length;
+            sendByte(length);
+            checksum += m_address_code;
+            sendByte(m_address_code);
+            checksum += recipient_code;
+            sendByte(recipient_code);
+            
             for (int j = 0; j < length; j++) {
                 sendByte(message[j]);
                 checksum += message[j];
@@ -391,6 +400,12 @@ namespace atmt {
             m_to_send.push(static_cast<int>(SerialMessage::End));
         }
         return true;
+    };
+    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length) {
+        return sendMessage(KSerialAddressSendAll, message, length, 1);
+    };
+    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int duplicates) {
+        return sendMessage(KSerialAddressSendAll, message, length, duplicates);
     };
     void SerialReader::sendByte(uint8_t byte) {
         if (isSpecial(byte)) {

@@ -108,7 +108,7 @@ namespace atmt {
 
 #ifdef AUTOMAT_ESP32_
     constexpr int kRXDefaultPin = 16;
-    constexpr int kTXDefaultPin = 16;
+    constexpr int kTXDefaultPin = 17;
     constexpr int kUARTDefaultBufferSize = 1024;  // RX/TX buffer size
     constexpr int kUARTDefaultPort = 2;  // uart_port_t kUARTDefaultPort = UART_NUM_2
 #endif
@@ -130,6 +130,7 @@ namespace atmt {
         // Invalid = 0xfe,
         // Error = 0xff
     };
+    constexpr uint8_t KSerialAddressSendAll = 0xff;
 
 };
 

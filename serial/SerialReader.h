@@ -76,9 +76,12 @@ namespace atmt {
 
             bool availableMessages();
             bool getNextMessage(uint8_t output[], uint8_t &length);
+            bool getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
             // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int duplicates);
+            bool sendMessageAll(uint8_t message[], uint8_t length);
+            bool sendMessageAll(uint8_t message[], uint8_t length, int duplicates);
             void sendByte(uint8_t byte);
             void flushMessages();
 

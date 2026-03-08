@@ -32,5 +32,8 @@
 #include "utilities/Vector2.h"
 #include "utilities/Vector3.h"
 #endif
+#ifdef ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_
+#include "utilities/ThreadsafeBuffer.h"
+#endif
 
 #endif
