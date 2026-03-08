@@ -360,7 +360,7 @@ namespace atmt {
             // m_joysticks.push_back(joystick); // To ensure no duplicates
         }
     };
-#ifdef AUTOMAT_SUBMODULE_SERIAL_
+#ifdef ATMT_SUBMODULE_SERIAL_
     void TimedRobot::addSerialReader(SerialReader* serial) {
         if (!robotHasSubsystem(serial)) {
             serial->internal_init(&m_state, m_event_handler);

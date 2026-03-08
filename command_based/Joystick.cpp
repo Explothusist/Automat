@@ -604,6 +604,9 @@ namespace atmt {
 #endif
 
     void Joystick::triggerRawStick(StickIndicator stick, double stick_x, double stick_y) {
+        if (stick == NULLStick) {
+            return;
+        }
         switch (stick) {
             case RightStick:
                 setAxisRight(stick_x, stick_y);
@@ -660,6 +663,9 @@ namespace atmt {
         }
     };
     void Joystick::triggerEvent(StickIndicator stick, StickEvent event) {
+        if (stick == NULLStick) {
+            return;
+        }
         if (!m_robot_state) { // Uninitialized
             return;
         }
@@ -692,6 +698,9 @@ namespace atmt {
         }
     };
     void Joystick::triggerEvent(ButtonIndicator button, ButtonEvent event) {
+        if (button == NULLButton) {
+            return;
+        }
         if (!m_robot_state) { // Uninitialized
             return;
         }
@@ -802,9 +811,15 @@ namespace atmt {
     };
 
     ButtonEvent Joystick::getButtonState(ButtonIndicator button) {
+        if (button == NULLButton) {
+            return ButtonNULL;
+        }
         return m_button_state[button];
     };
     StickEvent Joystick::getStickState(StickIndicator stick) {
+        if (stick == NULLStick) {
+            return StickNULL;
+        }
         return m_stick_state[stick];
     };
     double Joystick::getRawAxis(AxisIndicator axis) {

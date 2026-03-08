@@ -21,7 +21,7 @@ namespace atmt {
     class Command;
     class Joystick;
     class EventHandler;
-#ifdef AUTOMAT_SUBMODULE_SERIAL_
+#ifdef ATMT_SUBMODULE_SERIAL_
     class SerialReader;
 #endif
 
@@ -52,7 +52,7 @@ namespace atmt {
             void runCommand(Command* command);
             void registerSubsystem(Subsystem* subsystem);
             void addJoystick(Joystick* joystick);
-#ifdef AUTOMAT_SUBMODULE_SERIAL_
+#ifdef ATMT_SUBMODULE_SERIAL_
             void addSerialReader(SerialReader* serial);
 #endif
 

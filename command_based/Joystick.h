@@ -33,8 +33,8 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
     struct JoystickState {
         bool buttons[12]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
-        uint8_t axes[6]; // RY, RX, LY, LX, RT, LT
-        uint8_t axis_range[2]; // min, max (i.e. -100, 100)
+        int axes[6]; // RY, RX, LY, LX, RT, LT (0, 255)
+        int axis_range[2]; // min, max (i.e. -100, 100)
     };
 
     typedef enum {

@@ -17,69 +17,69 @@ namespace atmt {
     // class Command; // Forward declare because it never actually uses it
 
     typedef enum {
-        NULLStick,
-        LeftStick,
-        RightStick
+        NULLStick = -1,
+        LeftStick = 0,
+        RightStick = 1
     } StickIndicator;
     typedef enum {
-        StickNULL,
-        StickUp,
-        StickDown,
-        StickLeft,
-        StickRight,
-        StickCenter
+        StickNULL = -1,
+        StickUp = 0,
+        StickDown = 1,
+        StickLeft = 2,
+        StickRight = 3,
+        StickCenter = 4
     } StickEvent;
     typedef enum {
-        NULLButton,
-        AButton,
-        BButton,
-        XButton,
-        YButton,
-        UpButton,
-        LeftButton,
-        DownButton,
-        RightButton,
-        StartButton, // ESP32 only
-        SelectButton, // ESP32 only
-        L1Button,
-        L2Button,
-        R1Button,
-        R2Button
+        NULLButton = -1,
+        AButton = 0,
+        BButton = 1,
+        XButton = 2,
+        YButton = 3,
+        UpButton = 4,
+        LeftButton = 5,
+        DownButton = 6,
+        RightButton = 7,
+        StartButton = 8, // ESP32 only
+        SelectButton = 9, // ESP32 only
+        L1Button = 10,
+        L2Button = 11,
+        R1Button = 12,
+        R2Button = 13
     } ButtonIndicator;
     typedef enum {
-        ButtonNULL,
-        ButtonPressed,
-        ButtonReleased
+        ButtonNULL = -1,
+        ButtonPressed = 0,
+        ButtonReleased = 1
     } ButtonEvent;
     typedef enum {
-        NULLSerial,
-        SerialReceive
+        NULLSerial = -1,
+        SerialReceive = 0
     } SerialEvent;
     typedef enum {
-        NULLTrigger,
-        OnTrigger,
-        WhileTrigger
+        NULLTrigger = -1,
+        OnTrigger = 0,
+        WhileTrigger = 1
     } TriggerType;
     typedef enum {
-        ModeNULL,
-        ModeTeleopOnly,
-        ModeAutonomousOnly,
-        ModeTeleopAndAuto
+        ModeNULL = -1,
+        ModeTeleopOnly = 0,
+        ModeAutonomousOnly = 1,
+        ModeTeleopAndAuto = 2
     } TriggerModes;
     typedef enum {
-        NULLAxis,
-        RYAxis,
-        RXAxis,
-        LYAxis,
-        LXAxis,
-        RTAxis, // ESP32 only
-        LTAxis, // ESP32 only
+        NULLAxis = -1,
+        RYAxis = 0,
+        RXAxis = 1,
+        LYAxis = 2,
+        LXAxis = 3,
+        RTAxis = 4, // ESP32 only
+        LTAxis = 5, // ESP32 only
     } AxisIndicator;
 
     typedef enum {
-        StartCommand,
-        EndCommand,
-        StartAutonomous
+        StartCommand = 0,
+        EndCommand = 1,
+        StartAutonomous = 2
     } TriggerEffect;
 
     class Trigger {
