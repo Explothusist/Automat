@@ -4,14 +4,9 @@
 #include "PID_Controller.h"
 #include <cmath>
 #include <algorithm>
+#include "../utils.h"
 
 namespace atmt {
-    
-    // Drop-in std::clamp replacement for C++11/C++14
-    template <typename T>
-    constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        return (v < lo) ? lo : (hi < v) ? hi : v;
-    }
 
     PID_Controller::PID_Controller():
         PID_Controller(
@@ -192,5 +187,5 @@ namespace atmt {
 };
 
 #else
-#error "Enable ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_ in automat_submodules.h to use PID_Controller"
+// #error "Enable ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_ in automat_submodules.h to use PID_Controller"
 #endif

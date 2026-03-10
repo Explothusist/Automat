@@ -4,14 +4,10 @@
 #include "Vector3.h"
 
 #include <cmath>
+#include "../utils.h"
 
 namespace atmt {
 
-    // Drop-in std::clamp replacement for C++11/C++14
-    template <typename T>
-    constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        return (v < lo) ? lo : (hi < v) ? hi : v;
-    }
     constexpr double kZeroEpsilon = 1e-12;
 
     Vector3::Vector3():
@@ -149,5 +145,5 @@ namespace atmt {
 };
 
 #else
-#error "Enable ATMT_SUBMODULE_UTILITIES_VECTOR_ in automat_submodules.h to use Vector3"
+// #error "Enable ATMT_SUBMODULE_UTILITIES_VECTOR_ in automat_submodules.h to use Vector3"
 #endif

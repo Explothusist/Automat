@@ -131,6 +131,12 @@ namespace atmt {
         // Error = 0xff
     };
     constexpr uint8_t KSerialAddressSendAll = 0xff;
+    
+    // Drop-in std::clamp replacement for C++11/C++14
+    template <typename T>
+    constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+        return (v < lo) ? lo : (hi < v) ? hi : v;
+    }
 
 };
 
