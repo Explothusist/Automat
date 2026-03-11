@@ -8,8 +8,6 @@
 
 namespace atmt {
 
-    constexpr double kZeroEpsilon = 1e-12;
-
     Vector2::Vector2():
         Vector2(0, 0)
     {

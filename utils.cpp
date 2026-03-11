@@ -164,6 +164,9 @@ namespace atmt {
     int Timestamp::getTimeDifferenceMS(Timestamp timestamp) {
         return std::abs(getTimeMS() - timestamp.getTimeMS());
     };
+    double Timestamp::getTimeDifference(Timestamp timestamp) {
+        return static_cast<double>(std::abs(getTimeMS() - timestamp.getTimeMS())) * 0.001;
+    };
     int Timestamp::getTimeMS() {
 #ifdef AUTOMAT_VEX_
         return m_milliseconds;
@@ -171,6 +174,9 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
         return static_cast<int>(m_milliseconds);
 #endif
+    };
+    double Timestamp::getTime() {
+        return static_cast<double>(getTimeMS()) * 0.001;
     };
 
     Timestamp getSystemTime() {

@@ -85,8 +85,10 @@ namespace atmt {
 #endif
             ~Timestamp();
 
-            int getTimeDifferenceMS(Timestamp timestamp); // ms
-            int getTimeMS(); // ms
+            int getTimeDifferenceMS(Timestamp timestamp); // milliseconds
+            double getTimeDifference(Timestamp timestamp); // seconds
+            int getTimeMS(); // milliseconds
+            double getTime(); // seconds
         private:
 #ifdef AUTOMAT_VEX_
             int m_milliseconds;
@@ -133,10 +135,12 @@ namespace atmt {
     constexpr uint8_t KSerialAddressSendAll = 0xff;
     
     // Drop-in std::clamp replacement for C++11/C++14
-    template <typename T>
-    constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        return (v < lo) ? lo : (hi < v) ? hi : v;
+    template <typename Type>
+    constexpr const Type& clamp(const Type& value, const Type& low, const Type& high) {
+        return (value < low) ? low : (high < value) ? high : value;
     }
+
+    constexpr double kZeroEpsilon = 1e-12;
 
 };
 

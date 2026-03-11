@@ -35,5 +35,9 @@
 #ifdef ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_
 #include "utilities/ThreadsafeBuffer.h"
 #endif
+#ifdef ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_
+#include "utilities/KinematicPredictor.h"
+#endif
+
 
 #endif
