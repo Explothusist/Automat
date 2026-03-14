@@ -4,6 +4,7 @@
 #include "PID_Controller.h"
 #include <cmath>
 #include <algorithm>
+#include <limits>
 #include "../utils.h"
 
 namespace atmt {
@@ -23,9 +24,9 @@ namespace atmt {
             0.0,                    // FF
             P != 0.0 ? I / P : 0.0, // AW, Decent baseline
 
-            -INFINITY,              // min_out
-            INFINITY,               // max_out
-            INFINITY                // max_rate
+            -std::numeric_limits<double>::infinity(),              // min_out
+            std::numeric_limits<double>::infinity(),               // max_out
+            std::numeric_limits<double>::infinity()                // max_rate
         )
     {
         m_auto_AW = true;
@@ -35,8 +36,8 @@ namespace atmt {
         PID_Controller(P, I, D, timestep, FF, AW,
             min_out, max_out, max_rate,
             5 * timestep,
-            -INFINITY,
-            INFINITY
+            -std::numeric_limits<double>::infinity(),
+            std::numeric_limits<double>::infinity()
         )
     {
         m_auto_AW = false;
