@@ -37,9 +37,6 @@ namespace atmt {
     Vector3 Vector3::operator/(double scalar) const {
         return Vector3(m_x / scalar, m_y / scalar, m_z / scalar);
     };
-    Vector3 operator/(double scalar, const Vector3 &vector) {
-        return vector / scalar; // Swaps order to avoid error
-    };
     Vector3& Vector3::operator+=(const Vector3 &vector) {
         m_x += vector.m_x;
         m_y += vector.m_y;
@@ -59,6 +56,9 @@ namespace atmt {
         return *this;
     };
     Vector3& Vector3::operator/=(double scalar) {
+        if (std::abs(scalar) < kZeroEpsilon) {
+            return *this;
+        }
         m_x /= scalar;
         m_y /= scalar;
         m_z /= scalar;

@@ -49,7 +49,6 @@ namespace atmt {
     };
 
     Vector2 operator*(double scalar, const Vector2 &vector); // Overload the baseline
-    Vector2 operator/(double scalar, const Vector2 &vector); // Overload the baseline
 
 };
 

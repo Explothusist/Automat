@@ -36,9 +36,6 @@ namespace atmt {
     Vector2 Vector2::operator/(double scalar) const {
         return Vector2(m_x / scalar, m_y / scalar);
     };
-    Vector2 operator/(double scalar, const Vector2 &vector) {
-        return vector / scalar; // Swaps order to avoid error
-    };
     Vector2& Vector2::operator+=(const Vector2 &vector) {
         m_x += vector.m_x;
         m_y += vector.m_y;
@@ -55,6 +52,9 @@ namespace atmt {
         return *this;
     };
     Vector2& Vector2::operator/=(double scalar) {
+        if (std::abs(scalar) < kZeroEpsilon) {
+            return *this;
+        }
         m_x /= scalar;
         m_y /= scalar;
         return *this;
