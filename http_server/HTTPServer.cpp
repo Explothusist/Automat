@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_
 
 #include "HTTPServer.h"
 
@@ -233,3 +235,7 @@ namespace atmt {
     };
 
 };
+
+#else
+// #error "Enable ATMT_SUBMODULE_HTTP_SERVER_ in automat_submodules.h to use HTTPServer"
+#endif

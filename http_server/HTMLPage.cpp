@@ -1,3 +1,5 @@
+#include "../automat_submodules.h"
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_
 
 #include "HTMLPage.h"
 
@@ -143,3 +145,7 @@ namespace atmt {
 #endif
 
 };
+
+#else
+// #error "Enable ATMT_SUBMODULE_HTTP_SERVER_ in automat_submodules.h to use HTMLPage"
+#endif
