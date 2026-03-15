@@ -101,7 +101,12 @@ namespace atmt {
     typedef struct {
         std::string name;
         std::string data;
-    } POSTInfo; 
+    } POSTInfo;
+
+    typedef enum {
+        Method_Get,
+        Method_Post
+    } atmtHTTPMethod;
 
 };
 

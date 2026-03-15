@@ -4,9 +4,16 @@
 
 namespace atmt {
 
-    HTTPServer::HTTPServer():
+    HTTPServer::HTTPServer(std::string wifi_ssid, std::string wifi_password):
+#ifdef AUTOMAT_ESP32_ESPIDF_
         m_server{ nullptr },
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        m_server{ 80 },
+#endif
         m_html_pages{ },
+        m_wifi_ssid{ wifi_ssid },
+        m_wifi_password{ wifi_password },
         m_wifi_init{ false },
         m_server_init{ false }
     {
@@ -23,16 +30,43 @@ namespace atmt {
         m_html_pages.clear();
     };
 
-    void HTTPServer::registerStaticPage_RawHTML(const char* url, const char* html) {
+    void HTTPServer::init() {
+        wifiInit();
+    };
+    void HTTPServer::periodic() {
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        if (m_server_init) {
+            m_server.handleClient();
+            if (WiFi.status() != WL_CONNECTED && m_lastReconnectAttempt + kReconnectDelayMS < millis()) {
+                WiFi.reconnect();
+                m_lastReconnectAttempt = millis();
+            }
+        }
+#endif
+    };
+
+    void HTTPServer::registerPage_Static_RawHTML(std::string url, std::string html) {
         HTMLPage* page = new HTMLPage_Static_RawHTML(url, html);
+        registerPage(page);
+    };
+    void HTTPServer::registerPage_Static_DynamicHTML(std::string url, std::function<std::string()> html_getter) {
+        HTMLPage* page = new HTMLPage_Static_DynamicHTML(url, html_getter);
+        registerPage(page);
+    };
+    void HTTPServer::registerPage_Static_DynamicPost(std::string url, std::function<void(std::vector<POSTInfo>)> post_sender) {
+        HTMLPage* page = new HTMLPage_Static_DynamicPost(url, post_sender);
+        registerPage(page);
+    };
+    void HTTPServer::registerPage(HTMLPage* page) {
         m_html_pages.push_back(page);
         if (m_server_init) {
-            registerPage(page);
+            addPageToServer(page);
         }
     };
 
-    void HTTPServer::wifiInit(const char* wifi_ssid, const char* wifi_password) {
+    void HTTPServer::wifiInit() {
         if (!m_wifi_init) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
             ESP_ERROR_CHECK(nvs_flash_init()); // NVS (Non-Volatile Storage)
             ESP_ERROR_CHECK(esp_netif_init()); // Initializes TCP/IP stack
             ESP_ERROR_CHECK(esp_event_loop_create_default()); // Creates event dispatcher
@@ -46,8 +80,8 @@ namespace atmt {
             ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &HTTPServer::wifiEventHandler, this, NULL));
 
             wifi_config_t wifi_config = { 0 };
-            strncpy((char*)wifi_config.sta.ssid, wifi_ssid, sizeof(wifi_config.sta.ssid) - 1); // Grab the wifi network info so it knows what and how to connect
-            strncpy((char*)wifi_config.sta.password, wifi_password, sizeof(wifi_config.sta.password) - 1); // -1 is to ensure there is a character to null terminate the string
+            strncpy((char*)wifi_config.sta.ssid, m_wifi_ssid.c_str(), sizeof(wifi_config.sta.ssid) - 1); // Grab the wifi network info so it knows what and how to connect
+            strncpy((char*)wifi_config.sta.password, m_wifi_password.c_str(), sizeof(wifi_config.sta.password) - 1); // -1 is to ensure there is a character to null terminate the string
             wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK; // Prevents connecting to open networks (may remove temporarily)
             // wifi_config.sta.threshold.authmode = WIFI_AUTH_OPEN;
             wifi_config.sta.pmf_cfg.capable = true; // Tells the router "I am modern and flexible"
@@ -58,11 +92,27 @@ namespace atmt {
             esp_wifi_start(); // Finally actually starts the wifi
 
             esp_wifi_set_ps(WIFI_PS_NONE); // Turns off power saving measures because we are streaming
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+            WiFi.mode(WIFI_STA);
+            WiFi.onEvent(
+                [this](WiFiEvent_t event, WiFiEventInfo_t info) {
+                    wifiEventHandler(event, info, this);
+                }
+            );
+            WiFi.begin(m_wifi_ssid.c_str(), m_wifi_password.c_str());
+            // while (WiFi.status() != WL_CONNECTED) {
+            //     delay(500);
+            // }
+            // // Serial.println(WiFi.localIP());
+            // startServer();
+#endif
             m_wifi_init = true;
         }
     };
     void HTTPServer::startServer() {
         if (!m_server_init) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
             httpd_config_t config = HTTPD_DEFAULT_CONFIG(); // Start with default, then adjust specific
 
             config.server_port = 80; // Means that client does not need to specify a port 
@@ -74,11 +124,7 @@ namespace atmt {
             m_server = nullptr; // Reference to the server
             if (httpd_start(&m_server, &config) == ESP_OK) {
 
-                // for (size_t i = 0; i < m_html_pages.size(); i++) {
-                for (HTMLPage* page : m_html_pages) {
-                    // registerPage(m_html_pages[i]);
-                    registerPage(page);
-                }
+                addAllPages();
 
                 ESP_LOGI("HTTP", "HTTP Server Started");
                 m_server_init = true;
@@ -86,15 +132,31 @@ namespace atmt {
                 // Server failed to start
                 ESP_LOGE("HTTP", "Failed to Start HTTP Server");
             }
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+            addAllPages();
+
+            m_server.begin();
+            m_server_init = true;
+#endif
         }
     };
     void HTTPServer::killServer() {
+#ifdef AUTOMAT_ESP32_ESPIDF_
         if (m_server_init && m_server) {
             httpd_stop(m_server);
             m_server = nullptr;
             m_server_init = false;
         }
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        if (m_server_init) {
+            m_server.stop();
+            m_server_init = false;
+        }
+#endif
     };
+#ifdef AUTOMAT_ESP32_ESPIDF_
     void HTTPServer::wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
         HTTPServer* server = static_cast<HTTPServer*>(arg);
         if (event_base == WIFI_EVENT) {
@@ -126,8 +188,27 @@ namespace atmt {
         HTMLPage* html_page = static_cast<HTMLPage*>(request->user_ctx);
         return html_page->handle_request(request);
     };
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+    void HTTPServer::wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server) {
+        if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
+            server->startServer();
+        }
+    };
+    void HTTPServer::HTTPRequestHandler(HTMLPage* page) {
+        page->handle_request(&m_server);
+    };
+#endif
 
-    void HTTPServer::registerPage(HTMLPage* page) {
+    void HTTPServer::addAllPages() {
+        // for (size_t i = 0; i < m_html_pages.size(); i++) {
+        for (HTMLPage* page : m_html_pages) {
+            // registerPage(m_html_pages[i]);
+            addPageToServer(page);
+        }
+    };
+    void HTTPServer::addPageToServer(HTMLPage* page) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
         httpd_uri_t new_uri = {
             .uri = page->getPath().c_str(),
             .method = page->getMethod(),
@@ -139,6 +220,16 @@ namespace atmt {
         if (error != ESP_OK) {
             ESP_LOGE("HTTP", "Failed to register URI: %s", page->getPath());
         }
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        m_server.on(
+            page->getPath().c_str(),
+            page->getMethod(),
+            [this, page]() {
+                HTTPRequestHandler(page);
+            }
+        );
+#endif
     };
 
 };
