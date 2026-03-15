@@ -23,50 +23,6 @@ namespace atmt {
     extern vex::brain m_brain;
 #endif
 
-    // Uses utilites/Vector2 and utilities/Vector3 instead
-    // class Vector_2D;
-    // class Vector_Polar;
-
-    // class Vector_2D {
-    //     public:
-    //         Vector_2D(double x, double y);
-    //         ~Vector_2D();
-
-    //         double getX();
-    //         double getY();
-
-    //         void translate(Vector_2D vector);
-    //         void translate(double x, double y);
-
-    //         void rotate(double theta);
-
-    //         void normalize();
-
-    //         Vector_Polar toPolar();
-    //     private:
-    //         double m_x;
-    //         double m_y;
-    // };
-
-    // class Vector_Polar {
-    //     public:
-    //         Vector_Polar(double r, double theta);
-    //         ~Vector_Polar();
-
-    //         double getR();
-    //         double getTheta();
-
-    //         void rotate(Vector_Polar vector);
-    //         void rotate(double theta);
-
-    //         void normalize();
-
-    //         Vector_2D toCartesian();
-    //     private:
-    //         double m_r;
-    //         double m_theta; // In radians
-    // };
-
     void platform_clear_screen();
     void platform_print(std::string stuff);
     void platform_println(std::string stuff);
@@ -141,6 +97,11 @@ namespace atmt {
     }
 
     constexpr double kZeroEpsilon = 1e-12;
+
+    typedef struct {
+        std::string name;
+        std::string data;
+    } POSTInfo; 
 
 };
 
