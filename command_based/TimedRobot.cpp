@@ -352,7 +352,7 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
             if (!m_uses_vex_competition) {
 #endif
-                joystick->bindAutoTrigger(new Trigger(AButton, ButtonPressed));
+                joystick->bindAutoTrigger((new Trigger(AButton, ButtonPressed))->inMode(atmt::ModeAnyAndAll));
 #ifdef AUTOMAT_VEX_
             }
 #endif

@@ -107,6 +107,8 @@ namespace atmt {
                 return (state == Autonomous);
             case ModeTeleopAndAuto:
                 return (state == Teleop || state == Autonomous);
+            case ModeAnyAndAll:
+                return true;
             case ModeNULL:
                 return false;
             default:
