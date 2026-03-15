@@ -5,11 +5,11 @@
 // // #define AUTOMAT_ESP32_ // Select which platform here
 // // #define AUTOMAT_VEX_ 
 
-// #if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
     #define AUTOMAT_ESP32_
-// #else
-    // #define AUTOMAT_VEX_
-// #endif
+#else
+    #define AUTOMAT_VEX_
+#endif
 
 #if defined(AUTOMAT_ESP32_) + defined(AUTOMAT_VEX_) != 1
     #error "Automat: Exactly one AUTOMAT platform must be defined"
