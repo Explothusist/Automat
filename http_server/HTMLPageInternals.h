@@ -18,17 +18,20 @@
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "esp_http_server.h"
+#include "cJSON.h"
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
+#include <ArduinoJson.h>
 #endif
 
 namespace atmt {
 
     constexpr int kFailedPostRequestBeforeFail = 5;
     constexpr int kDelayAfterFailedPostRequestTicks = pdMS_TO_TICKS(1);
+    constexpr int kHttpPostBufferSize = 512;
 
     class HTTPRequest {
         public:
@@ -39,11 +42,23 @@ namespace atmt {
             HTTPRequest(WebServer* page);
 #endif
 
+            void setFailedPostRequestsBeforeFail(int failed_requests);
+            void setDelayAfterFailedPostRequests(int milliseconds);
+            void setHttpPostBufferSize(int buffer_size);
+
             atmtHTTPError sendResponse(const std::string& type, const std::string& content);
 
             atmtHTTPError getPostData(std::string& data);
             atmtHTTPError getPostType(std::string& type, std::string& raw_header);
+            atmtHTTPError parseJSON(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
+            atmtHTTPError parseMultipart(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
+            atmtHTTPError parseUrlEncoded(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
 
+            /*
+                Supports application/json, multipart/form-data, and application/x-www-form-urlencoded
+                application/json notes: Only supports flat, top-level JSON
+                multipart/form-data notes: Does not support files
+            */
             atmtHTTPError getParsedPostData(std::vector<POSTInfo>& parsed);
 
         private:
@@ -53,6 +68,9 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_ARDUINO_
             WebServer* m_page;
 #endif
+            int m_post_requests_before_fail;
+            int m_post_delay_after_failed;
+            int m_post_buffer_size;
     };
 
     class HTMLPage {

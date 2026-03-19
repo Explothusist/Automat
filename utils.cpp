@@ -134,28 +134,49 @@ namespace atmt {
 
     std::vector<std::string> splitString(const std::string& string, const std::string& delineator) {
         std::vector<std::string> output;
-        size_t start = 0;
-        size_t end = 0;
-        // std::string remaining = string;
-        while (true) {
-            end = string.find(delineator, start);
-            if (end != std::string::npos) {
-                output.push_back(string.substr(start, end - start));
-            }else {
-                break;
+        if (delineator == "") {
+            for (size_t i = 0; i < string.size(); i++) {
+                output.push_back(std::string(1, string[i]));
             }
-            start = end + delineator.length();
+        }else {
+            size_t start = 0;
+            size_t end = 0;
+            // std::string remaining = string;
+            while (true) {
+                end = string.find(delineator, start);
+                if (end != std::string::npos) {
+                    output.push_back(string.substr(start, end - start));
+                }else {
+                    break;
+                }
+                start = end + delineator.length();
+            }
+            output.push_back(string.substr(start));
         }
-        output.push_back(string.substr(start));
         return output;
     };
     std::string substrUntil(const std::string& string, const std::string& delineator) {
         size_t delin_loc = string.find(delineator);
         return delin_loc != std::string::npos ? string.substr(0, delin_loc) : string;
     };
+    std::string substrUntilFirstOf(const std::string& string, const std::string& delineator1, const std::string& delineator2) {
+        size_t delin_loc = string.find(delineator1);
+        delin_loc = std::min(delin_loc, string.find(delineator2));
+        return delin_loc != std::string::npos ? string.substr(0, delin_loc) : string;
+    };
     std::string substrAfter(const std::string& string, const std::string& delineator) {
         size_t delin_loc = string.find(delineator);
         return delin_loc != std::string::npos ? string.substr(delin_loc + delineator.length()) : "";
+    };
+    std::string substrAfterFirstOf(const std::string& string, const std::string& delineator1, const std::string& delineator2) {
+        size_t delin_loc = string.find(delineator1);
+        size_t delin_loc2 = string.find(delineator2);
+        size_t delin_length = delineator1.length();
+        if (delin_loc2 < delin_loc) {
+            delin_loc = delin_loc2;
+            delin_length = delineator2.length();
+        }
+        return delin_loc != std::string::npos ? string.substr(delin_loc + delin_length) : "";
     };
     std::string substrBetween(const std::string& string, const std::string& delineator1, const std::string& delineator2) {
         size_t start = string.find(delineator1);
@@ -172,11 +193,11 @@ namespace atmt {
     };
     std::string trimWhitespace(const std::string& string) {
         size_t start = 0;
-        while (start < string.length() && isspace(string[start])) {
+        while (start < string.length() && isspace((unsigned char) string[start])) {
             start += 1;
         }
         size_t end = string.length() - 1;
-        while (end >= 0 && isspace(string[end])) {
+        while (end > start && isspace((unsigned char) string[end - 1])) {
             end -= 1;
         }
         return string.substr(start, end - start);

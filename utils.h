@@ -115,7 +115,9 @@ namespace atmt {
 
     std::vector<std::string> splitString(const std::string& string, const std::string& delineator);
     std::string substrUntil(const std::string& string, const std::string& delineator);
+    std::string substrUntilFirstOf(const std::string& string, const std::string& delineator1, const std::string& delineator2);
     std::string substrAfter(const std::string& string, const std::string& delineator);
+    std::string substrAfterFirstOf(const std::string& string, const std::string& delineator1, const std::string& delineator2);
     std::string substrBetween(const std::string& string, const std::string& delineator1, const std::string& delineator2);
     std::string trimWhitespace(const std::string& string);
     std::string trimTrailingCRLF(const std::string& string);
