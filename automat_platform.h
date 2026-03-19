@@ -5,7 +5,7 @@
 // // #define AUTOMAT_ESP32_ // Select which platform here
 // // #define AUTOMAT_VEX_ 
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32) || defined(ESP32) || defined(ESP_PLATFORM)
     #define AUTOMAT_ESP32_
 #else
     #define AUTOMAT_VEX_

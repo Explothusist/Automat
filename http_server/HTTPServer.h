@@ -19,12 +19,12 @@
 #include "esp_http_server.h"
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-#include <Wifi.h>
+#include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
 #endif
 
-#include "HTMLPage.h"
+#include "HTMLPageInternals.h"
 
 namespace atmt {
 

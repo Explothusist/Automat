@@ -20,79 +20,45 @@
 #include "esp_http_server.h"
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-#include <Wifi.h>
+#include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
 #endif
 
-namespace atmt {
+#include "HTMLPageInternals.h"
 
-    class HTMLPage {
-        public:
-            HTMLPage(const std::string& path, atmtHTTPMethod method);
-            virtual ~HTMLPage() = default;
-            
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            virtual esp_err_t handle_request(httpd_req_t* request);
-#endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
-            virtual void handle_request(WebServer* server);
-#endif
-            const std::string& getPath() const;
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            http_method getMethod() const;
-#endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
-            HTTPMethod getMethod() const;
-#endif
-        private:
-            std::string m_path;
-            atmtHTTPMethod m_method;
-    };
+namespace atmt {
 
     class HTMLPage_Static_RawHTML : public HTMLPage {
         public:
             HTMLPage_Static_RawHTML(const std::string& path, const std::string& html);
-            ~HTMLPage_Static_RawHTML();
+            ~HTMLPage_Static_RawHTML() override = default;
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            esp_err_t handle_request(httpd_req_t* request) override;
-#endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
-            void handle_request(WebServer* page) override;
-#endif
+            esp_err_t handle_request(HTTPRequest* request) override;
         private:
             std::string m_html;
     };
     
     class HTMLPage_Static_DynamicHTML : public HTMLPage {
         public:
-            HTMLPage_Static_DynamicHTML(const std::string& path, std::function<std::string()> html_getter);
-            ~HTMLPage_Static_DynamicHTML();
+            HTMLPage_Static_DynamicHTML(const std::string& path, std::function<std::string(void*)> html_getter, void* arg);
+            ~HTMLPage_Static_DynamicHTML() override = default;
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            esp_err_t handle_request(httpd_req_t* request) override;
-#endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
-            void handle_request(WebServer* page) override;
-#endif
+            esp_err_t handle_request(HTTPRequest* request) override;
         private:
-            std::function<std::string()> m_html_getter;
+            std::function<std::string(void*)> m_html_getter;
+            void* m_arg; // for html_getter
     };
     
     class HTMLPage_Static_DynamicPost : public HTMLPage {
         public:
-            HTMLPage_Static_DynamicPost(const std::string& path, std::function<void(std::vector<POSTInfo>)> post_sender);
-            ~HTMLPage_Static_DynamicPost();
+            HTMLPage_Static_DynamicPost(const std::string& path, std::function<void(std::vector<POSTInfo>, void*)> post_sender, void* arg);
+            ~HTMLPage_Static_DynamicPost() override = default;
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            esp_err_t handle_request(httpd_req_t* request) override;
-#endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
-            void handle_request(WebServer* page) override;
-#endif
+            esp_err_t handle_request(HTTPRequest* request) override;
         private:
-            std::function<void(std::vector<POSTInfo>)> m_post_sender;
+            std::function<void(std::vector<POSTInfo>, void*)> m_post_sender;
+            void* m_arg;
     };
 
 }

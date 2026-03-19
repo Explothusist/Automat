@@ -5,6 +5,7 @@
 #include "automat_platform.h"
 #include <string>
 #include <cstdint>
+#include <vector>
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
@@ -107,6 +108,19 @@ namespace atmt {
         Method_Get,
         Method_Post
     } atmtHTTPMethod;
+    typedef enum {
+        HTTP_OK,
+        HTTP_FAIL
+    } atmtHTTPError;
+
+    std::vector<std::string> splitString(const std::string& string, const std::string& delineator);
+    std::string substrUntil(const std::string& string, const std::string& delineator);
+    std::string substrAfter(const std::string& string, const std::string& delineator);
+    std::string substrBetween(const std::string& string, const std::string& delineator1, const std::string& delineator2);
+    std::string trimWhitespace(const std::string& string);
+    std::string trimTrailingCRLF(const std::string& string);
+    inline int hexCharToInt(char c);
+    std::string urlDecode(const std::string& string);
 
 };
 
