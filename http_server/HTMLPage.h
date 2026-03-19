@@ -50,14 +50,25 @@ namespace atmt {
             void* m_arg; // for html_getter
     };
     
-    class HTMLPage_Static_DynamicPost : public HTMLPage {
+    class HTMLPage_Static_DynamicPostHTML : public HTMLPage {
         public:
-            HTMLPage_Static_DynamicPost(const std::string& path, std::function<void(std::vector<POSTInfo>, void*)> post_sender, void* arg);
-            ~HTMLPage_Static_DynamicPost() override = default;
+            HTMLPage_Static_DynamicPostHTML(const std::string& path, std::function<std::string(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
+            ~HTMLPage_Static_DynamicPostHTML() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;
         private:
-            std::function<void(std::vector<POSTInfo>, void*)> m_post_sender;
+            std::function<std::string(const std::vector<POSTInfo>&, void*)> m_post_sender;
+            void* m_arg;
+    };
+    class HTMLPage_Static_DynamicPostRedirect : public HTMLPage {
+        public:
+            HTMLPage_Static_DynamicPostRedirect(const std::string& path, const std::string& redirect_path, std::function<void(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
+            ~HTMLPage_Static_DynamicPostRedirect() override = default;
+
+            esp_err_t handle_request(HTTPRequest* request) override;
+        private:
+            std::string m_redirect_path;
+            std::function<void(const std::vector<POSTInfo>&, void*)> m_post_sender;
             void* m_arg;
     };
 

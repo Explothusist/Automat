@@ -8,6 +8,233 @@
 
 namespace atmt {
 
+    atmtHTTPError translateStatusCode(int code, std::string& status_message) {
+        status_message = "404 Not Found";
+        if (code < 100 || code > 599) {
+            return HTTP_FAIL;
+        }else if (code <= 199) {
+            // Informational
+            switch (code) {
+                case 100:
+                    status_message = "100 Continue";
+                    break;
+                case 101:
+                    status_message = "101 Switching Protocols";
+                    break;
+                case 102:
+                    status_message = "102 Processing";
+                    break;
+                case 103:
+                    status_message = "103 Early Hints";
+                    break;
+                default:
+                    status_message = std::to_string(code)+" Informational";
+            }
+        }else if (code <= 299) {
+            // Successful
+            switch (code) {
+                case 200:
+                    status_message = "200 OK";
+                    break;
+                case 201:
+                    status_message = "201 Created";
+                    break;
+                case 202:
+                    status_message = "202 Accepted";
+                    break;
+                case 203:
+                    status_message = "203 Non-Authoritative Information";
+                    break;
+                case 204:
+                    status_message = "204 No Content";
+                    break;
+                case 205:
+                    status_message = "205 Reset Content";
+                    break;
+                case 206:
+                    status_message = "206 Partial Content";
+                    break;
+                case 207:
+                    status_message = "207 Multi-Status";
+                    break;
+                case 208:
+                    status_message = "208 Already Reported";
+                    break;
+                case 226:
+                    status_message = "226 IM Used";
+                    break;
+                default:
+                    status_message = std::to_string(code)+" Successful";
+            }
+        }else if (code <= 399) {
+            // Redirection
+            switch (code) {
+                case 300:
+                    status_message = "300 Multiple Choices";
+                    break;
+                case 301:
+                    status_message = "301 Moved Permanently";
+                    break;
+                case 302:
+                    status_message = "302 Found";
+                    break;
+                case 303:
+                    status_message = "303 See Other";
+                    break;
+                case 304:
+                    status_message = "304 Not Modified";
+                    break;
+                case 305:
+                    status_message = "305 Use Proxy (Deprecated)";
+                    break;
+                case 306:
+                    status_message = "306 unused (Deprecated)";
+                    break;
+                case 307:
+                    status_message = "307 Temporary Redirect";
+                    break;
+                case 308:
+                    status_message = "308 Permanent Redirect";
+                    break;
+                default:
+                    status_message = std::to_string(code)+" Redirection";
+            }
+        }else if (code <= 499) {
+            // Client Error Responses
+            switch (code) {
+                case 400:
+                    status_message = "400 Bad Request";
+                    break;
+                case 401:
+                    status_message = "401 Unauthorized";
+                    break;
+                case 402:
+                    status_message = "402 Payment Required";
+                    break;
+                case 403:
+                    status_message = "403 Forbidden";
+                    break;
+                case 404:
+                    status_message = "404 Not Found";
+                    break;
+                case 405:
+                    status_message = "405 Method Not Allowed";
+                    break;
+                case 406:
+                    status_message = "406 Not Acceptable";
+                    break;
+                case 407:
+                    status_message = "407 Proxy Authentication Required";
+                    break;
+                case 408:
+                    status_message = "408 Request Timeout";
+                    break;
+                case 409:
+                    status_message = "409 Conflict";
+                    break;
+                case 410:
+                    status_message = "410 Gone";
+                    break;
+                case 411:
+                    status_message = "411 Length Required";
+                    break;
+                case 412:
+                    status_message = "412 Precondition Failed";
+                    break;
+                case 413:
+                    status_message = "413 Content Too Large";
+                    break;
+                case 414:
+                    status_message = "414 URI Too Long";
+                    break;
+                case 415:
+                    status_message = "415 Unsupported Media Type";
+                    break;
+                case 416:
+                    status_message = "416 Range Not Satisfiable";
+                    break;
+                case 417:
+                    status_message = "417 Expectation Failed";
+                    break;
+                case 418:
+                    status_message = "418 I'm a teapot";
+                    break;
+                case 421:
+                    status_message = "421 Misdirected Request";
+                    break;
+                case 422:
+                    status_message = "422 Unprocessable Content";
+                    break;
+                case 423:
+                    status_message = "423 Locked";
+                    break;
+                case 424:
+                    status_message = "424 Failed Dependency";
+                    break;
+                case 425:
+                    status_message = "425 Too Early";
+                    break;
+                case 426:
+                    status_message = "426 Upgrade Required";
+                    break;
+                case 428:
+                    status_message = "428 Precondition Required";
+                    break;
+                case 429:
+                    status_message = "429 Too Many Requests";
+                    break;
+                case 431:
+                    status_message = "431 Request Header Fields Too Large";
+                    break;
+                case 451:
+                    status_message = "451 Unavailable For Legal Reasons";
+                    break;
+                default:
+                    status_message = std::to_string(code)+" Client Error";
+            }
+        }else if (code <= 599) {
+            // Server Error Responses
+            switch (code) {
+                case 500:
+                    status_message = "500 Internal Server Error";
+                    break;
+                case 501:
+                    status_message = "501 Not Implemented";
+                    break;
+                case 502:
+                    status_message = "502 Bad Gateway";
+                    break;
+                case 503:
+                    status_message = "503 Service Unavailable";
+                    break;
+                case 504:
+                    status_message = "504 Gateway Timeout";
+                    break;
+                case 505:
+                    status_message = "505 HTTP Version Not Supported";
+                    break;
+                case 506:
+                    status_message = "506 Variant Also Negotiates";
+                    break;
+                case 507:
+                    status_message = "507 Insufficient Storage";
+                    break;
+                case 508:
+                    status_message = "508 Loop Detected";
+                    break;
+                case 510:
+                    status_message = "510 Not Extended";
+                    break;
+                case 511:
+                    status_message = "511 Network Authentication Required";
+                    break;
+                default:
+                    status_message = std::to_string(code)+" Server Error";
+            }
+        }
+        return HTTP_OK;
+    };
+
 #ifdef AUTOMAT_ESP32_ESPIDF_
     HTTPRequest::HTTPRequest(httpd_req_t* request): 
         m_request{ request },
@@ -39,9 +266,21 @@ namespace atmt {
         m_post_buffer_size = buffer_size;
     };
     
-    atmtHTTPError HTTPRequest::sendResponse(const std::string& type, const std::string& content) {
+    atmtHTTPError HTTPRequest::sendResponse(const std::string& type, const std::string& content, int code) {
+        if (code < 200 || code > 299) {
+            return HTTP_FAIL;
+        }
 #ifdef AUTOMAT_ESP32_ESPIDF_
-        esp_err_t error =  httpd_resp_set_type(m_request, type.c_str());
+        std::string status_code;
+        atmtHTTPError atmt_error = translateStatusCode(code, status_code);
+        if (atmt_error != HTTP_OK) {
+            return HTTP_FAIL;
+        }
+        esp_err_t error = httpd_resp_set_status(m_request, status_code.c_str());
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        error = httpd_resp_set_type(m_request, type.c_str());
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
@@ -52,7 +291,39 @@ namespace atmt {
         return HTTP_OK;
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-        m_page->send(200, type.c_str(), content.c_str());
+        m_page->send(code, type.c_str(), content.c_str());
+        return HTTP_OK;
+#endif
+
+        return HTTP_FAIL;
+    };
+    atmtHTTPError HTTPRequest::throwRedirect(const std::string& url, int code) {
+        if (code < 300 || code > 399) {
+            return HTTP_FAIL;
+        }
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        std::string status_code;
+        atmtHTTPError atmt_error = translateStatusCode(code, status_code);
+        if (atmt_error != HTTP_OK) {
+            return HTTP_FAIL;
+        }
+        esp_err_t error = httpd_resp_set_status(m_request, status_code.c_str());
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        error = httpd_resp_set_hdr(m_request, "Location", url.c_str());
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        error = httpd_resp_send(m_request, nullptr, 0);
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        return HTTP_OK;
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        m_page->sendHeader("Location", url.c_str());
+        m_page->send(code, "text/plain", "");
         return HTTP_OK;
 #endif
 
@@ -97,9 +368,11 @@ namespace atmt {
                 if (i > 0) {
                     full_data += "&";
                 }
-                full_data += m_page->argName(i).c_str();
+                String temp = m_page->argName(i);
+                full_data += temp.c_str();
                 full_data += "=";
-                full_data += m_page->arg(i).c_str();
+                temp = m_page->arg(i);
+                full_data += temp.c_str();
             }
         }
         data = std::move(full_data);
@@ -119,7 +392,8 @@ namespace atmt {
         raw_header = std::string(content_type_raw); // Looks something like: 'multipart/form-data; boundary=----WebKitFormBoundaryXYZ'
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-        raw_header = m_page->header("Content-Type").c_str();
+        String cont_type = m_page->header("Content-Type");
+        raw_header = cont_type.c_str();
         if (raw_header.empty()) {
             return HTTP_FAIL;
         }
@@ -233,7 +507,7 @@ namespace atmt {
         current_buffer = "--" + trimWhitespace(current_chunk); // set to Boundary
 
         std::vector<std::string> parts = splitString(post_data, current_buffer);
-        for (std::string part : parts) {
+        for (const std::string& part : parts) {
             if (part.empty() || trimWhitespace(part) == "--") {
                 continue;
             }
@@ -275,8 +549,10 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_ARDUINO_
         for (int i = 0; i < m_page->args(); i++) {
             POSTInfo element;
-            element.name = m_page->argName(i).c_str();
-            element.data = m_page->arg(i).c_str();
+            String temp = m_page->argName(i);
+            element.name = temp.c_str();
+            temp = m_page->arg(i);
+            element.data = temp.c_str();
             parsed.push_back(element);
         }
 #else

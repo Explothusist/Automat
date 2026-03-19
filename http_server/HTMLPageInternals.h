@@ -33,6 +33,8 @@ namespace atmt {
     constexpr int kDelayAfterFailedPostRequestTicks = pdMS_TO_TICKS(1);
     constexpr int kHttpPostBufferSize = 512;
 
+    std::string translateStatusCode(int code);
+
     class HTTPRequest {
         public:
 #ifdef AUTOMAT_ESP32_ESPIDF_
@@ -46,7 +48,8 @@ namespace atmt {
             void setDelayAfterFailedPostRequests(int milliseconds);
             void setHttpPostBufferSize(int buffer_size);
 
-            atmtHTTPError sendResponse(const std::string& type, const std::string& content);
+            atmtHTTPError sendResponse(const std::string& type, const std::string& content, int code = 200);
+            atmtHTTPError throwRedirect(const std::string& url, int code = 303);
 
             atmtHTTPError getPostData(std::string& data);
             atmtHTTPError getPostType(std::string& type, std::string& raw_header);
