@@ -267,63 +267,137 @@ namespace atmt {
     };
     
     atmtHTTPError HTTPRequest::sendResponse(const std::string& type, const std::string& content, int code) {
+        return sendResponse(type.c_str(), type.length(), content.c_str(), content.length(), code);
+    };
+    atmtHTTPError HTTPRequest::sendResponse(const char* type, size_t type_length, const char* content, size_t cont_length, int code) {
         if (code < 200 || code > 299) {
             return HTTP_FAIL;
         }
 #ifdef AUTOMAT_ESP32_ESPIDF_
-        std::string status_code;
-        atmtHTTPError atmt_error = translateStatusCode(code, status_code);
+        atmtHTTPError atmt_error;
+        esp_err_t error;
+        atmt_error = setResponseType(type, type_length);
         if (atmt_error != HTTP_OK) {
             return HTTP_FAIL;
         }
-        esp_err_t error = httpd_resp_set_status(m_request, status_code.c_str());
-        if (error != ESP_OK) {
-            return HTTP_FAIL;
-        }
-        error = httpd_resp_set_type(m_request, type.c_str());
-        if (error != ESP_OK) {
-            return HTTP_FAIL;
-        }
-        error = httpd_resp_send(m_request, content.c_str(), HTTPD_RESP_USE_STRLEN);
+        error = httpd_resp_send(m_request, content, cont_length);
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
         return HTTP_OK;
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-        m_page->send(code, type.c_str(), content.c_str());
+        m_page->send(code, type, content);
         return HTTP_OK;
 #endif
 
         return HTTP_FAIL;
     };
     atmtHTTPError HTTPRequest::throwRedirect(const std::string& url, int code) {
+        return throwRedirect(url.c_str(), url.length(), code);
+    };
+    atmtHTTPError HTTPRequest::throwRedirect(const char* url, size_t url_length, int code) {
         if (code < 300 || code > 399) {
             return HTTP_FAIL;
         }
 #ifdef AUTOMAT_ESP32_ESPIDF_
+        esp_err_t error;
+        atmtHTTPError atmt_error;
         std::string status_code;
-        atmtHTTPError atmt_error = translateStatusCode(code, status_code);
+        atmt_error = translateStatusCode(code, status_code);
         if (atmt_error != HTTP_OK) {
             return HTTP_FAIL;
         }
-        esp_err_t error = httpd_resp_set_status(m_request, status_code.c_str());
+        error = httpd_resp_set_status(m_request, status_code.c_str());
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
-        error = httpd_resp_set_hdr(m_request, "Location", url.c_str());
+        error = httpd_resp_set_hdr(m_request, "Location", url);
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
-        error = httpd_resp_send(m_request, nullptr, 0);
+        const char* body = "<html><body>Redirecting...</body></html>";
+        error = httpd_resp_send(m_request, body, strlen(body));
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
         return HTTP_OK;
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-        m_page->sendHeader("Location", url.c_str());
-        m_page->send(code, "text/plain", "");
+        m_page->sendHeader("Location", url);
+        m_page->send(code, "text/html", "<html><body>Redirecting...</body></html>");
+        return HTTP_OK;
+#endif
+
+        return HTTP_FAIL;        
+    };
+    atmtHTTPError HTTPRequest::setResponseType(const std::string& type, int code) {
+        return setResponseType(type.c_str(), type.length(), code);
+    };
+    atmtHTTPError HTTPRequest::setResponseType(const char* type, size_t type_length, int code) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        esp_err_t error;
+        if (code != 200) {
+            std::string status_code;
+            atmtHTTPError atmt_error = translateStatusCode(code, status_code);
+            if (atmt_error != HTTP_OK) {
+                return HTTP_FAIL;
+            }
+            error = httpd_resp_set_status(m_request, status_code.c_str());
+            if (error != ESP_OK) {
+                return HTTP_FAIL;
+            }
+        }
+        error = httpd_resp_set_type(m_request, type);
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        return HTTP_OK;
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        // Set status code and content-type header
+        m_page->sendHeader("Content-Type", type, true); // first = true replaces existing
+        // m_page->setContentLength(0); // we will stream content later
+        m_page->sendHeader("Connection", "keep-alive", false); // keep connection open for chunked
+        return HTTP_OK;
+#endif
+
+        return HTTP_FAIL;
+    };
+    atmtHTTPError HTTPRequest::sendResponseChunk(const std::string& content) {
+        return sendResponseChunk(content.c_str(), content.length());
+    };
+    atmtHTTPError HTTPRequest::sendResponseChunk(const char* content, size_t cont_length) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        esp_err_t error = httpd_resp_send_chunk(m_request, content, cont_length);
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        return HTTP_OK;
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        WiFiClient client = m_page->client();
+        if (!client.connected()) return HTTP_FAIL;
+
+        client.write(content, cont_length); // raw send
+        return HTTP_OK;
+#endif
+
+        return HTTP_FAIL;
+    };
+    atmtHTTPError HTTPRequest::sendResponseEndChunks() {
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        esp_err_t error = httpd_resp_send_chunk(m_request, NULL, 0);
+        if (error != ESP_OK) {
+            return HTTP_FAIL;
+        }
+        return HTTP_OK;
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        WiFiClient client = m_page->client();
+        if (!client.connected()) return HTTP_FAIL;
+
+        client.flush(); // ensure all are sent
         return HTTP_OK;
 #endif
 
@@ -412,6 +486,7 @@ namespace atmt {
         return HTTP_OK;
     };
     
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
     atmtHTTPError HTTPRequest::parseJSON(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed) {
 #ifdef AUTOMAT_ESP32_ESPIDF_
         cJSON* json = cJSON_Parse(post_data.c_str());
@@ -467,6 +542,7 @@ namespace atmt {
 #endif
         return HTTP_OK;
     };
+#endif
     atmtHTTPError HTTPRequest::parseMultipart(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed) {
         /*
             ------WebKitFormBoundaryA1B2C3D4\r\n
@@ -591,7 +667,11 @@ namespace atmt {
 #endif
 
         if (post_type == "application/json") {
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
             error = parseJSON(post_data, full_header, parsed);
+#else
+            return HTTP_FAIL;
+#endif
         }else if (post_type == "multipart/form-data") {
             error = parseMultipart(post_data, full_header, parsed);
         }else if (post_type == "application/x-www-form-urlencoded") {

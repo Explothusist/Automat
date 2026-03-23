@@ -25,6 +25,10 @@
 #include <esp_wifi.h>
 #endif
 
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
+// #include "esp_camera.h"
+#endif
+
 #include "HTMLPageInternals.h"
 
 namespace atmt {
@@ -71,6 +75,20 @@ namespace atmt {
             std::function<void(const std::vector<POSTInfo>&, void*)> m_post_sender;
             void* m_arg;
     };
+
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
+    class HTMLPage_Dynamic_JPEGStreamer : public HTMLPage {
+        public:
+            HTMLPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg);
+            ~HTMLPage_Dynamic_JPEGStreamer() override = default;
+
+            esp_err_t handle_request(HTTPRequest* request) override;
+        private:
+            std::function<char*(size_t&, void*)> m_jpeg_getter;
+            int m_frame_delay_mS;
+            void* m_arg; // for html_getter
+    };
+#endif
 
 }
 

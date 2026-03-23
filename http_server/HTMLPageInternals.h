@@ -24,7 +24,9 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
 #include <ArduinoJson.h>
+#endif
 #endif
 
 namespace atmt {
@@ -33,7 +35,7 @@ namespace atmt {
     constexpr int kDelayAfterFailedPostRequestTicks = pdMS_TO_TICKS(1);
     constexpr int kHttpPostBufferSize = 512;
 
-    std::string translateStatusCode(int code);
+    atmtHTTPError translateStatusCode(int code, std::string& status_message);
 
     class HTTPRequest {
         public:
@@ -49,11 +51,20 @@ namespace atmt {
             void setHttpPostBufferSize(int buffer_size);
 
             atmtHTTPError sendResponse(const std::string& type, const std::string& content, int code = 200);
+            atmtHTTPError sendResponse(const char* type, size_t type_length, const char* content, size_t cont_length, int code = 200);
             atmtHTTPError throwRedirect(const std::string& url, int code = 303);
+            atmtHTTPError throwRedirect(const char* url, size_t url_length, int code = 303);
+            atmtHTTPError setResponseType(const std::string& type, int code = 200);
+            atmtHTTPError setResponseType(const char* type, size_t type_length, int code = 200);
+            atmtHTTPError sendResponseChunk(const std::string& content);
+            atmtHTTPError sendResponseChunk(const char* content, size_t cont_length);
+            atmtHTTPError sendResponseEndChunks();
 
             atmtHTTPError getPostData(std::string& data);
             atmtHTTPError getPostType(std::string& type, std::string& raw_header);
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
             atmtHTTPError parseJSON(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
+#endif
             atmtHTTPError parseMultipart(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
             atmtHTTPError parseUrlEncoded(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed);
 
