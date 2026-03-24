@@ -19,7 +19,7 @@ namespace atmt {
 
     };
     TimedRobot::TimedRobot(double autonomous_length):
-        m_event_handler{ },
+        m_event_handler{ new EventHandler() },
         m_subsystems{ },
         m_commands{ },
         // m_joysticks{ },
