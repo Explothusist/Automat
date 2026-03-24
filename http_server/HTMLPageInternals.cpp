@@ -236,10 +236,10 @@ namespace atmt {
         return HTTP_OK;
     };
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
-    HTTPRequest::HTTPRequest(httpd_req_t* request, HTTPServer* server): 
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+    HTTPRequest::HTTPRequest(httpd_req_t* request): 
         m_request{ request },
-        m_server{ server },
+        // m_server{ server },
         m_post_requests_before_fail{ kFailedPostRequestBeforeFail },
         m_post_delay_after_failed{ kDelayAfterFailedPostRequestTicks },
         m_post_buffer_size{ kHttpPostBufferSize }
@@ -247,7 +247,7 @@ namespace atmt {
 
     };
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
     HTTPRequest::HTTPRequest(WebServer* page, HTTPServer* server):
         m_page{ page },
         m_server{ server },
@@ -279,7 +279,7 @@ namespace atmt {
         if (code < 200 || code > 299) {
             return HTTP_FAIL;
         }
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         atmtHTTPError atmt_error;
         esp_err_t error;
         atmt_error = setResponseType(type, type_length);
@@ -292,7 +292,7 @@ namespace atmt {
         }
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         m_page->send(code, type, content);
         return HTTP_OK;
 #endif
@@ -306,7 +306,7 @@ namespace atmt {
         if (code < 300 || code > 399) {
             return HTTP_FAIL;
         }
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         esp_err_t error;
         atmtHTTPError atmt_error;
         std::string status_code;
@@ -329,19 +329,19 @@ namespace atmt {
         }
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         m_page->sendHeader("Location", url);
         m_page->send(code, "text/html", "<html><body>Redirecting...</body></html>");
         return HTTP_OK;
 #endif
 
-        return HTTP_FAIL;        
+        return HTTP_FAIL;
     };
     atmtHTTPError HTTPRequest::setResponseType(const std::string& type, int code) {
         return setResponseType(type.c_str(), type.length(), code);
     };
     atmtHTTPError HTTPRequest::setResponseType(const char* type, size_t type_length, int code) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         esp_err_t error;
         if (code != 200) {
             std::string status_code;
@@ -360,7 +360,7 @@ namespace atmt {
         }
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         // Set status code and content-type header
         m_page->sendHeader("Content-Type", type, true); // first = true replaces existing
         // m_page->setContentLength(0); // we will stream content later
@@ -374,14 +374,14 @@ namespace atmt {
         return sendResponseChunk(content.c_str(), content.length());
     };
     atmtHTTPError HTTPRequest::sendResponseChunk(const char* content, size_t cont_length) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         esp_err_t error = httpd_resp_send_chunk(m_request, content, cont_length);
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         // WiFiClient client = m_page->client();
         // if (!client.connected()) return HTTP_FAIL;
 
@@ -395,10 +395,10 @@ namespace atmt {
         return HTTP_FAIL;
     };
     atmtHTTPError HTTPRequest::writeRaw(const char* content, size_t cont_length) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         return sendResponseChunk(content, cont_length);
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         WiFiClient client = m_page->client();
         if (!client.connected()) return HTTP_FAIL;
 
@@ -412,14 +412,14 @@ namespace atmt {
         return HTTP_FAIL;
     };
     atmtHTTPError HTTPRequest::sendResponseEndChunks() {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         esp_err_t error = httpd_resp_send_chunk(m_request, NULL, 0);
         if (error != ESP_OK) {
             return HTTP_FAIL;
         }
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         WiFiClient client = m_page->client();
         if (!client.connected()) return HTTP_FAIL;
 
@@ -431,7 +431,7 @@ namespace atmt {
     };
 
     atmtHTTPError HTTPRequest::getPostData(std::string& data) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         int bytes_read = 0;
         // char buffer[m_post_buffer_size];
         std::vector<char> buffer(m_post_buffer_size);
@@ -456,7 +456,7 @@ namespace atmt {
         data = std::move(full_data);
         return HTTP_OK;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         String temp_str = m_page->arg("plain"); // Gets the request in plain text, but must check becomes sometimes it autoparses
         std::string full_data = temp_str.c_str();
 
@@ -483,7 +483,7 @@ namespace atmt {
         return HTTP_FAIL;
     };
     atmtHTTPError HTTPRequest::getPostType(std::string& type, std::string& raw_header) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         char content_type_raw[256];
         esp_err_t error = httpd_req_get_hdr_value_str(m_request, "Content-Type", content_type_raw, sizeof(content_type_raw));
         if (error != ESP_OK) {
@@ -491,7 +491,7 @@ namespace atmt {
         }
         raw_header = std::string(content_type_raw); // Looks something like: 'multipart/form-data; boundary=----WebKitFormBoundaryXYZ'
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         String cont_type = m_page->header("Content-Type");
         raw_header = cont_type.c_str();
         if (raw_header.empty()) {
@@ -514,7 +514,7 @@ namespace atmt {
     
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
     atmtHTTPError HTTPRequest::parseJSON(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         cJSON* json = cJSON_Parse(post_data.c_str());
         if (json) {
             for (cJSON* item = json->child; item != nullptr; item = item->next) { // Linked list style for loop
@@ -538,7 +538,7 @@ namespace atmt {
             return HTTP_FAIL;
         }
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         DynamicJsonDocument json_raw{ m_post_buffer_size };
         DeserializationError error = deserializeJson(json_raw, post_data);
         if (!error) {
@@ -648,7 +648,7 @@ namespace atmt {
         return HTTP_OK;
     };
     atmtHTTPError HTTPRequest::parseUrlEncoded(const std::string& post_data, const std::string& full_header, std::vector<POSTInfo>& parsed) {
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         for (int i = 0; i < m_page->args(); i++) {
             POSTInfo element;
             String temp = m_page->argName(i);
@@ -681,14 +681,14 @@ namespace atmt {
         if (error != HTTP_OK) {
             return HTTP_FAIL;
         }
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         if (post_type != "application/x-www-form-urlencoded") {
 #endif
             error = getPostData(post_data);
             if (error != HTTP_OK) {
                 return HTTP_FAIL;
             }
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         }
 #endif
 
@@ -712,17 +712,27 @@ namespace atmt {
         return HTTP_OK;
     };
     
-    void HTTPRequest::scheduleOngoingConnection(HTMLPage* page, int ms_delay) {
-        m_server->scheduleOngoingConnection(page, this, (getSystemTime()).add(ms_delay));
-    };
+    // void HTTPRequest::scheduleOngoingConnection(HTMLPage* page, int ms_delay) {
+    //     Timestamp time = getSystemTime();
+    //     Serial.print("At: ");
+    //     Serial.println(time.getTimeMS());
+    //     time.addMS(ms_delay);
+    //     Serial.print("Scheduled for: ");
+    //     Serial.println(time.getTimeMS());
+    //     m_server->scheduleOngoingConnection(page, this, time);
+    // };
 
 
     HTMLPage::HTMLPage(const std::string& path, atmtHTTPMethod method):
         m_path{ path },
-        m_method{ method }
+        m_method{ method },
+        m_server{ nullptr }
     {
         // strncpy(m_path, path, sizeof(m_path) - 1);
         // m_path[sizeof(m_path) - 1] = '\0';
+    };
+    void HTMLPage::setServer(HTTPServer* server) {
+        m_server = server;
     };
     esp_err_t HTMLPage::handle_request(HTTPRequest* request) {
         return ESP_OK;
@@ -733,7 +743,7 @@ namespace atmt {
     const std::string& HTMLPage::getPath() const {
         return m_path;
     }
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
     http_method HTMLPage::getMethod() const {
         switch (m_method) {
             case Method_Get:
@@ -745,7 +755,7 @@ namespace atmt {
         }
     };
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
     HTTPMethod HTMLPage::getMethod() const {
         switch (m_method) {
             case Method_Get:
@@ -757,6 +767,16 @@ namespace atmt {
         }
     };
 #endif
+
+    void HTMLPage::scheduleOngoingConnection(HTTPRequest* request, int ms_delay) {
+        Timestamp time = getSystemTime();
+        Serial.print("At: ");
+        Serial.println(time.getTimeMS());
+        time.addMS(ms_delay);
+        Serial.print("Scheduled for: ");
+        Serial.println(time.getTimeMS());
+        m_server->scheduleOngoingConnection(this, request, time);
+    };
 
 };
 

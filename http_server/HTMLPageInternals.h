@@ -10,7 +10,7 @@
 
 #include "../utils.h"
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
@@ -20,10 +20,13 @@
 #include "esp_http_server.h"
 #include "cJSON.h"
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+#include <Arduino.h>
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JSON_PARSING_
 #include <ArduinoJson.h>
 #endif
@@ -43,10 +46,11 @@ namespace atmt {
 
     class HTTPRequest {
         public:
-#ifdef AUTOMAT_ESP32_ESPIDF_
-            HTTPRequest(httpd_req_t* request, HTTPServer* server);
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+            // HTTPRequest(httpd_req_t* request, HTTPServer* server);
+            HTTPRequest(httpd_req_t* request);
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
             HTTPRequest(WebServer* page, HTTPServer* server);
 #endif
 
@@ -81,13 +85,13 @@ namespace atmt {
             */
             atmtHTTPError getParsedPostData(std::vector<POSTInfo>& parsed);
 
-            void scheduleOngoingConnection(HTMLPage* page, int ms_delay);
+            // void scheduleOngoingConnection(HTMLPage* page, int ms_delay);
 
         private:
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             httpd_req_t* m_request;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
             WebServer* m_page;
 #endif
             HTTPServer* m_server;
@@ -100,19 +104,24 @@ namespace atmt {
         public:
             HTMLPage(const std::string& path, atmtHTTPMethod method);
             virtual ~HTMLPage() = default;
+
+            void setServer(HTTPServer* server);
             
             virtual esp_err_t handle_request(HTTPRequest* request);
             virtual esp_err_t continue_connection(HTTPRequest* request);
             const std::string& getPath() const;
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             http_method getMethod() const;
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
             HTTPMethod getMethod() const;
 #endif
+
+            void scheduleOngoingConnection(HTTPRequest* request, int ms_delay);
         private:
             std::string m_path;
             atmtHTTPMethod m_method;
+            HTTPServer* m_server;
     };
 
 }

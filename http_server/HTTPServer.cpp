@@ -7,10 +7,10 @@
 namespace atmt {
 
     HTTPServer::HTTPServer(std::string wifi_ssid, std::string wifi_password):
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         m_server{ nullptr },
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         m_server{ 80 },
 #endif
         m_html_pages{ },
@@ -42,7 +42,7 @@ namespace atmt {
         wifiInit();
     };
     void HTTPServer::periodic() {
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         if (m_server_init) {
             m_server.handleClient();
             if (WiFi.status() != WL_CONNECTED && m_lastReconnectAttempt + kReconnectDelayMS < millis()) {
@@ -53,14 +53,20 @@ namespace atmt {
 #endif
 
         size_t i = 0;
+        size_t connections = m_ongoing_connections.size();
         Timestamp time = getSystemTime();
-        while (i < m_ongoing_connections.size()) {
+        while (i < connections) {
             if (time > m_ongoing_connections[i]->scheduled_at) {
+                Serial.println(time.getTimeMS());
+                Serial.println(m_ongoing_connections[i]->scheduled_at.getTimeMS());
                 m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->request);
                 delete m_ongoing_connections[i];
                 m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
+                connections -= 1;
+                Serial.println("Serviced");
             }else {
                 i += 1;
+                Serial.println("Skipped for a frame");
             }
         }
     };
@@ -82,7 +88,7 @@ namespace atmt {
         registerPage(page);
     };
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
-    void HTTPServer::registerPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg) {
+    void HTTPServer::registerPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg) {
         HTMLPage* page = new HTMLPage_Dynamic_JPEGStreamer(path, jpeg_getter, frame_rate, arg);
         registerPage(page);
     };
@@ -96,7 +102,7 @@ namespace atmt {
 
     void HTTPServer::wifiInit() {
         if (!m_wifi_init) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             ESP_ERROR_CHECK(nvs_flash_init()); // NVS (Non-Volatile Storage)
             ESP_ERROR_CHECK(esp_netif_init()); // Initializes TCP/IP stack
             ESP_ERROR_CHECK(esp_event_loop_create_default()); // Creates event dispatcher
@@ -123,7 +129,7 @@ namespace atmt {
 
             esp_wifi_set_ps(WIFI_PS_NONE); // Turns off power saving measures because we are streaming
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
             WiFi.mode(WIFI_STA);
             WiFi.onEvent(
                 [this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -142,7 +148,7 @@ namespace atmt {
     };
     void HTTPServer::startServer() {
         if (!m_server_init) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             httpd_config_t config = HTTPD_DEFAULT_CONFIG(); // Start with default, then adjust specific
 
             config.server_port = 80; // Means that client does not need to specify a port 
@@ -163,7 +169,7 @@ namespace atmt {
                 ESP_LOGE("HTTP", "Failed to Start HTTP Server");
             }
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
             addAllPages();
 
             m_server.begin();
@@ -172,21 +178,21 @@ namespace atmt {
         }
     };
     void HTTPServer::killServer() {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         if (m_server_init && m_server) {
             httpd_stop(m_server);
             m_server = nullptr;
             m_server_init = false;
         }
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         if (m_server_init) {
             m_server.stop();
             m_server_init = false;
         }
 #endif
     };
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
     void HTTPServer::wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
         HTTPServer* server = static_cast<HTTPServer*>(arg);
         if (event_base == WIFI_EVENT) {
@@ -205,7 +211,7 @@ namespace atmt {
                 case IP_EVENT_STA_GOT_IP:
                     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data; // Interpret the void* event_data
                     // ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
-                    const ip4_addr_t& ip = event->ip_info.ip;
+                    const esp_ip4_addr_t& ip = event->ip_info.ip;
                     server->m_ip_address = 
                         std::to_string(ip.addr & 0xFF) + "." +
                         std::to_string((ip.addr >> 8) & 0xFF) + "." +
@@ -222,10 +228,11 @@ namespace atmt {
         }
         // HTTPServer* server = static_cast<HTTPServer*>(request->user_ctx);
         HTMLPage* html_page = static_cast<HTMLPage*>(request->user_ctx);
-        return html_page->handle_request(new HTTPRequest(request, this));
+        // return html_page->handle_request(new HTTPRequest(request, this));
+        return html_page->handle_request(new HTTPRequest(request));
     };
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
     void HTTPServer::wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server) {
         if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
             server->m_ip_address = std::string(WiFi.localIP().toString().c_str());
@@ -249,7 +256,8 @@ namespace atmt {
         }
     };
     void HTTPServer::addPageToServer(HTMLPage* page) {
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+        page->setServer(this);
         httpd_uri_t new_uri = {
             .uri = page->getPath().c_str(),
             .method = page->getMethod(),
@@ -262,7 +270,7 @@ namespace atmt {
             ESP_LOGE("HTTP", "Failed to register URI: %s", page->getPath());
         }
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
         m_server.on(
             page->getPath().c_str(),
             page->getMethod(),

@@ -10,7 +10,7 @@
 
 #include "../utils.h"
 
-#ifdef AUTOMAT_ESP32_ESPIDF_
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
@@ -19,10 +19,13 @@
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #endif
-#ifdef AUTOMAT_ESP32_ARDUINO_
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
+#include <Arduino.h>
 #endif
 
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
@@ -79,7 +82,7 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
     class HTMLPage_Dynamic_JPEGStreamer : public HTMLPage {
         public:
-            HTMLPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg);
+            HTMLPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg);
             ~HTMLPage_Dynamic_JPEGStreamer() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;

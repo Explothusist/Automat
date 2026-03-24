@@ -5,7 +5,7 @@
 
 namespace atmt {
 
-    CameraStreamingServer::CameraStreamingServer(std::string wifi_ssid, std::string wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg):
+    CameraStreamingServer::CameraStreamingServer(std::string wifi_ssid, std::string wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg):
         m_frame_rate{ frame_rate },
         m_jpeg_getter{ jpeg_getter },
         m_arg{ arg },

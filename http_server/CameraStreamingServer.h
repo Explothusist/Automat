@@ -21,7 +21,7 @@ namespace atmt {
     class CameraStreamingServer {
 #endif
         public:
-            CameraStreamingServer(std::string wifi_ssid, std::string wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg);
+            CameraStreamingServer(std::string wifi_ssid, std::string wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg);
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
             ~CameraStreamingServer() override;
 
@@ -39,7 +39,7 @@ namespace atmt {
             std::string getIPAddress();
 
         private:
-            int m_frame_rate;
+            double m_frame_rate;
             std::function<char*(size_t&, void*)> m_jpeg_getter;
             void* m_arg;
             HTTPServer* m_server;

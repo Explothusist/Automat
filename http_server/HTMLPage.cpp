@@ -87,10 +87,10 @@ namespace atmt {
 
 
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
-    HTMLPage_Dynamic_JPEGStreamer::HTMLPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg):
+    HTMLPage_Dynamic_JPEGStreamer::HTMLPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg):
         HTMLPage(path, Method_Get),
         m_jpeg_getter{ jpeg_getter },
-        m_frame_delay_mS{ 1000 / frame_rate },
+        m_frame_delay_mS{ static_cast<int>(1000.0 / frame_rate) },
         m_arg{ arg }
     {
         
@@ -128,9 +128,23 @@ namespace atmt {
 
         m_header_length = snprintf(m_part_buffer, sizeof(m_part_buffer), "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", m_img_length);
 
-        // while (true) { // Connection continues as long as client stays active and connected
-        // }
-        continue_connection(request);
+        // esp_err_t still_connected = httpd_resp_send_chunk(request, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY)); // Starts new frame
+        error = request->sendResponseChunk("\r\n--frame\r\n"); // Starts new frame
+        if (error != HTTP_OK) {
+            return ESP_FAIL; // Ends request, probably because client disconnected
+        }
+
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+        while (true) { // Connection continues as long as client stays active and connected
+#endif
+            esp_err_t esp_error = continue_connection(request);
+            if (esp_error != ESP_OK) {
+                return ESP_FAIL;
+            }
+#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+            delay(m_frame_delay_mS);
+        }
+#endif
 
         // Serial.println("Request Closed");
         return ESP_OK;
@@ -149,17 +163,11 @@ namespace atmt {
                 m_header_length = snprintf(m_part_buffer, sizeof(m_part_buffer), "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", m_img_length);
             }
 
-            // esp_err_t still_connected = httpd_resp_send_chunk(request, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY)); // Starts new frame
-            atmtHTTPError error = request->sendResponseChunk("\r\n--frame\r\n"); // Starts new frame
-            if (error != HTTP_OK) {
-                return ESP_FAIL; // Ends request, probably because client disconnected
-            }
-
             // Sets up the header to tell the client what it is receiving
             // size_t header_length = snprintf(part_buffer, sizeof(part_buffer), _STREAM_PART, frame_buffer->len);
 
             // httpd_resp_send_chunk(request, part_buffer, header_length);
-            error = request->sendResponseChunk(m_part_buffer);
+            atmtHTTPError error = request->sendResponseChunk(m_part_buffer);
             if (error != HTTP_OK) {
                 return ESP_FAIL; // Ends request, probably because client disconnected
             }
@@ -171,6 +179,12 @@ namespace atmt {
                 return ESP_FAIL; // Ends request, probably because client disconnected
             }
             error = request->sendResponseChunk("\r\n");
+            if (error != HTTP_OK) {
+                return ESP_FAIL; // Ends request, probably because client disconnected
+            }
+            
+            // esp_err_t still_connected = httpd_resp_send_chunk(request, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY)); // Starts new frame
+            error = request->sendResponseChunk("\r\n--frame\r\n"); // Starts new frame
             if (error != HTTP_OK) {
                 return ESP_FAIL; // Ends request, probably because client disconnected
             }
@@ -187,7 +201,9 @@ namespace atmt {
         }
 
         // vTaskDelay(pdMS_TO_TICKS(m_frame_delay_mS)); // Wait for a moment to reset watchdogs and keep CPU below 100%
-        request->scheduleOngoingConnection(this, m_frame_delay_mS);
+#ifndef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+        scheduleOngoingConnection(request, m_frame_delay_mS);
+#endif
         
         return ESP_OK;
     };
