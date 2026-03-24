@@ -1,4 +1,5 @@
-Robot Dashboard
+CameraStreamingServer
+RobotDashboardServer
 Robot Heartbeat (Serial or Dashboard)
 Signal Light Helper
 Robot Mode Control Over Dashboard

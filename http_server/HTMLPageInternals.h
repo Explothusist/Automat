@@ -31,6 +31,10 @@
 
 namespace atmt {
 
+    class HTTPServer;
+    class HTMLPage;
+    class HTTPRequest;
+
     constexpr int kFailedPostRequestBeforeFail = 5;
     constexpr int kDelayAfterFailedPostRequestTicks = pdMS_TO_TICKS(1);
     constexpr int kHttpPostBufferSize = 512;
@@ -40,10 +44,10 @@ namespace atmt {
     class HTTPRequest {
         public:
 #ifdef AUTOMAT_ESP32_ESPIDF_
-            HTTPRequest(httpd_req_t* request);
+            HTTPRequest(httpd_req_t* request, HTTPServer* server);
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-            HTTPRequest(WebServer* page);
+            HTTPRequest(WebServer* page, HTTPServer* server);
 #endif
 
             void setFailedPostRequestsBeforeFail(int failed_requests);
@@ -51,13 +55,15 @@ namespace atmt {
             void setHttpPostBufferSize(int buffer_size);
 
             atmtHTTPError sendResponse(const std::string& type, const std::string& content, int code = 200);
-            atmtHTTPError sendResponse(const char* type, size_t type_length, const char* content, size_t cont_length, int code = 200);
+            atmtHTTPError sendResponseRaw(const std::string& type, const char* content, size_t cont_length, int code = 200);
+            atmtHTTPError sendResponseRaw(const char* type, size_t type_length, const char* content, size_t cont_length, int code = 200);
             atmtHTTPError throwRedirect(const std::string& url, int code = 303);
             atmtHTTPError throwRedirect(const char* url, size_t url_length, int code = 303);
             atmtHTTPError setResponseType(const std::string& type, int code = 200);
             atmtHTTPError setResponseType(const char* type, size_t type_length, int code = 200);
             atmtHTTPError sendResponseChunk(const std::string& content);
             atmtHTTPError sendResponseChunk(const char* content, size_t cont_length);
+            atmtHTTPError writeRaw(const char* content, size_t cont_length);
             atmtHTTPError sendResponseEndChunks();
 
             atmtHTTPError getPostData(std::string& data);
@@ -75,6 +81,8 @@ namespace atmt {
             */
             atmtHTTPError getParsedPostData(std::vector<POSTInfo>& parsed);
 
+            void scheduleOngoingConnection(HTMLPage* page, int ms_delay);
+
         private:
 #ifdef AUTOMAT_ESP32_ESPIDF_
             httpd_req_t* m_request;
@@ -82,6 +90,7 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_ARDUINO_
             WebServer* m_page;
 #endif
+            HTTPServer* m_server;
             int m_post_requests_before_fail;
             int m_post_delay_after_failed;
             int m_post_buffer_size;
@@ -93,6 +102,7 @@ namespace atmt {
             virtual ~HTMLPage() = default;
             
             virtual esp_err_t handle_request(HTTPRequest* request);
+            virtual esp_err_t continue_connection(HTTPRequest* request);
             const std::string& getPath() const;
 #ifdef AUTOMAT_ESP32_ESPIDF_
             http_method getMethod() const;

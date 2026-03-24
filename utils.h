@@ -42,10 +42,18 @@ namespace atmt {
 #endif
             ~Timestamp();
 
-            int getTimeDifferenceMS(Timestamp timestamp); // milliseconds
-            double getTimeDifference(Timestamp timestamp); // seconds
-            int getTimeMS(); // milliseconds
-            double getTime(); // seconds
+            bool operator>(const Timestamp &timestamp) const;
+            bool operator>=(const Timestamp &timestamp) const;
+            bool operator<(const Timestamp &timestamp) const;
+            bool operator<=(const Timestamp &timestamp) const;
+
+            int getTimeDifferenceMS(Timestamp timestamp) const; // milliseconds
+            double getTimeDifference(Timestamp timestamp) const; // seconds
+            int getTimeMS() const; // milliseconds
+            double getTime() const; // seconds
+
+            Timestamp add(Timestamp timestamp);
+            Timestamp addMS(int ms);
         private:
 #ifdef AUTOMAT_VEX_
             int m_milliseconds;

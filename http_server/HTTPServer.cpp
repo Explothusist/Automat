@@ -14,8 +14,10 @@ namespace atmt {
         m_server{ 80 },
 #endif
         m_html_pages{ },
+        m_ongoing_connections{ },
         m_wifi_ssid{ wifi_ssid },
         m_wifi_password{ wifi_password },
+        m_ip_address{ "" },
         m_wifi_init{ false },
         m_server_init{ false }
     {
@@ -30,6 +32,10 @@ namespace atmt {
             // page = nullptr; // This line actually does nothing, because it is copy, not real
         }
         m_html_pages.clear();
+        for (OngoingConnection* connection : m_ongoing_connections) {
+            delete connection;
+        }
+        m_ongoing_connections.clear();
     };
 
     void HTTPServer::init() {
@@ -45,20 +51,42 @@ namespace atmt {
             }
         }
 #endif
+
+        size_t i = 0;
+        Timestamp time = getSystemTime();
+        while (i < m_ongoing_connections.size()) {
+            if (time > m_ongoing_connections[i]->scheduled_at) {
+                m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->request);
+                delete m_ongoing_connections[i];
+                m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
+            }else {
+                i += 1;
+            }
+        }
     };
 
-    void HTTPServer::registerPage_Static_RawHTML(std::string url, std::string html) {
-        HTMLPage* page = new HTMLPage_Static_RawHTML(url, html);
+    void HTTPServer::registerPage_Static_RawHTML(std::string path, std::string html) {
+        HTMLPage* page = new HTMLPage_Static_RawHTML(path, html);
         registerPage(page);
     };
-    void HTTPServer::registerPage_Static_DynamicHTML(std::string url, std::function<std::string()> html_getter) {
-        HTMLPage* page = new HTMLPage_Static_DynamicHTML(url, html_getter);
+    void HTTPServer::registerPage_Static_DynamicHTML(const std::string& path, std::function<std::string(void*)> html_getter, void* arg) {
+        HTMLPage* page = new HTMLPage_Static_DynamicHTML(path, html_getter, arg);
         registerPage(page);
     };
-    void HTTPServer::registerPage_Static_DynamicPost(std::string url, std::function<void(std::vector<POSTInfo>)> post_sender) {
-        HTMLPage* page = new HTMLPage_Static_DynamicPost(url, post_sender);
+    void HTTPServer::registerPage_Static_DynamicPostHTML(const std::string& path, std::function<std::string(const std::vector<POSTInfo>&, void*)> post_sender, void* arg) {
+        HTMLPage* page = new HTMLPage_Static_DynamicPostHTML(path, post_sender, arg);
         registerPage(page);
     };
+    void HTTPServer::registerPage_Static_DynamicPostRedirect(const std::string& path, const std::string& redirect_path, std::function<void(const std::vector<POSTInfo>&, void*)> post_sender, void* arg) {
+        HTMLPage* page = new HTMLPage_Static_DynamicPostRedirect(path, redirect_path, post_sender, arg);
+        registerPage(page);
+    };
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
+    void HTTPServer::registerPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg) {
+        HTMLPage* page = new HTMLPage_Dynamic_JPEGStreamer(path, jpeg_getter, frame_rate, arg);
+        registerPage(page);
+    };
+#endif
     void HTTPServer::registerPage(HTMLPage* page) {
         m_html_pages.push_back(page);
         if (m_server_init) {
@@ -164,11 +192,11 @@ namespace atmt {
         if (event_base == WIFI_EVENT) {
             switch (event_id) {
                 case WIFI_EVENT_STA_START: // Fires when esp_wifi_start() completes
-                    ESP_LOGI("WIFI", "Connecting...");
+                    // ESP_LOGI("WIFI", "Connecting...");
                     esp_wifi_connect();
                     break;
                 case WIFI_EVENT_STA_DISCONNECTED: // In case disconnection is temporary or just a glitch
-                    ESP_LOGI("WIFI", "Disconnected! Reconnecting...");
+                    // ESP_LOGI("WIFI", "Disconnected! Reconnecting...");
                     esp_wifi_connect();
                     break;
             }
@@ -176,7 +204,13 @@ namespace atmt {
             switch (event_id) {
                 case IP_EVENT_STA_GOT_IP:
                     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data; // Interpret the void* event_data
-                    ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+                    // ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+                    const ip4_addr_t& ip = event->ip_info.ip;
+                    server->m_ip_address = 
+                        std::to_string(ip.addr & 0xFF) + "." +
+                        std::to_string((ip.addr >> 8) & 0xFF) + "." +
+                        std::to_string((ip.addr >> 16) & 0xFF) + "." +
+                        std::to_string((ip.addr >> 24) & 0xFF);
                     server->startServer();
                     break;
             }
@@ -188,19 +222,24 @@ namespace atmt {
         }
         // HTTPServer* server = static_cast<HTTPServer*>(request->user_ctx);
         HTMLPage* html_page = static_cast<HTMLPage*>(request->user_ctx);
-        return html_page->handle_request(request);
+        return html_page->handle_request(new HTTPRequest(request, this));
     };
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
     void HTTPServer::wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server) {
         if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
+            server->m_ip_address = std::string(WiFi.localIP().toString().c_str());
             server->startServer();
         }
     };
     void HTTPServer::HTTPRequestHandler(HTMLPage* page) {
-        page->handle_request(&m_server);
+        page->handle_request(new HTTPRequest(&m_server, this));
     };
 #endif
+
+    std::string HTTPServer::getIPAddress() {
+        return m_ip_address != "" ? m_ip_address : "Server Not Connected";
+    };
 
     void HTTPServer::addAllPages() {
         // for (size_t i = 0; i < m_html_pages.size(); i++) {
@@ -232,6 +271,14 @@ namespace atmt {
             }
         );
 #endif
+    };
+    
+    void HTTPServer::scheduleOngoingConnection(HTMLPage* page, HTTPRequest* request, Timestamp scheduled_at) {
+        OngoingConnection* connection = new OngoingConnection();
+        connection->page = page;
+        connection->request = request;
+        connection->scheduled_at = scheduled_at;
+        m_ongoing_connections.push_back(connection);
     };
 
 };

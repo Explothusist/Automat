@@ -80,14 +80,27 @@ namespace atmt {
     Timestamp::~Timestamp() {
 
     };
+    
+    bool Timestamp::operator>(const Timestamp &timestamp) const {
+        return getTimeMS() > timestamp.getTimeMS();
+    };
+    bool Timestamp::operator>=(const Timestamp &timestamp) const {
+        return getTimeMS() >= timestamp.getTimeMS();
+    };
+    bool Timestamp::operator<(const Timestamp &timestamp) const {
+        return getTimeMS() < timestamp.getTimeMS();
+    };
+    bool Timestamp::operator<=(const Timestamp &timestamp) const {
+        return getTimeMS() <= timestamp.getTimeMS();
+    };
 
-    int Timestamp::getTimeDifferenceMS(Timestamp timestamp) {
+    int Timestamp::getTimeDifferenceMS(Timestamp timestamp) const {
         return std::abs(getTimeMS() - timestamp.getTimeMS());
     };
-    double Timestamp::getTimeDifference(Timestamp timestamp) {
+    double Timestamp::getTimeDifference(Timestamp timestamp) const {
         return static_cast<double>(std::abs(getTimeMS() - timestamp.getTimeMS())) * 0.001;
     };
-    int Timestamp::getTimeMS() {
+    int Timestamp::getTimeMS() const {
 #ifdef AUTOMAT_VEX_
         return m_milliseconds;
 #endif
@@ -95,8 +108,27 @@ namespace atmt {
         return static_cast<int>(m_milliseconds);
 #endif
     };
-    double Timestamp::getTime() {
+    double Timestamp::getTime() const {
         return static_cast<double>(getTimeMS()) * 0.001;
+    };
+    
+    Timestamp Timestamp::add(Timestamp timestamp) {
+#ifdef AUTOMAT_VEX_
+        m_milliseconds += timestamp.m_milliseconds;
+#endif
+#ifdef AUTOMAT_ESP32_
+        m_milliseconds += timestamp.m_milliseconds;
+#endif
+        return *this;
+    };
+    Timestamp Timestamp::addMS(int ms) {
+#ifdef AUTOMAT_VEX_
+        m_milliseconds += ms;
+#endif
+#ifdef AUTOMAT_ESP32_
+        m_milliseconds += ms;
+#endif
+        return *this;
     };
 
     Timestamp getSystemTime() {

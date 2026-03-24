@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "HTMLPageInternals.h"
+#include "HTTPServer.h"
 #include "../utils.h"
 
 namespace atmt {
@@ -236,8 +237,9 @@ namespace atmt {
     };
 
 #ifdef AUTOMAT_ESP32_ESPIDF_
-    HTTPRequest::HTTPRequest(httpd_req_t* request): 
+    HTTPRequest::HTTPRequest(httpd_req_t* request, HTTPServer* server): 
         m_request{ request },
+        m_server{ server },
         m_post_requests_before_fail{ kFailedPostRequestBeforeFail },
         m_post_delay_after_failed{ kDelayAfterFailedPostRequestTicks },
         m_post_buffer_size{ kHttpPostBufferSize }
@@ -246,8 +248,9 @@ namespace atmt {
     };
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-    HTTPRequest::HTTPRequest(WebServer* page):
+    HTTPRequest::HTTPRequest(WebServer* page, HTTPServer* server):
         m_page{ page },
+        m_server{ server },
         m_post_requests_before_fail{ kFailedPostRequestBeforeFail },
         m_post_delay_after_failed{ kDelayAfterFailedPostRequestTicks },
         m_post_buffer_size{ kHttpPostBufferSize }
@@ -267,9 +270,12 @@ namespace atmt {
     };
     
     atmtHTTPError HTTPRequest::sendResponse(const std::string& type, const std::string& content, int code) {
-        return sendResponse(type.c_str(), type.length(), content.c_str(), content.length(), code);
+        return sendResponseRaw(type.c_str(), type.length(), content.c_str(), content.length(), code);
     };
-    atmtHTTPError HTTPRequest::sendResponse(const char* type, size_t type_length, const char* content, size_t cont_length, int code) {
+    atmtHTTPError HTTPRequest::sendResponseRaw(const std::string& type, const char* content, size_t cont_length, int code) {
+        return sendResponseRaw(type.c_str(), type.length(), content, cont_length, code);
+    };
+    atmtHTTPError HTTPRequest::sendResponseRaw(const char* type, size_t type_length, const char* content, size_t cont_length, int code) {
         if (code < 200 || code > 299) {
             return HTTP_FAIL;
         }
@@ -376,10 +382,30 @@ namespace atmt {
         return HTTP_OK;
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
+        // WiFiClient client = m_page->client();
+        // if (!client.connected()) return HTTP_FAIL;
+
+        // client.write(content, cont_length); // raw send
+
+        m_page->sendContent(content);
+
+        return HTTP_OK;
+#endif
+
+        return HTTP_FAIL;
+    };
+    atmtHTTPError HTTPRequest::writeRaw(const char* content, size_t cont_length) {
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        return sendResponseChunk(content, cont_length);
+#endif
+#ifdef AUTOMAT_ESP32_ARDUINO_
         WiFiClient client = m_page->client();
         if (!client.connected()) return HTTP_FAIL;
 
         client.write(content, cont_length); // raw send
+
+        // m_page->sendContent(content);
+
         return HTTP_OK;
 #endif
 
@@ -685,6 +711,10 @@ namespace atmt {
 
         return HTTP_OK;
     };
+    
+    void HTTPRequest::scheduleOngoingConnection(HTMLPage* page, int ms_delay) {
+        m_server->scheduleOngoingConnection(page, this, (getSystemTime()).add(ms_delay));
+    };
 
 
     HTMLPage::HTMLPage(const std::string& path, atmtHTTPMethod method):
@@ -695,6 +725,9 @@ namespace atmt {
         // m_path[sizeof(m_path) - 1] = '\0';
     };
     esp_err_t HTMLPage::handle_request(HTTPRequest* request) {
+        return ESP_OK;
+    };
+    esp_err_t HTMLPage::continue_connection(HTTPRequest* request) {
         return ESP_OK;
     };
     const std::string& HTMLPage::getPath() const {

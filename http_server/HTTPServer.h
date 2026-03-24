@@ -24,11 +24,22 @@
 #include <esp_wifi.h>
 #endif
 
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+#include "../command_based/Subsystem.h"
+#endif
+
 #include "HTMLPageInternals.h"
+#include "HTMLPage.h"
 
 namespace atmt {
 
     constexpr uint32_t kReconnectDelayMS = 5000;
+
+    typedef struct {
+        HTMLPage* page;
+        HTTPRequest* request;
+        Timestamp scheduled_at;
+    } OngoingConnection;
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
     class HTTPServer : public Subsystem {
@@ -43,7 +54,7 @@ namespace atmt {
             void init() override;
             void periodic() override;
 
-            void internal_init(RobotState* robot_state, EventHandler* event_handler);
+            // void internal_init(RobotState* robot_state, EventHandler* event_handler);
 #else
             ~HTTPServer();
 
@@ -51,9 +62,13 @@ namespace atmt {
             void periodic();
 #endif
 
-            void registerPage_Static_RawHTML(std::string url, std::string html);
-            void registerPage_Static_DynamicHTML(std::string url, std::function<std::string()> html_getter);
-            void registerPage_Static_DynamicPost(std::string url, std::function<void(std::vector<POSTInfo>)> post_sender);
+            void registerPage_Static_RawHTML(std::string path, std::string html);
+            void registerPage_Static_DynamicHTML(const std::string& path, std::function<std::string(void*)> html_getter, void* arg);
+            void registerPage_Static_DynamicPostHTML(const std::string& path, std::function<std::string(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
+            void registerPage_Static_DynamicPostRedirect(const std::string& path, const std::string& redirect_path, std::function<void(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
+            void registerPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, int frame_rate, void* arg);
+#endif
             void registerPage(HTMLPage* page);
 
             void wifiInit();
@@ -68,8 +83,12 @@ namespace atmt {
             void HTTPRequestHandler(HTMLPage* page);
 #endif
 
+            std::string getIPAddress();
+
             void addAllPages();
             void addPageToServer(HTMLPage* page);
+
+            void scheduleOngoingConnection(HTMLPage* page, HTTPRequest* request, Timestamp scheduled_at);
 
         private:
 #ifdef AUTOMAT_ESP32_ESPIDF_
@@ -80,9 +99,11 @@ namespace atmt {
             uint32_t m_lastReconnectAttempt;
 #endif
             std::vector<HTMLPage*> m_html_pages;
+            std::vector<OngoingConnection*> m_ongoing_connections;
 
             std::string m_wifi_ssid;
             std::string m_wifi_password;
+            std::string m_ip_address;
 
             bool m_wifi_init;
             bool m_server_init;

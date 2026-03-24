@@ -8,35 +8,42 @@
 #include "utils.h"
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-#include "command_based/Command.h"
-// #include "InstantCommand.h"
-#include "command_based/EmptyCommand.h"
-#include "command_based/SequentialCommandGroup.h"
-#include "command_based/Trigger.h"
-#include "command_based/Joystick.h"        // Uses atmt_platform
-#include "command_based/Subsystem.h"
-#include "command_based/TimedRobot.h"           // Uses atmt_platform
+    #include "command_based/Command.h"
+    // #include "InstantCommand.h"
+    #include "command_based/EmptyCommand.h"
+    #include "command_based/SequentialCommandGroup.h"
+    #include "command_based/Trigger.h"
+    #include "command_based/Joystick.h"        // Uses atmt_platform
+    #include "command_based/Subsystem.h"
+    #include "command_based/TimedRobot.h"           // Uses atmt_platform
 #endif
 
 #ifdef ATMT_SUBMODULE_SERIAL_
-#include "serial/SerialReader.h"
+    #include "serial/SerialReader.h"
 #endif
 
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
+    #include "http_server/HTMLPageInternals.h"
+    #include "http_server/HTMLPage.h"
+    #include "http_server/HTTPServer.h"
+
+    #ifdef ATMT_SUBMODULE_HTTP_SERVER_CAMERA_STREAMING_SERVER_
+        #include "http_server/CameraStreamingServer.h"
+    #endif
 #endif
 
 #ifdef ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_
-#include "utilities/PID_Controller.h"
+    #include "utilities/PID_Controller.h"
 #endif
 #ifdef ATMT_SUBMODULE_UTILITIES_VECTOR_
-#include "utilities/Vector2.h"
-#include "utilities/Vector3.h"
+    #include "utilities/Vector2.h"
+    #include "utilities/Vector3.h"
 #endif
 #ifdef ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_
-#include "utilities/ThreadsafeBuffer.h"
+    #include "utilities/ThreadsafeBuffer.h"
 #endif
 #ifdef ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_
-#include "utilities/KinematicPredictor.h"
+    #include "utilities/KinematicPredictor.h"
 #endif
 
 

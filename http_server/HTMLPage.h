@@ -83,12 +83,33 @@ namespace atmt {
             ~HTMLPage_Dynamic_JPEGStreamer() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;
+            esp_err_t continue_connection(HTTPRequest* request) override;
         private:
             std::function<char*(size_t&, void*)> m_jpeg_getter;
             int m_frame_delay_mS;
             void* m_arg; // for html_getter
+
+            char m_part_buffer[128];
+            size_t m_img_length;
+            size_t m_old_img_length;
+            char* m_raw_buffer;
+            size_t m_header_length;
     };
 #endif
+
+    class HTMLPage_Static_Favicon : public HTMLPage {
+        public:
+            HTMLPage_Static_Favicon();
+            HTMLPage_Static_Favicon(char* favicon, size_t favicon_length);
+            HTMLPage_Static_Favicon(const std::string& path);
+            HTMLPage_Static_Favicon(char* favicon, size_t favicon_length, const std::string& path);
+            ~HTMLPage_Static_Favicon() override = default;
+
+            esp_err_t handle_request(HTTPRequest* request) override;
+        private:
+            char* m_favicon;
+            size_t m_favicon_length;
+    };
 
 }
 
