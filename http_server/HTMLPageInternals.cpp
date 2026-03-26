@@ -482,6 +482,7 @@ namespace atmt {
             }
         );
         response->addHeader("Cache-Control", "no-cache");
+        response->addHeader("Connection", "keep-alive");
         m_request->send(response);
         return HTTP_OK;
     };

@@ -131,6 +131,9 @@ namespace atmt {
         // size_t img_length;
         // size_t old_img_length;
         // char* raw_buffer = m_jpeg_getter(img_length, m_arg);
+        m_header_index = 0;
+        m_buffer_index = 0;
+        m_footer_index = 0;
         m_raw_buffer = m_jpeg_getter(m_img_length, m_arg);
         // std::string buffer = std::string(raw_buffer, img_length);
         m_old_img_length = m_img_length;
