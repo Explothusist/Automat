@@ -113,10 +113,19 @@ namespace atmt {
         //     "HTTP/1.1 200 OK\r\n"
         //     "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n\r\n";
 
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         atmtHTTPError error = request->sendResponseChunk("HTTP/1.1 200 OK\r\nContent-Type: multipart/x-mixed-replace; boundary=frame\r\n\r\n");
         if (error != HTTP_OK) {
             return ESP_FAIL;
         }
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+        atmtHTTPError error = request->setResponseType("multipart/x-mixed-replace; boundary=frame");
+        if (error != HTTP_OK) {
+            return ESP_FAIL;
+        }
+#endif
+        platform_println("Header Sent");
 
         // char part_buffer[128]; // Temporary storage for c-strings
         // size_t img_length;
@@ -128,28 +137,49 @@ namespace atmt {
 
         m_header_length = snprintf(m_part_buffer, sizeof(m_part_buffer), "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", m_img_length);
 
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         // esp_err_t still_connected = httpd_resp_send_chunk(request, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY)); // Starts new frame
         error = request->sendResponseChunk("\r\n--frame\r\n"); // Starts new frame
         if (error != HTTP_OK) {
             return ESP_FAIL; // Ends request, probably because client disconnected
         }
-
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
-        while (true) { // Connection continues as long as client stays active and connected
 #endif
+        platform_println("First Boundary Sent");
+
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+        while (true) { // Connection continues as long as client stays active and connected
             esp_err_t esp_error = continue_connection(request);
             if (esp_error != ESP_OK) {
                 return ESP_FAIL;
             }
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
-            delay(m_frame_delay_mS);
         }
 #endif
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+        platform_println("Preparing Socket");
+        esp_err_t esp_error = request->toAsyncRequest();
+        if (esp_error != ESP_OK) {
+            return ESP_FAIL;
+        }
+        // esp_error = continue_connection(request->toHTTPSocket());
+        esp_error = continue_connection(request);
+        if (esp_error != ESP_OK) {
+            return ESP_FAIL;
+        }
+#endif
+        platform_println("Continue Connection Complete");
 
-        // Serial.println("Request Closed");
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+        request->streamChunks("multipart/x-mixed-replace; boundary=frame", streamCallback, this);
+#endif
+
+        // platform_println("Request Closed");
         return ESP_OK;
     };
+// #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
     esp_err_t HTMLPage_Dynamic_JPEGStreamer::continue_connection(HTTPRequest* request) {
+        Timestamp start_of_request = getSystemTime();
+
         // frame_buffer = esp_camera_fb_get();
         // if (!frame_buffer) {
         //     ESP_LOGE("STREAM", "Camera Capture Failed");
@@ -200,13 +230,168 @@ namespace atmt {
             // continue;
         }
 
+        Timestamp end_of_request = getSystemTime();
+        int ms_delay = std::max(m_frame_delay_mS - start_of_request.getTimeDifferenceMS(end_of_request), 0);
+
         // vTaskDelay(pdMS_TO_TICKS(m_frame_delay_mS)); // Wait for a moment to reset watchdogs and keep CPU below 100%
-#ifndef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
-        scheduleOngoingConnection(request, m_frame_delay_mS);
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+        scheduleOngoingConnection(request, ms_delay);
+#else
+        delay(ms_delay);
 #endif
         
         return ESP_OK;
     };
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    size_t HTMLPage_Dynamic_JPEGStreamer::streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg) {
+        HTMLPage_Dynamic_JPEGStreamer* page = static_cast<HTMLPage_Dynamic_JPEGStreamer*>(arg);
+        // Timestamp start_of_request = getSystemTime();
+        // Build MJPEG multipart chunk
+        // static const char* header = "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ";
+        // static const int header_length = 52;
+        static const char* footer = "\r\n";
+        static const int footer_length = 2;
+
+        if (!page->m_raw_buffer) {
+            page->m_raw_buffer = page->m_jpeg_getter(page->m_img_length, page->m_arg);
+            if (page->m_raw_buffer) {
+                page->m_header_index = 0;
+                page->m_buffer_index = 0;
+                page->m_footer_index = 0;
+                page->m_header_length = snprintf(page->m_part_buffer, sizeof(page->m_part_buffer), "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", page->m_img_length);
+            }
+        }
+
+        if (page->m_raw_buffer) { // Half streamed image
+            size_t total_bytes_sent = 0;
+            if (page->m_header_index < page->m_header_length) {
+                size_t bytes_to_send = std::min(maxLen, page->m_header_length - page->m_header_index);
+                if (bytes_to_send > 0) {
+                    memcpy(buffer + total_bytes_sent, page->m_part_buffer + page->m_header_index, bytes_to_send);
+                    page->m_header_index += bytes_to_send;
+                }
+                maxLen -= bytes_to_send;
+                total_bytes_sent += bytes_to_send;
+                if (maxLen == 0) {
+                    return total_bytes_sent;
+                }
+            }
+            if (page->m_buffer_index < page->m_img_length) {
+                size_t bytes_to_send = std::min(maxLen, page->m_img_length - page->m_buffer_index);
+                if (bytes_to_send > 0) {
+                    memcpy(buffer + total_bytes_sent, page->m_raw_buffer + page->m_buffer_index, bytes_to_send);
+                    page->m_buffer_index += bytes_to_send;
+                }
+                maxLen -= bytes_to_send;
+                total_bytes_sent += bytes_to_send;
+                // if (maxLen == 0) {
+                    // return total_bytes_sent;
+                // }
+            }
+            if (page->m_footer_index < footer_length) {
+                size_t bytes_to_send = std::min(maxLen, footer_length - (page->m_footer_index));
+                if (bytes_to_send > 0) {
+                    memcpy(buffer + total_bytes_sent, footer + (page->m_footer_index), bytes_to_send);
+                    page->m_footer_index += bytes_to_send;
+                }
+                maxLen -= bytes_to_send;
+                total_bytes_sent += bytes_to_send;
+                if (maxLen == 0) {
+                    return total_bytes_sent;
+                }
+            }
+
+            if (page->m_footer_index >= footer_length) {
+                page->m_raw_buffer = nullptr;
+            }
+            return total_bytes_sent;
+        }
+
+        // page->m_raw_buffer = page->m_jpeg_getter(page->m_img_length, page->m_arg);
+        // if (page->m_raw_buffer) {
+        //     if (page->m_img_length != page->m_old_img_length) {
+        //         page->m_old_img_length = page->m_img_length;
+        //         page->m_header_length = snprintf(page->m_part_buffer, sizeof(page->m_part_buffer), "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", page->m_img_length);
+        //     }
+
+        //     int headerLen = snprintf(nullptr, 0, "%s%zu\r\n\r\n", header, page->m_img_length);
+
+        //     // Ensure we don't exceed maxLen
+        //     if (headerLen + page->m_img_length + 2 > maxLen) {
+        //         return 0; // Can't fit
+        //     }
+
+        //     int pos = 0;
+        //     pos += sprintf((char*)buffer + pos, "%s%zu\r\n\r\n", header, page->m_img_length);
+        //     memcpy(buffer + pos, page->m_raw_buffer, page->m_img_length);
+        //     pos += page->m_img_length;
+        //     memcpy(buffer + pos, "\r\n", 2);
+        //     pos += 2;
+
+        //     return pos; // bytes written to buffer
+        // }
+
+        // Timestamp end_of_request = getSystemTime();
+        // int ms_delay = std::max(m_frame_delay_mS - start_of_request.getTimeDifferenceMS(end_of_request), 0);
+        return 0;
+    };
+#endif
+// #endif
+// #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+//     esp_err_t HTMLPage_Dynamic_JPEGStreamer::continue_connection(HTTPSocket* socket) {
+//         platform_println("Done Preparing Socket");
+//         Timestamp start_of_request = getSystemTime();
+//
+//         platform_println("Fetching Image Buffer");
+//         m_raw_buffer = m_jpeg_getter(m_img_length, m_arg);
+//         if (m_raw_buffer) {
+//             platform_println("Buffer Obtained");
+//             if (m_img_length != m_old_img_length) {
+//                 m_old_img_length = m_img_length;
+//                 m_header_length = snprintf(m_part_buffer, sizeof(m_part_buffer), "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n", m_img_length);
+//             }
+//
+//             platform_println("Prep Send First Chunk");
+//             // Sets up the header to tell the client what it is receiving
+//             atmtHTTPError error = socket->sendResponseChunk(m_part_buffer);
+//             platform_println("Send First Chunk");
+//             if (error != HTTP_OK) {
+//                 return ESP_FAIL; // Ends request, probably because client disconnected
+//             }
+//
+//             // Send the image itself as a series of chars (a c-string)
+//             error = socket->sendResponseChunk(m_raw_buffer, m_img_length);
+//             platform_println("Send Second Chunk");
+//             if (error != HTTP_OK) {
+//                 return ESP_FAIL; // Ends request, probably because client disconnected
+//             }
+//             error = socket->sendResponseChunk("\r\n");
+//             platform_println("Send Third Chunk");
+//             if (error != HTTP_OK) {
+//                 return ESP_FAIL; // Ends request, probably because client disconnected
+//             }
+//            
+//             error = socket->sendResponseChunk("\r\n--frame\r\n"); // Starts new frame
+//             platform_println("Send Fourth Chunk");
+//             if (error != HTTP_OK) {
+//                 return ESP_FAIL; // Ends request, probably because client disconnected
+//             }
+//         }
+//
+//         Timestamp end_of_request = getSystemTime();
+//         int ms_delay = std::max(m_frame_delay_mS - start_of_request.getTimeDifferenceMS(end_of_request), 0);
+//
+// #ifndef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+//         scheduleOngoingConnection(socket, ms_delay);
+// #else
+//         delay(ms_delay);
+// #endif
+//         platform_println("Next Frame Scheduled");
+//        
+//         return ESP_OK;
+//     };
+// #endif
 #endif
 
     static const char default_favicon[318] = {
@@ -262,21 +447,46 @@ namespace atmt {
         
     };
     esp_err_t HTMLPage_Static_Favicon::handle_request(HTTPRequest* request) {
-        Serial.println(*m_favicon);
-        Serial.println(m_favicon_length);
+        platform_println(std::to_string(*m_favicon));
+        platform_println(std::to_string(m_favicon_length));
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         atmtHTTPError error = request->sendResponseChunk("HTTP/1.1 200 OK\r\nContent-Type: image/x-icon\r\n\r\n");
         if (error != HTTP_OK) {
             return ESP_FAIL;
         }
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+        atmtHTTPError error = request->setResponseType("image/x-icon");
+        if (error != HTTP_OK) {
+            return ESP_FAIL;
+        }
+#endif
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         error = request->writeRaw((const char*)m_favicon, m_favicon_length);
         request->sendResponseChunk("");
         request->sendResponseEndChunks();
         if (error != HTTP_OK) {
             return ESP_FAIL;
         }
+#else
+        // request->sendResponseRaw("image/x-icon", (const char*)m_favicon, m_favicon_length);
+        request->streamChunks("application/octet-stream", streamCallback, this);
+#endif
 
         return ESP_OK;
     };
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    size_t HTMLPage_Static_Favicon::streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg) {
+        HTMLPage_Static_Favicon* page = static_cast<HTMLPage_Static_Favicon*>(arg);
+        // Copy up to maxLen bytes from content to buffer
+        size_t bytesToSend = std::min(page->m_favicon_length - index, maxLen);
+        if (bytesToSend > 0) {
+            memcpy(buffer, page->m_favicon + index, bytesToSend);
+            return bytesToSend;
+        }
+        return 0; // done sending
+    };
+#endif
 
 };
 

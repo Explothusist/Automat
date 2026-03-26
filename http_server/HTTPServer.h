@@ -18,9 +18,14 @@
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
 #include <WiFi.h>
 #include <WebServer.h>
+#include <esp_wifi.h>
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
 #include <esp_wifi.h>
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
@@ -38,11 +43,14 @@ namespace atmt {
 
     constexpr uint32_t kReconnectDelayMS = 5000;
 
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
     typedef struct {
         HTMLPage* page;
+        // HTTPSocket* socket;
         HTTPRequest* request;
         Timestamp scheduled_at;
     } OngoingConnection;
+#endif
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
     class HTTPServer : public Subsystem {
@@ -81,9 +89,14 @@ namespace atmt {
             static void wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
             static esp_err_t HTTPRequestHandler(httpd_req_t* request);
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
             static void wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server);
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
             void HTTPRequestHandler(HTMLPage* page);
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            void HTTPRequestHandler(HTMLPage* page, AsyncWebServerRequest* request);
 #endif
 
             std::string getIPAddress();
@@ -91,18 +104,30 @@ namespace atmt {
             void addAllPages();
             void addPageToServer(HTMLPage* page);
 
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            // void scheduleOngoingConnection(HTMLPage* page, HTTPSocket* socket, Timestamp scheduled_at);
             void scheduleOngoingConnection(HTMLPage* page, HTTPRequest* request, Timestamp scheduled_at);
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+            httpd_handle_t* getHTTPDHandle();
+#endif
 
         private:
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             httpd_handle_t m_server;
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
             WebServer m_server;
             uint32_t m_lastReconnectAttempt;
 #endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            AsyncWebServer m_server;
+            uint32_t m_lastReconnectAttempt;
+#endif
             std::vector<HTMLPage*> m_html_pages;
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
             std::vector<OngoingConnection*> m_ongoing_connections;
+#endif
 
             std::string m_wifi_ssid;
             std::string m_wifi_password;

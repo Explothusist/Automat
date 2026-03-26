@@ -4,9 +4,16 @@
 #include <cmath>
 #include <string>
 #include <cctype>
-#ifdef AUTOMAT_ESP32_
+// #ifdef AUTOMAT_ESP32_
+#ifdef AUTOMAT_ESP32_ARDUINO_
 #include <Arduino.h>
 #endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+#include "esp_log.h"
+#include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#endif
+// #endif
 
 namespace atmt {
     
@@ -32,9 +39,14 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
         m_brain.Screen.print(stuff.c_str());
 #endif
-#ifdef AUTOMAT_ESP32_
-        Serial.println(stuff.c_str());
+// #ifdef AUTOMAT_ESP32_
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        Serial.print(stuff.c_str());
 #endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        ESP_LOGI("GENERAL", "%s", stuff.c_str());
+#endif
+// #endif
     };
     void platform_println(std::string stuff) {
 #ifdef AUTOMAT_VEX_
@@ -48,8 +60,11 @@ namespace atmt {
         m_brain.Screen.print(stuff.c_str());
         m_brain.Screen.newLine(); // This is horrendous...
 #endif
-#ifdef AUTOMAT_ESP32_
-        Serial.println((stuff + "\n").c_str());
+#ifdef AUTOMAT_ESP32_ARDUINO_
+        Serial.println(stuff.c_str());
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        ESP_LOGI("GENERAL", "%s", stuff.c_str());
 #endif
     };
     
@@ -135,16 +150,22 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
         return Timestamp(vex::timer::system());
 #endif
-#ifdef AUTOMAT_ESP32_
+#ifdef AUTOMAT_ESP32_ARDUINO_
         return Timestamp(millis());
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        return Timestamp(esp_timer_get_time() / 1000);
 #endif
     };
     void systemWait(int milliseconds) {
 #ifdef AUTOMAT_VEX_
         vex::wait(milliseconds, vex::msec);
 #endif
-#ifdef AUTOMAT_ESP32_
+#ifdef AUTOMAT_ESP32_ARDUINO_
         delay(milliseconds);
+#endif
+#ifdef AUTOMAT_ESP32_ESPIDF_
+        vTaskDelay(pdMS_TO_TICKS(milliseconds));
 #endif
     };
 

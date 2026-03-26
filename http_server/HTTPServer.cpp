@@ -10,11 +10,16 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         m_server{ nullptr },
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+        m_server{ 80 },
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         m_server{ 80 },
 #endif
         m_html_pages{ },
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         m_ongoing_connections{ },
+#endif
         m_wifi_ssid{ wifi_ssid },
         m_wifi_password{ wifi_password },
         m_ip_address{ "" },
@@ -32,19 +37,25 @@ namespace atmt {
             // page = nullptr; // This line actually does nothing, because it is copy, not real
         }
         m_html_pages.clear();
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         for (OngoingConnection* connection : m_ongoing_connections) {
             delete connection;
         }
         m_ongoing_connections.clear();
+#endif
     };
 
     void HTTPServer::init() {
         wifiInit();
     };
     void HTTPServer::periodic() {
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         if (m_server_init) {
             m_server.handleClient();
+        }
+#endif
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
+        if (m_server_init) {
             if (WiFi.status() != WL_CONNECTED && m_lastReconnectAttempt + kReconnectDelayMS < millis()) {
                 WiFi.reconnect();
                 m_lastReconnectAttempt = millis();
@@ -52,23 +63,26 @@ namespace atmt {
         }
 #endif
 
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         size_t i = 0;
         size_t connections = m_ongoing_connections.size();
         Timestamp time = getSystemTime();
         while (i < connections) {
             if (time > m_ongoing_connections[i]->scheduled_at) {
-                Serial.println(time.getTimeMS());
-                Serial.println(m_ongoing_connections[i]->scheduled_at.getTimeMS());
+                platform_println(std::to_string(time.getTimeMS()));
+                platform_println(std::to_string(m_ongoing_connections[i]->scheduled_at.getTimeMS()));
+                // m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->socket);
                 m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->request);
                 delete m_ongoing_connections[i];
                 m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
                 connections -= 1;
-                Serial.println("Serviced");
+                platform_println("Serviced");
             }else {
                 i += 1;
-                Serial.println("Skipped for a frame");
+                platform_println("Skipped for a frame");
             }
         }
+#endif
     };
 
     void HTTPServer::registerPage_Static_RawHTML(std::string path, std::string html) {
@@ -129,7 +143,7 @@ namespace atmt {
 
             esp_wifi_set_ps(WIFI_PS_NONE); // Turns off power saving measures because we are streaming
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
             WiFi.mode(WIFI_STA);
             WiFi.onEvent(
                 [this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -140,7 +154,7 @@ namespace atmt {
             // while (WiFi.status() != WL_CONNECTED) {
             //     delay(500);
             // }
-            // // Serial.println(WiFi.localIP());
+            // // platform_println(WiFi.localIP());
             // startServer();
 #endif
             m_wifi_init = true;
@@ -169,7 +183,7 @@ namespace atmt {
                 ESP_LOGE("HTTP", "Failed to Start HTTP Server");
             }
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
             addAllPages();
 
             m_server.begin();
@@ -185,9 +199,11 @@ namespace atmt {
             m_server_init = false;
         }
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
         if (m_server_init) {
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
             m_server.stop();
+#endif
             m_server_init = false;
         }
 #endif
@@ -232,15 +248,22 @@ namespace atmt {
         return html_page->handle_request(new HTTPRequest(request));
     };
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
     void HTTPServer::wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server) {
         if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
             server->m_ip_address = std::string(WiFi.localIP().toString().c_str());
             server->startServer();
         }
     };
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
     void HTTPServer::HTTPRequestHandler(HTMLPage* page) {
         page->handle_request(new HTTPRequest(&m_server, this));
+    };
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    void HTTPServer::HTTPRequestHandler(HTMLPage* page, AsyncWebServerRequest* request) {
+        page->handle_request(new HTTPRequest(request, this));
     };
 #endif
 
@@ -270,7 +293,7 @@ namespace atmt {
             ESP_LOGE("HTTP", "Failed to register URI: %s", page->getPath());
         }
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         m_server.on(
             page->getPath().c_str(),
             page->getMethod(),
@@ -279,8 +302,20 @@ namespace atmt {
             }
         );
 #endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+        // Register a route for asynchronous server
+        m_server.on(
+            page->getPath().c_str(),
+            page->getMethod(),
+            [this, page](AsyncWebServerRequest* request) {
+                HTTPRequestHandler(page, request);
+            }
+        );
+#endif
     };
     
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    // void HTTPServer::scheduleOngoingConnection(HTMLPage* page, HTTPSocket* socket, Timestamp scheduled_at) {
     void HTTPServer::scheduleOngoingConnection(HTMLPage* page, HTTPRequest* request, Timestamp scheduled_at) {
         OngoingConnection* connection = new OngoingConnection();
         connection->page = page;
@@ -288,6 +323,12 @@ namespace atmt {
         connection->scheduled_at = scheduled_at;
         m_ongoing_connections.push_back(connection);
     };
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+    httpd_handle_t* HTTPServer::getHTTPDHandle() {
+        return &m_server;
+    };
+#endif
 
 };
 

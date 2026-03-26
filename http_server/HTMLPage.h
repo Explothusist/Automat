@@ -19,9 +19,14 @@
 #include "nvs_flash.h"
 #include "esp_http_server.h"
 #endif
-#ifdef ATMT_SUBMODULE_SERVER_ARUINO_WIFI_
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
 #include <WiFi.h>
 #include <WebServer.h>
+#include <esp_wifi.h>
+#endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
 #include <esp_wifi.h>
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
@@ -86,7 +91,17 @@ namespace atmt {
             ~HTMLPage_Dynamic_JPEGStreamer() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;
+// #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
+#ifndef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
             esp_err_t continue_connection(HTTPRequest* request) override;
+#endif
+// #endif
+// #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
+//             esp_err_t continue_connection(HTTPSocket* request) override;
+// #endif
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            static size_t streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg);
+#endif
         private:
             std::function<char*(size_t&, void*)> m_jpeg_getter;
             int m_frame_delay_mS;
@@ -97,6 +112,10 @@ namespace atmt {
             size_t m_old_img_length;
             char* m_raw_buffer;
             size_t m_header_length;
+            
+            size_t m_header_index;
+            size_t m_buffer_index;
+            size_t m_footer_index;
     };
 #endif
 
@@ -109,6 +128,9 @@ namespace atmt {
             ~HTMLPage_Static_Favicon() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            static size_t streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg);
+#endif
         private:
             char* m_favicon;
             size_t m_favicon_length;
