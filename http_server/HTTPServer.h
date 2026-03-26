@@ -73,13 +73,17 @@ namespace atmt {
             void periodic();
 #endif
 
-            void registerPage_Static_RawHTML(std::string path, std::string html);
+            void registerPage_IdentifyAsAutomat();
+            void registerPage_IdentifyAsAutomat(const std::string& device_name);
+            void registerPage_AutomatFavicon();
+            void registerPage_Static_RawHTML(const std::string& path, const std::string& html);
             void registerPage_Static_DynamicHTML(const std::string& path, std::function<std::string(void*)> html_getter, void* arg);
             void registerPage_Static_DynamicPostHTML(const std::string& path, std::function<std::string(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
             void registerPage_Static_DynamicPostRedirect(const std::string& path, const std::string& redirect_path, std::function<void(const std::vector<POSTInfo>&, void*)> post_sender, void* arg);
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_JPEG_STREAMING_
             void registerPage_Dynamic_JPEGStreamer(const std::string& path, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg);
 #endif
+            void registerPage_Static_Favicon(char* favicon, size_t favicon_length);
             void registerPage(HTMLPage* page);
 
             void wifiInit();

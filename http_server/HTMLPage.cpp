@@ -5,6 +5,24 @@
 
 namespace atmt {
 
+    HTMLPage_Static_ReturnCode::HTMLPage_Static_ReturnCode(const std::string& path, const std::string& response, int code):
+        HTMLPage(path, Method_Get),
+        m_response{ response },
+        m_code{ code }
+    {
+
+    };
+    esp_err_t HTMLPage_Static_ReturnCode::handle_request(HTTPRequest* request) {
+        // Tell the client to expect raw HTML text
+        // Send the basic webpage text once
+        atmtHTTPError error = request->sendResponse("text/html", m_response, m_code);
+        if (error != HTTP_OK) {
+            return ESP_FAIL;
+        }
+
+        return ESP_OK;
+    };
+    
     HTMLPage_Static_RawHTML::HTMLPage_Static_RawHTML(const std::string& path, const std::string& html):
         HTMLPage(path, Method_Get),
         m_html{ html }
@@ -428,21 +446,21 @@ namespace atmt {
         0x00, 0x00, 0xE0, 0x07, 0x00, 0x00
     };
     HTMLPage_Static_Favicon::HTMLPage_Static_Favicon():
-        HTMLPage_Static_Favicon((char*)default_favicon, 318, "/favicon.ico")
+        HTMLPage_Static_Favicon("/favicon.ico", (char*)default_favicon, 318)
     {
         
     };
     HTMLPage_Static_Favicon::HTMLPage_Static_Favicon(char* favicon, size_t favicon_length):
-        HTMLPage_Static_Favicon(favicon, favicon_length, "/favicon.ico")
+        HTMLPage_Static_Favicon("/favicon.ico", favicon, favicon_length)
     {
 
     };
     HTMLPage_Static_Favicon::HTMLPage_Static_Favicon(const std::string& path):
-        HTMLPage_Static_Favicon((char*)default_favicon, 318, path)
+        HTMLPage_Static_Favicon(path, (char*)default_favicon, 318)
     {
 
     };
-    HTMLPage_Static_Favicon::HTMLPage_Static_Favicon(char* favicon, size_t favicon_length, const std::string& path):
+    HTMLPage_Static_Favicon::HTMLPage_Static_Favicon(const std::string& path, char* favicon, size_t favicon_length):
         HTMLPage(path, Method_Get),
         m_favicon{ favicon },
         m_favicon_length{ favicon_length }

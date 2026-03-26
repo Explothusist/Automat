@@ -40,6 +40,17 @@
 #include "HTMLPageInternals.h"
 
 namespace atmt {
+    
+    class HTMLPage_Static_ReturnCode : public HTMLPage {
+        public:
+            HTMLPage_Static_ReturnCode(const std::string& path, const std::string& response, int code);
+            ~HTMLPage_Static_ReturnCode() override = default;
+
+            esp_err_t handle_request(HTTPRequest* request) override;
+        private:
+            std::string m_response;
+            int m_code;
+    };
 
     class HTMLPage_Static_RawHTML : public HTMLPage {
         public:
@@ -124,7 +135,7 @@ namespace atmt {
             HTMLPage_Static_Favicon();
             HTMLPage_Static_Favicon(char* favicon, size_t favicon_length);
             HTMLPage_Static_Favicon(const std::string& path);
-            HTMLPage_Static_Favicon(char* favicon, size_t favicon_length, const std::string& path);
+            HTMLPage_Static_Favicon(const std::string& path, char* favicon, size_t favicon_length);
             ~HTMLPage_Static_Favicon() override = default;
 
             esp_err_t handle_request(HTTPRequest* request) override;

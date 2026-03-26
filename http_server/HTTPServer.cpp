@@ -85,7 +85,18 @@ namespace atmt {
 #endif
     };
 
-    void HTTPServer::registerPage_Static_RawHTML(std::string path, std::string html) {
+    void HTTPServer::registerPage_IdentifyAsAutomat() {
+        registerPage_IdentifyAsAutomat("");
+    };
+    void HTTPServer::registerPage_IdentifyAsAutomat(const std::string& device_name) {
+        HTMLPage* page = new HTMLPage_Static_ReturnCode("/is_atmt", device_name, 418); // 418 I'm a teapot
+        registerPage(page);
+    };
+    void HTTPServer::registerPage_AutomatFavicon() {
+        HTMLPage* page = new HTMLPage_Static_Favicon();
+        registerPage(page);
+    };
+    void HTTPServer::registerPage_Static_RawHTML(const std::string& path, const std::string& html) {
         HTMLPage* page = new HTMLPage_Static_RawHTML(path, html);
         registerPage(page);
     };
@@ -107,6 +118,10 @@ namespace atmt {
         registerPage(page);
     };
 #endif
+    void HTTPServer::registerPage_Static_Favicon(char* favicon, size_t favicon_length) {
+        HTMLPage* page = new HTMLPage_Static_Favicon(favicon, favicon_length);
+        registerPage(page);
+    };
     void HTTPServer::registerPage(HTMLPage* page) {
         m_html_pages.push_back(page);
         if (m_server_init) {

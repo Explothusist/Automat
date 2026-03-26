@@ -289,9 +289,9 @@ namespace atmt {
         return sendResponseRaw(type.c_str(), type.length(), content, cont_length, code);
     };
     atmtHTTPError HTTPRequest::sendResponseRaw(const char* type, size_t type_length, const char* content, size_t cont_length, int code) {
-        if (code < 200 || code > 299) {
-            return HTTP_FAIL;
-        }
+        // if (code < 200 || code > 299) {
+        //     return HTTP_FAIL;
+        // }
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         atmtHTTPError atmt_error;
         esp_err_t error;

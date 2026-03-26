@@ -5,7 +5,8 @@
 
 namespace atmt {
 
-    CameraStreamingServer::CameraStreamingServer(std::string wifi_ssid, std::string wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg):
+    CameraStreamingServer::CameraStreamingServer(const std::string& device_name, const std::string& wifi_ssid, const std::string& wifi_pass, std::function<char*(size_t&, void*)> jpeg_getter, double frame_rate, void* arg):
+        m_device_name{ device_name },
         m_frame_rate{ frame_rate },
         m_jpeg_getter{ jpeg_getter },
         m_arg{ arg },
@@ -18,19 +19,14 @@ namespace atmt {
     };
 
     void CameraStreamingServer::init() {
-        m_server->registerPage(new HTMLPage_Static_Favicon());
-        // m_server->registerPage_Static_RawHTML(
-        //     "/stream",
-        //     "<!DOCTYPE html><html><head></head><body><h1>Stream Page Working<h1/></body></html>"
-        // );
+        m_server->registerPage_IdentifyAsAutomat(m_device_name);
+        m_server->registerPage_AutomatFavicon();
         m_server->registerPage_Dynamic_JPEGStreamer(
             "/stream",
             m_jpeg_getter,
             m_frame_rate,
             m_arg
         );
-        // const char* html = 
-        //     "<!DOCTYPE html><html><head></head><body><img src=\"/stream\" /></body></html>";
         m_server->registerPage_Static_RawHTML(
             "/",
             "<!DOCTYPE html><html><title>Automat JPEG Streaming</title><head></head><body><img src=\"/stream\" /></body></html>"
