@@ -10,6 +10,9 @@
 #ifdef ATMT_SUBMODULE_SERIAL_
 #include "../serial/SerialReader.h"
 #endif
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
+#include "../http_server/RobotDashboardServer.h"
+#endif
 
 namespace atmt {
 
@@ -366,6 +369,14 @@ namespace atmt {
             serial->internal_init(&m_state, m_event_handler);
             m_subsystems.push_back(serial); // To ensure no duplicates
             // m_serial_handlers.push_back(serial);
+        }
+    };
+#endif
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
+    void TimedRobot::addRobotDashboard(RobotDashboardServer* server) {
+        if (!robotHasSubsystem(server)) {
+            // Probably will do something more here eventually
+            m_subsystems.push_back(server); // To ensure no duplicates
         }
     };
 #endif

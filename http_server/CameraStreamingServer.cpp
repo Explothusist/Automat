@@ -29,7 +29,7 @@ namespace atmt {
         );
         m_server->registerPage_Static_RawHTML(
             "/",
-            "<!DOCTYPE html><html><title>Automat JPEG Streaming</title><head></head><body><img src=\"/stream\" /></body></html>"
+            "<!DOCTYPE html><html><title>JPEG Streaming - Automat</title><head></head><body><img src=\"/stream\" /></body></html>"
         );
 
         m_server->init();

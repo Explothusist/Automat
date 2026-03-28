@@ -24,6 +24,9 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_SERIAL_
     class SerialReader;
 #endif
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
+    class RobotDashboardServer;
+#endif
 
     class TimedRobot {
         public:
@@ -54,6 +57,9 @@ namespace atmt {
             void addJoystick(Joystick* joystick);
 #ifdef ATMT_SUBMODULE_SERIAL_
             void addSerialReader(SerialReader* serial);
+#endif
+#ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
+            void addRobotDashboard(RobotDashboardServer* server);
 #endif
 
             void setAutonomousCommand(Command* command);

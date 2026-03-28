@@ -30,6 +30,10 @@
     #ifdef ATMT_SUBMODULE_HTTP_SERVER_CAMERA_STREAMING_SERVER_
         #include "http_server/CameraStreamingServer.h"
     #endif
+    #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
+        #include "http_server/dashboard_tiles/DashboardTile.h"
+        #include "http_server/RobotDashboardServer.h"
+    #endif
 #endif
 
 #ifdef ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_

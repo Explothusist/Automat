@@ -59,6 +59,67 @@ namespace atmt {
 
         return ESP_OK;
     };
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    HTMLPage_Static_DynamicChunkedHTML::HTMLPage_Static_DynamicChunkedHTML(const std::string& path, std::function<const char*(int, size_t&, void*)> html_get_next_chunk, void* arg):
+        HTMLPage(path, Method_Get),
+        m_html_get_next_chunk{ html_get_next_chunk },
+        m_arg{ arg }
+    {
+        
+    };
+    esp_err_t HTMLPage_Static_DynamicChunkedHTML::handle_request(HTTPRequest* request) {
+        // Tell the client to expect raw HTML text
+        // Send the basic webpage text once
+        // atmtHTTPError error = request->sendResponse("text/html", m_html_getter(m_arg));
+        // if (error != HTTP_OK) {
+        //     return ESP_FAIL;
+        // }
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+        // m_chunks = m_html_getter(m_arg);
+        m_chunk_count = 0;
+        m_chunk = m_html_get_next_chunk(m_chunk_count, m_chunk_length, m_arg);
+        m_chunk_index = 0;
+        // m_chunk_char_index = 0;
+        request->streamChunks("text/html", streamCallback, this);
+#endif
+
+        return ESP_OK;
+    };
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    size_t HTMLPage_Static_DynamicChunkedHTML::streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg) {
+        HTMLPage_Static_DynamicChunkedHTML* page = static_cast<HTMLPage_Static_DynamicChunkedHTML*>(arg);
+        // Copy up to maxLen bytes from content to buffer
+        size_t total_sent = 0;
+        while (total_sent < maxLen && page->m_chunk_length != 0 && page->m_chunk) {
+            size_t bytes_to_send = std::min(page->m_chunk_length - page->m_chunk_index, maxLen - total_sent);
+            if (bytes_to_send > 0) {
+                memcpy(buffer, page->m_chunk + page->m_chunk_index, bytes_to_send);
+                page->m_chunk_index += bytes_to_send;
+                total_sent += bytes_to_send;
+            }
+            if (page->m_chunk_index >= page->m_chunk_length) {
+                page->m_chunk_index = 0;
+                page->m_chunk_count += 1;
+                page->m_chunk = page->m_html_get_next_chunk(page->m_chunk_count, page->m_chunk_length, page->m_arg);
+            }
+        }
+        // size_t total_sent = 0;
+        // while (total_sent < maxLen && page->m_chunk_index < page->m_chunks.size()) {
+        //     size_t bytes_to_send = std::min(page->m_chunks[page->m_chunk_index].size() - page->m_chunk_char_index, maxLen - total_sent);
+        //     if (bytes_to_send > 0) {
+        //         memcpy(buffer, page->m_chunks[page->m_chunk_index].c_str() + page->m_chunk_char_index, bytes_to_send);
+        //         page->m_chunk_char_index += bytes_to_send;
+        //         total_sent += bytes_to_send;
+        //     }
+        //     if (page->m_chunk_char_index >= page->m_chunks[page->m_chunk_index].size()) {
+        //         page->m_chunk_char_index = 0;
+        //         page->m_chunk_index += 1;
+        //     }
+        // }
+        return total_sent;
+    };
+#endif
+#endif
 
     HTMLPage_Static_DynamicPostHTML::HTMLPage_Static_DynamicPostHTML(const std::string& path, std::function<std::string(const std::vector<POSTInfo>&, void*)> post_sender, void* arg):
         HTMLPage(path, Method_Post),

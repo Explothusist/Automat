@@ -72,6 +72,27 @@ namespace atmt {
             std::function<std::string(void*)> m_html_getter;
             void* m_arg; // for html_getter
     };
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+    class HTMLPage_Static_DynamicChunkedHTML : public HTMLPage {
+        public:
+            HTMLPage_Static_DynamicChunkedHTML(const std::string& path, std::function<const char*(int, size_t&, void*)> html_get_next_chunk, void* arg);
+            ~HTMLPage_Static_DynamicChunkedHTML() override = default;
+
+            esp_err_t handle_request(HTTPRequest* request) override;
+#ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
+            static size_t streamCallback(uint8_t* buffer, size_t maxLen, size_t index, void* arg);
+#endif
+        private:
+            std::function<const char*(int, size_t&, void*)> m_html_get_next_chunk;
+            void* m_arg; // for html_getter
+
+            // std::vector<char*> m_chunks;
+            const char* m_chunk;
+            size_t m_chunk_length;
+            size_t m_chunk_index;
+            int m_chunk_count;
+    };
+#endif
     
     class HTMLPage_Static_DynamicPostHTML : public HTMLPage {
         public:
