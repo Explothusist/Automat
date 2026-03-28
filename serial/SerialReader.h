@@ -78,10 +78,13 @@ namespace atmt {
             bool getNextMessage(uint8_t output[], uint8_t &length);
             bool getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
             // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
-            bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
-            bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int duplicates);
-            bool sendMessageAll(uint8_t message[], uint8_t length);
-            bool sendMessageAll(uint8_t message[], uint8_t length, int duplicates);
+            // bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
+            bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
+            // bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length);
+            bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
+            // bool sendMessageAll(uint8_t message[], uint8_t length);
+            bool sendMessageAll(uint8_t message[], uint8_t length, int duplicates = 1);
+            bool sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int duplicates = 1);
             void sendByte(uint8_t byte);
             void flushMessages();
 
@@ -136,6 +139,8 @@ namespace atmt {
             bool m_part_has_end;
 
             bool m_part_next_char_escaped;
+            
+            bool sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message[], uint8_t length, int duplicates);
     };
 
 }

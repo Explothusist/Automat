@@ -370,14 +370,34 @@ namespace atmt {
             return false;
         }
     };
-    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
-        return sendMessage(recipient_code, message, length, 1);
+    // bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
+    //     return sendMessage(recipient_code, message, length, 1);
+    // };
+    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies) {
+        return sendMessageInternal(recipient_code, 0, false, message, length, copies);
     };
-    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int duplicates) {
+    // bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length) {
+
+    // };
+    bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
+        return sendMessageInternal(recipient_code, message_prefix, true, message, length, copies);
+    };
+    // bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length) {
+    //     return sendMessage(KSerialAddressSendAll, message, length, 1);
+    // };
+    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int copies) {
+        return sendMessageInternal(KSerialAddressSendAll, 0, false, message, length, copies);
+        // return sendMessage(KSerialAddressSendAll, message, length, copies);
+    };
+    bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
+        return sendMessageInternal(KSerialAddressSendAll, message_prefix, true, message, length, copies);
+        // return sendMessage(KSerialAddressSendAll, message, length, copies);
+    };
+    bool SerialReader::sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message[], uint8_t length, int copies) {
         if (length > kMaxPacketSize) {
             return false;
         }
-        for (int i = 0; i < duplicates; i++) {
+        for (int i = 0; i < copies; i++) {
             if (i == 0) {
                 m_to_send.push(static_cast<int>(SerialMessage::Start));
             }else {
@@ -392,6 +412,10 @@ namespace atmt {
             checksum += recipient_code;
             sendByte(recipient_code);
             
+            if (with_prefix) {
+                sendByte(message_prefix);
+                checksum += message_prefix;
+            }
             for (int j = 0; j < length; j++) {
                 sendByte(message[j]);
                 checksum += message[j];
@@ -400,12 +424,6 @@ namespace atmt {
             m_to_send.push(static_cast<int>(SerialMessage::End));
         }
         return true;
-    };
-    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length) {
-        return sendMessage(KSerialAddressSendAll, message, length, 1);
-    };
-    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int duplicates) {
-        return sendMessage(KSerialAddressSendAll, message, length, duplicates);
     };
     void SerialReader::sendByte(uint8_t byte) {
         if (isSpecial(byte)) {
