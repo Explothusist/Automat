@@ -65,7 +65,8 @@ namespace atmt {
         ModeTeleopOnly = 0,
         ModeAutonomousOnly = 1,
         ModeTeleopAndAuto = 2,
-        ModeAnyAndAll = 3 // DO NOT USE
+        ModeDisabled = 3, // ONLY FOR AUTONOMOUS TRIGGERS
+        ModeAnyAndAll = 4 // DO NOT USE
     } TriggerModes;
     typedef enum {
         NULLAxis = -1,

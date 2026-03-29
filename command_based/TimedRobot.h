@@ -5,6 +5,7 @@
 #define AUTOMAT_ROBOT_
 
 #include <vector>
+#include <functional>
 
 #include "../automat_platform.h"
 
@@ -63,6 +64,8 @@ namespace atmt {
 #endif
 
             void setAutonomousCommand(Command* command);
+            void setAutonomousCommandGetter(std::function<Command*(int, void*)> command_getter, std::function<int(void*)> routine_getter, void* arg);
+            Command* getAutoCommand();
 
             void endCommand(int command_id); // Use the global Id assigned by Joystick
 
@@ -84,6 +87,10 @@ namespace atmt {
 #endif
             // std::vector<SerialReader*> m_serial_handlers;
             Command* m_autonomous_command;
+            bool m_auto_command_getter_set;
+            std::function<Command*(int, void*)> m_auto_getter;
+            std::function<int(void*)> m_routine_getter;
+            void* m_auto_getter_arg;
 
 #ifdef AUTOMAT_VEX_
             // vex::brain m_brain;
@@ -97,7 +104,7 @@ namespace atmt {
 
             int m_frame_delay;
 
-            bool m_first_auto_trigger;
+            // bool m_first_auto_trigger;
             double m_autonomous_length;
             Timestamp m_start_of_auto;
 

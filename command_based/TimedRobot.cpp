@@ -28,6 +28,10 @@ namespace atmt {
         // m_joysticks{ },
         // m_serial_handlers{ },
         m_autonomous_command{ nullptr },
+        m_auto_command_getter_set{ false },
+        m_auto_getter{ },
+        m_routine_getter{ },
+        m_auto_getter_arg{ nullptr },
 #ifdef AUTOMAT_VEX_
         // m_brain{ vex::brain() },
         m_uses_vex_competition{ false },
@@ -37,7 +41,7 @@ namespace atmt {
         m_reseting_state_loop{ false },
         m_had_state_change{ false },
         m_frame_delay{ 20 },
-        m_first_auto_trigger{ true },
+        // m_first_auto_trigger{ true },
         m_autonomous_length{ autonomous_length },
         m_start_of_auto{ Timestamp(0) }
     {
@@ -76,7 +80,8 @@ namespace atmt {
             }
         }else {
 #endif
-            if (m_first_auto_trigger) {
+            // if (m_first_auto_trigger) {
+            if (m_state == Disabled) {
                 bool triggered = false;
                 // for (Joystick* joystick : m_joysticks) {
                 //     triggered = (triggered || joystick->pollAutonomousTriggers());
@@ -85,7 +90,7 @@ namespace atmt {
 
                 if (triggered) {
                     m_state = Autonomous;
-                    m_first_auto_trigger = false;
+                    // m_first_auto_trigger = false;
                     
                     m_start_of_auto = getSystemTime();
                 }
@@ -245,8 +250,9 @@ namespace atmt {
         // platform_println("autonomousInternal Begins"); // DEBUG
         if (m_had_state_change) {
             clearCommands();
-            if (m_autonomous_command != nullptr) {
-                runCommand(m_autonomous_command);
+            Command* auto_command = getAutoCommand();
+            if (auto_command != nullptr) {
+                runCommand(auto_command);
             }
             autonomousInit(); // User-made function
         }
@@ -352,13 +358,13 @@ namespace atmt {
     void TimedRobot::addJoystick(Joystick* joystick) {
         if (!robotHasSubsystem(joystick)) {
             joystick->internal_init(&m_state, m_event_handler);
-#ifdef AUTOMAT_VEX_
-            if (!m_uses_vex_competition) {
-#endif
-                joystick->bindAutoTrigger((new Trigger(AButton, ButtonPressed))->inMode(atmt::ModeAnyAndAll));
-#ifdef AUTOMAT_VEX_
-            }
-#endif
+// #ifdef AUTOMAT_VEX_ // All Auto Triggers are added manually
+//             if (!m_uses_vex_competition) {
+// #endif
+//                 joystick->bindAutoTrigger((new Trigger(AButton, ButtonPressed))->inMode(atmt::ModeAnyAndAll));
+// #ifdef AUTOMAT_VEX_
+//             }
+// #endif
             m_subsystems.push_back(joystick);
             // m_joysticks.push_back(joystick); // To ensure no duplicates
         }
@@ -419,6 +425,20 @@ namespace atmt {
     void TimedRobot::setAutonomousCommand(Command* command) {
         delete m_autonomous_command;
         m_autonomous_command = command;
+        m_auto_command_getter_set = false;
+    };
+    void TimedRobot::setAutonomousCommandGetter(std::function<Command*(int, void*)> command_getter, std::function<int(void*)> routine_getter, void* arg) {
+        m_auto_getter = command_getter;
+        m_routine_getter = routine_getter;
+        m_auto_getter_arg = arg;
+        m_auto_command_getter_set = true;
+    };
+    Command* TimedRobot::getAutoCommand() {
+        if (m_auto_command_getter_set) {
+            return m_auto_getter(m_routine_getter(m_auto_getter_arg), m_auto_getter_arg);
+        }else {
+            return m_autonomous_command;
+        }
     };
 
 

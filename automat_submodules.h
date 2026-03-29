@@ -12,8 +12,8 @@
 
 // Utilities
 // #define ATMT_SUBMODULE_UTILITIES_PID_CONTROLLER_ // Enables/Disables PID_Controller
-// #define ATMT_SUBMODULE_UTILITIES_VECTOR_ // Enables/Disables Vector2, Vector3
-// #define ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_ // Enables/Disables ThreadsafeBuffer
+#define ATMT_SUBMODULE_UTILITIES_VECTOR_ // Enables/Disables Vector2, Vector3
+#define ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_ // Enables/Disables ThreadsafeBuffer
 // #define ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_ // Enables/Disables KinematicPredictor
 
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
