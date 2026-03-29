@@ -104,6 +104,7 @@ namespace atmt {
 
             int m_frame_delay;
 
+            bool m_has_init;
             // bool m_first_auto_trigger;
             double m_autonomous_length;
             Timestamp m_start_of_auto;

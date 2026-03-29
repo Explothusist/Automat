@@ -392,7 +392,7 @@ namespace atmt {
     // bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
     //     return sendMessage(recipient_code, message, length, 1);
     // };
-    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1) {
+    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message, int copies) {
         return sendMessageInternal(recipient_code, message, true, nullptr, 0, copies);
     };
     bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies) {

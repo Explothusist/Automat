@@ -41,6 +41,7 @@ namespace atmt {
         m_reseting_state_loop{ false },
         m_had_state_change{ false },
         m_frame_delay{ 20 },
+        m_has_init{ false },
         // m_first_auto_trigger{ true },
         m_autonomous_length{ autonomous_length },
         m_start_of_auto{ Timestamp(0) }
@@ -129,7 +130,12 @@ namespace atmt {
 #endif
 #ifdef AUTOMAT_ESP32_
     void TimedRobot::runLoop() {
-        robotInternal();
+        if (!m_has_init) {
+            startLoop();
+            m_has_init = true;
+        }else {
+            robotInternal();
+        }
     };
 #endif
     void TimedRobot::startLoop() {

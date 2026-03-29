@@ -82,6 +82,7 @@ namespace atmt {
     Trigger* Trigger::fromSender(uint8_t sender) {
         m_from_sender = true;
         m_sender = sender;
+        return this;
     };
 
     bool Trigger::matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick) {
