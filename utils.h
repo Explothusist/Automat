@@ -71,7 +71,7 @@ namespace atmt {
     
     constexpr int kBaudrate = 115200;
     constexpr int kMaxMessagesPerFrame = 256;
-    constexpr uint8_t kMaxPacketSize = 64;
+    constexpr uint8_t kMaxPacketSize = 128;
 
 #ifdef AUTOMAT_ESP32_
     constexpr int kRXDefaultPin = 16;

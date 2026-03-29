@@ -291,7 +291,7 @@ namespace atmt {
         m_messages.push(message);
         m_last_message = message;
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-        triggerEvent(SerialReceive, message.data, message.length);
+        triggerEvent(SerialReceive, message.sender, message.data, message.length);
 #endif
     };
     void SerialReader::resetPartialMessage() {
@@ -360,7 +360,7 @@ namespace atmt {
     };
     bool SerialReader::getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
         if (availableMessages()) {
-            serial_message message = m_messages.front();
+            const serial_message &message = m_messages.front();
             m_messages.pop();
             length = message.length;
             sender = message.sender;
@@ -370,9 +370,31 @@ namespace atmt {
             return false;
         }
     };
+    bool SerialReader::getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return getNextMessagePrefixed(prefix, output, length, sender);
+    };
+    bool SerialReader::getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        // uint8_t data[kMaxPacketSize];
+        bool success = getNextMessage(output, length, sender);
+        if (!success) {
+            return false;
+        }
+        if (length == 0) {
+            return false;
+        }
+        prefix = output[0];
+        // output = output + 1;
+        length -= 1;
+        memmove(output, output + 1, length);
+        return true;
+    };
     // bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
     //     return sendMessage(recipient_code, message, length, 1);
     // };
+    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1) {
+        return sendMessageInternal(recipient_code, message, true, nullptr, 0, copies);
+    };
     bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies) {
         return sendMessageInternal(recipient_code, 0, false, message, length, copies);
     };
@@ -416,9 +438,11 @@ namespace atmt {
                 sendByte(message_prefix);
                 checksum += message_prefix;
             }
-            for (int j = 0; j < length; j++) {
-                sendByte(message[j]);
-                checksum += message[j];
+            if (message) {
+                for (int j = 0; j < length; j++) {
+                    sendByte(message[j]);
+                    checksum += message[j];
+                }
             }
             sendByte(checksum);
             m_to_send.push(static_cast<int>(SerialMessage::End));
@@ -438,13 +462,13 @@ namespace atmt {
 
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-    void SerialReader::triggerEvent(SerialEvent event, uint8_t code[], uint8_t length) {
+    void SerialReader::triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length) {
         if (!m_robot_state) { // Uninitialized
             return;
         }
         // for (size_t i = 0; i < m_temp_triggers.size(); i++) {
         for (size_t i = 0; i < m_temp_triggers.size(); ) {
-            if (m_temp_triggers[i]->matchesEvent(event, code, length, *m_robot_state)) {
+            if (m_temp_triggers[i]->matchesEvent(event, sender, code, length, *m_robot_state)) {
                 // interpretTrigger(m_temp_triggers[i], true);
                 Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(m_temp_triggers[i], true);
                 if (temp_trigger) {
@@ -460,7 +484,7 @@ namespace atmt {
         }
 
         for (Trigger_Event* trigger : m_triggers) {
-            if (trigger->matchesEvent(event, code, length, *m_robot_state)) {
+            if (trigger->matchesEvent(event, sender, code, length, *m_robot_state)) {
                 // interpretTrigger(trigger, true);
                 Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(trigger, true);
                 if (temp_trigger) {

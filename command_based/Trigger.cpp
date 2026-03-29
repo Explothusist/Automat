@@ -20,6 +20,9 @@ namespace atmt {
         m_type{ OnTrigger },
         m_modes{ ModeTeleopOnly },
         m_inverted{ false },
+        m_allow_partial{ false },
+        m_from_sender{ false },
+        m_sender{ 0 },
         m_criteria{ }
     {
 
@@ -43,6 +46,13 @@ namespace atmt {
         m_serial_code_length = std::min(length, kMaxPacketSize);
         memcpy(m_serial_code, code, length);
     };
+    Trigger::Trigger(SerialEvent event, uint8_t code):
+        Trigger()
+    {
+        m_serial_event = event;
+        m_serial_code_length = 1;
+        m_serial_code[0] = code;
+    };
 
     Trigger* Trigger::setType(TriggerType type) {
         m_type = type;
@@ -65,6 +75,14 @@ namespace atmt {
         m_inverted = !m_inverted;
         return this;
     };
+    Trigger* Trigger::allowPartial() {
+        m_allow_partial = true;
+        return this;
+    };
+    Trigger* Trigger::fromSender(uint8_t sender) {
+        m_from_sender = true;
+        m_sender = sender;
+    };
 
     bool Trigger::matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick) {
         if (!m_inverted) {
@@ -80,19 +98,22 @@ namespace atmt {
             return ((m_button == button && m_button_event != event) || !checkMode(state) || !checkCriteria(joystick));
         }
     };
-    bool Trigger::matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state) {
+    bool Trigger::matchesEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, RobotState state) {
         if (!m_inverted) {
-            return (m_serial_event == event && serialCodeMatches(code, length) && checkMode(state));
+            return (m_serial_event == event && serialCodeMatches(sender, code, length) && checkMode(state));
         }else {
-            return ((m_serial_event == event && !serialCodeMatches(code, length)) || !checkMode(state));
+            return ((m_serial_event == event && !serialCodeMatches(sender, code, length)) || !checkMode(state));
         }
     };
-    bool Trigger::serialCodeMatches(uint8_t code[], uint8_t length) {
-        if (m_serial_code_length != length) {
+    bool Trigger::serialCodeMatches(uint8_t sender, uint8_t code[], uint8_t length) {
+        if (m_from_sender && sender != m_sender) {
             return false;
         }
-        for (int i = 0; i < length; i++) {
-            if (m_serial_code[i] != code[i]) {
+        if (m_serial_code_length != length && !m_allow_partial) {
+            return false;
+        }
+        for (int i = 0; i < m_serial_code_length; i++) { // If allow_partial:
+            if (m_serial_code[i] != code[i]) { // '0x05' matches '0x05, 0x31 0xF4, ...'
                 return false;
             }
         }
@@ -177,8 +198,8 @@ namespace atmt {
     bool Trigger_Event::matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick) {
         return m_trigger->matchesEvent(button, event, state, joystick);
     };
-    bool Trigger_Event::matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state) {
-        return m_trigger->matchesEvent(event, code, length, state);
+    bool Trigger_Event::matchesEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, RobotState state) {
+        return m_trigger->matchesEvent(event, sender, code, length, state);
     };
 
     TriggerEffect Trigger_Event::getTriggerEffect() {

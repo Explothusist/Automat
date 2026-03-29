@@ -32,6 +32,11 @@ namespace atmt {
 
     class EventHandler;
 
+    // typedef struct {
+    //     uint8_t prefix;
+    //     uint8_t data[kMaxPacketSize - 1];
+    // } PrefixedSerial;
+
     void SetReadSerialEvents(bool to_read);
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
@@ -77,8 +82,11 @@ namespace atmt {
             bool availableMessages();
             bool getNextMessage(uint8_t output[], uint8_t &length);
             bool getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
+            bool getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
             // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
             // bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
+            bool sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
             // bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
@@ -92,7 +100,7 @@ namespace atmt {
             void bindToMessage(Trigger* trigger, Command* command);
             void bindAutoTrigger(Trigger* trigger);
 
-            void triggerEvent(SerialEvent event, uint8_t code[], uint8_t length);
+            void triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length);
 #endif
 
         private:

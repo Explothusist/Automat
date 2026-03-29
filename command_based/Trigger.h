@@ -91,6 +91,7 @@ namespace atmt {
             Trigger(ButtonIndicator button, ButtonEvent event);
             // Trigger(ButtonIndicator button, ButtonEvent event, TriggerType type);
             Trigger(SerialEvent event, uint8_t code[], uint8_t length);
+            Trigger(SerialEvent event, uint8_t code);
             Trigger(const Trigger &trigger) = default;
             ~Trigger() = default;
 
@@ -98,11 +99,13 @@ namespace atmt {
             Trigger* setCriteria(std::shared_ptr<Trigger> criteria);
             Trigger* inMode(TriggerModes modes);
             Trigger* invert();
+            Trigger* allowPartial(); // For Serial
+            Trigger* fromSender(uint8_t sender); // For Serial
 
             bool matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick);
             bool matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick);
-            bool matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state);
-            bool serialCodeMatches(uint8_t code[], uint8_t length);
+            bool matchesEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, RobotState state);
+            bool serialCodeMatches(uint8_t sender, uint8_t code[], uint8_t length);
 
             bool checkMode(RobotState state);
             bool checkCriteria(Joystick* joystick);
@@ -124,6 +127,9 @@ namespace atmt {
             TriggerType m_type;
             TriggerModes m_modes;
             bool m_inverted;
+            bool m_allow_partial; // For Serial
+            bool m_from_sender; // For Serial
+            uint8_t m_sender; // For Serial
 
             // std::shared_ptr<Trigger> m_criteria; // Linked list situation
             std::vector<std::shared_ptr<Trigger>> m_criteria; // Vector situation
@@ -138,7 +144,7 @@ namespace atmt {
 
             bool matchesEvent(StickIndicator stick, StickEvent event, RobotState state, Joystick* joystick);
             bool matchesEvent(ButtonIndicator button, ButtonEvent event, RobotState state, Joystick* joystick);
-            bool matchesEvent(SerialEvent event, uint8_t code[], uint8_t length, RobotState state);
+            bool matchesEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, RobotState state);
 
             TriggerEffect getTriggerEffect();
             Command* getCommand();
