@@ -139,22 +139,25 @@ namespace atmt {
     };
 #endif
     void TimedRobot::startLoop() {
-// #ifdef AUTOMAT_VEX_
-//         if (!m_uses_vex_competition) {
-// #endif
-//             for (Joystick* joystick : m_joysticks) {
-//                 // joystick->bindAutoTrigger(AButton, ButtonPressed);
-//                 joystick->bindAutoTrigger(new Trigger(AButton, ButtonPressed));
-//             }
-// #ifdef AUTOMAT_VEX_
-//         }
-// #endif
-        for (Subsystem* subsystem : m_subsystems) {
-            subsystem->init(); // User-made
+        if (!m_has_init) {
+            m_has_init = true;
+    // #ifdef AUTOMAT_VEX_
+    //         if (!m_uses_vex_competition) {
+    // #endif
+    //             for (Joystick* joystick : m_joysticks) {
+    //                 // joystick->bindAutoTrigger(AButton, ButtonPressed);
+    //                 joystick->bindAutoTrigger(new Trigger(AButton, ButtonPressed));
+    //             }
+    // #ifdef AUTOMAT_VEX_
+    //         }
+    // #endif
+            for (Subsystem* subsystem : m_subsystems) {
+                subsystem->init(); // User-made
+            }
+            // SetReadJoystickEvents(true);
+            SetReadEvents(true);
+            robotInit(); // User-made
         }
-        // SetReadJoystickEvents(true);
-        SetReadEvents(true);
-        robotInit(); // User-made
 
         robotInternal();
     };
