@@ -16,10 +16,13 @@ namespace atmt {
             virtual ~Subsystem();
 
             virtual void init(); // User-made, runs when loop starts
-            virtual void periodic(); // User-made
+            virtual void systemPeriodic(); // User-made, Runs in all modes
+            virtual void disabledPeriodic(); // User-made, Runs in Autonomous
+            virtual void autonomousPeriodic(); // User-made, Runs in Autonomous
+            virtual void teleopPeriodic(); // User-made, Runs in Telep
             // void periodic(); // User-made
 
-            void runPeriodic();
+            void runPeriodic(RobotState state);
             void setDefaultCommand(Command* command);
             Command* getDefaultCommand();
             bool hasDefaultCommand();

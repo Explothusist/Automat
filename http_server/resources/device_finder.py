@@ -21,7 +21,7 @@ def get_active_interface():
 
 def ping(ip):
     result = subprocess.run(
-        ["ping", "-n", "1", "-w", "500", str(ip)],
+        ["ping", "-n", "1", "-w", "1000", str(ip)],
         stdout=subprocess.DEVNULL
     )
     return str(ip) if result.returncode == 0 else None
@@ -52,7 +52,7 @@ print("Active IPs:", active_ips)
 def check_endpoint(ip):
     try:
         url = f"http://{ip}/is_atmt"
-        response = requests.get(url, timeout=0.5)
+        response = requests.get(url, timeout=2.0)
 
         if response.status_code == 418: # 418 I'm a teapot
             return {"ip": ip, "name": response.text}

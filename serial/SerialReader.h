@@ -62,15 +62,18 @@ namespace atmt {
             ~SerialReader() override;
 
             void init() override;
-            void periodic() override;
+            void systemPeriodic() override;
+            void disabledPeriodic() override;
+            void autonomousPeriodic() override;
+            void teleopPeriodic() override;
 
             void internal_init(RobotState* robot_state, EventHandler* event_handler);
 #else
             ~SerialReader();
 
             void init();
-            void periodic();
 #endif
+            void periodic();
 
             void interpretMessages();
             void addInterpretedMessage(serial_message message);

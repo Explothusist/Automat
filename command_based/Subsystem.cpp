@@ -15,8 +15,19 @@ namespace atmt {
         m_default_command = nullptr;
     };
 
-    void Subsystem::runPeriodic() {
-        periodic();
+    void Subsystem::runPeriodic(RobotState state) {
+        systemPeriodic();
+        switch (state) {
+            case Disabled:
+                disabledPeriodic();
+                break;
+            case Autonomous:
+                autonomousPeriodic();
+                break;
+            case Teleop:
+                teleopPeriodic();
+                break;
+        }
     };
 
     void Subsystem::setDefaultCommand(Command* command) {
@@ -36,8 +47,11 @@ namespace atmt {
         return m_default_command != nullptr;
     };
 
-    void Subsystem::periodic() {};
     void Subsystem::init() {};
+    void Subsystem::systemPeriodic() {};
+    void Subsystem::disabledPeriodic() {};
+    void Subsystem::autonomousPeriodic() {};
+    void Subsystem::teleopPeriodic() {};
 
 };
 

@@ -477,12 +477,11 @@ namespace atmt {
         m_temp_triggers.clear();
     };
 
-    void Joystick::init() {
-
-    };
-    void Joystick::periodic() {
-
-    };
+    void Joystick::init() {};
+    void Joystick::systemPeriodic() {};
+    void Joystick::disabledPeriodic() {};
+    void Joystick::autonomousPeriodic() {};
+    void Joystick::teleopPeriodic() {};
 
     // void Joystick::init(RobotState* robot_state) {
     //     m_robot_state = robot_state;

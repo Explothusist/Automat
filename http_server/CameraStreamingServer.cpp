@@ -37,6 +37,15 @@ namespace atmt {
     void CameraStreamingServer::periodic() {
         m_server->periodic();
     };
+    
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+    void CameraStreamingServer::systemPeriodic() {
+        periodic();
+    };
+    void CameraStreamingServer::disabledPeriodic() {};
+    void CameraStreamingServer::autonomousPeriodic() {};
+    void CameraStreamingServer::teleopPeriodic() {};
+#endif
 
     std::string CameraStreamingServer::getIPAddress() {
         return m_server->getIPAddress();

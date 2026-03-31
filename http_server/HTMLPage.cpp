@@ -204,7 +204,7 @@ namespace atmt {
             return ESP_FAIL;
         }
 #endif
-        platform_println("Header Sent");
+        // platform_println("Header Sent");
 
         // char part_buffer[128]; // Temporary storage for c-strings
         // size_t img_length;
@@ -226,7 +226,7 @@ namespace atmt {
             return ESP_FAIL; // Ends request, probably because client disconnected
         }
 #endif
-        platform_println("First Boundary Sent");
+        // platform_println("First Boundary Sent");
 
 #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         while (true) { // Connection continues as long as client stays active and connected
@@ -237,7 +237,7 @@ namespace atmt {
         }
 #endif
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
-        platform_println("Preparing Socket");
+        // platform_println("Preparing Socket");
         esp_err_t esp_error = request->toAsyncRequest();
         if (esp_error != ESP_OK) {
             return ESP_FAIL;
@@ -248,7 +248,7 @@ namespace atmt {
             return ESP_FAIL;
         }
 #endif
-        platform_println("Continue Connection Complete");
+        // platform_println("Continue Connection Complete");
 
 #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_
         request->streamChunks("multipart/x-mixed-replace; boundary=frame", streamCallback, this);
@@ -529,8 +529,8 @@ namespace atmt {
         
     };
     esp_err_t HTMLPage_Static_Favicon::handle_request(HTTPRequest* request) {
-        platform_println(std::to_string(*m_favicon));
-        platform_println(std::to_string(m_favicon_length));
+        // platform_println(std::to_string(*m_favicon));
+        // platform_println(std::to_string(m_favicon_length));
 #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         atmtHTTPError error = request->sendResponseChunk("HTTP/1.1 200 OK\r\nContent-Type: image/x-icon\r\n\r\n");
         if (error != HTTP_OK) {

@@ -54,7 +54,7 @@ print("Active IPs:", active_ips)
 def check_endpoint(ip):
     try:
         url = f"http://{ip}/is_atmt"
-        response = requests.get(url, timeout=0.5)
+        response = requests.get(url, timeout=2.0)
 
         if response.status_code == 418: # 418 I'm a teapot
             return {"ip": ip, "name": response.text}

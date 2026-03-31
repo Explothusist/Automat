@@ -25,8 +25,6 @@ namespace atmt {
         m_event_handler{ new EventHandler() },
         m_subsystems{ },
         m_commands{ },
-        // m_joysticks{ },
-        // m_serial_handlers{ },
         m_autonomous_command{ nullptr },
         m_auto_command_getter_set{ false },
         m_auto_getter{ },
@@ -42,7 +40,6 @@ namespace atmt {
         m_had_state_change{ false },
         m_frame_delay{ 20 },
         m_has_init{ false },
-        // m_first_auto_trigger{ true },
         m_autonomous_length{ autonomous_length },
         m_start_of_auto{ Timestamp(0) }
     {
@@ -57,15 +54,11 @@ namespace atmt {
             delete subsystem;
         }
         m_subsystems.clear();
-        // for (Joystick* joystick : m_joysticks) {
-        //     delete joystick;
-        // }
-        // m_joysticks.clear();
         delete m_autonomous_command;
         m_autonomous_command = nullptr;
     };
 
-    void TimedRobot::pollState() { // FANCY LOOP
+    void TimedRobot::pollState() {
         m_old_state = m_state;
         m_had_state_change = false;
 #ifdef AUTOMAT_VEX_
@@ -81,17 +74,12 @@ namespace atmt {
             }
         }else {
 #endif
-            // if (m_first_auto_trigger) {
             if (m_state == Disabled) {
                 bool triggered = false;
-                // for (Joystick* joystick : m_joysticks) {
-                //     triggered = (triggered || joystick->pollAutonomousTriggers());
-                // }
                 triggered = m_event_handler->pollAutonomousTriggers();
 
                 if (triggered) {
                     m_state = Autonomous;
-                    // m_first_auto_trigger = false;
                     
                     m_start_of_auto = getSystemTime();
                 }
@@ -141,20 +129,9 @@ namespace atmt {
     void TimedRobot::startLoop() {
         if (!m_has_init) {
             m_has_init = true;
-    // #ifdef AUTOMAT_VEX_
-    //         if (!m_uses_vex_competition) {
-    // #endif
-    //             for (Joystick* joystick : m_joysticks) {
-    //                 // joystick->bindAutoTrigger(AButton, ButtonPressed);
-    //                 joystick->bindAutoTrigger(new Trigger(AButton, ButtonPressed));
-    //             }
-    // #ifdef AUTOMAT_VEX_
-    //         }
-    // #endif
             for (Subsystem* subsystem : m_subsystems) {
                 subsystem->init(); // User-made
             }
-            // SetReadJoystickEvents(true);
             SetReadEvents(true);
             robotInit(); // User-made
         }
@@ -162,13 +139,10 @@ namespace atmt {
         robotInternal();
     };
 
-    void TimedRobot::robotInternal() { // bool is_original
+    void TimedRobot::robotInternal() {
 #ifdef AUTOMAT_VEX_
         while (true) {
 #endif
-            // if (m_reseting_state_loop && !is_original) {
-            //     return; // Kill the loop if it has been replaced by a new one
-            // }
             // platform_print("Robot Internal");
 #ifdef AUTOMAT_VEX_
             platform_clear_screen();
@@ -196,13 +170,7 @@ namespace atmt {
 
             Timestamp loopStart{ getSystemTime() };
 
-            pollState(); // FANCY LOOP
-
-            // Experimental setup for approaching setInterval more closely, also somewhat dangerous
-            // Replaces code at bottom
-            // m_reseting_state_loop = false; // Up here is allowed because of wait in handleState()
-            // vex::wait(m_frame_delay, vex::msec); // Wait for prior frame to finish
-            // robotInternal(false); // Start timer for next frame
+            pollState();
 
             robotPeriodic(); // User-made
             switch (m_state) {
@@ -217,19 +185,21 @@ namespace atmt {
                     break;
             }
             // platform_println("Internals Done, Starting triggers/commands"); // DEBUG
-            if (m_state != Disabled) {
-                
-                if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
-                    for (Subsystem* subsystem : m_subsystems) {
-            // #ifdef AUTOMAT_VEX_ // DEBUG
-            //             m_brain.Screen.print("Subsystem: %p ", subsystem);
-            // #endif
-                        subsystem->runPeriodic();
-                        if (subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
-                            runCommand(subsystem->getDefaultCommand());
-                        }
+
+            // Correction: Default Commands run during Autonomous
+            for (Subsystem* subsystem : m_subsystems) {
+                // Correction: Periodics run during all modes
+                subsystem->runPeriodic(m_state); // Correction: Moded periodics
+                if (m_state != Disabled) {
+                    if (m_state != Disabled && subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
+                        runCommand(subsystem->getDefaultCommand());
                     }
                 }
+            }
+            if (m_state != Disabled) {
+                
+                // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
+                // }
 
                 pollEvents(); // Auto starting events are polled in pollState() via another method
 
@@ -294,34 +264,12 @@ namespace atmt {
         }
         m_commands.clear();
     };
-//     void TimedRobot::runDefaultCommands() {
-//         for (Subsystem* subsystem : m_subsystems) {
-// // #ifdef AUTOMAT_VEX_ // DEBUG
-// //             m_brain.Screen.print("Subsystem: %p ", subsystem);
-// // #endif
-//             subsystem->runPeriodic();
-//             if (subsystem->hasDefaultCommand() && !subsystemHasCommand(subsystem)) { // Checks and runs default command
-//                 runCommand(subsystem->getDefaultCommand());
-//             }
-//         }
-//     };
     void TimedRobot::pollEvents() {
 #ifdef AUTOMAT_ESP32_
         for (Joystick* joystick : m_joysticks) {
             joystick->runPollState(); // For PollingMode = Continuous
         }
 #endif
-
-            // std::vector<Command*> commands = joystick->pollEvents();
-            // for (Command* command : commands) {
-            //     runCommand(command);
-            // }
-
-            // std::vector<int> terminations = joystick->pollEventTerminations();
-            // for (int termination : terminations) {
-            //     endCommand(termination);
-            // }
-        // }
 
         std::vector<Command*> commands = m_event_handler->pollEvents();
         for (Command* command : commands) {
@@ -338,8 +286,7 @@ namespace atmt {
         std::vector<Subsystem*> command_subs = command->getSubsystems();
         for (Subsystem* subsystem : command_subs) { // Ensure all subsystems are registered (primarily to force good practice)
             if (!robotHasSubsystem(subsystem)) { // TODO: Error out somehow!!!!
-                // printf("ERROR: TimedRobot: runCommand: Command references unregistered Subsystem");
-                // return -1;
+                // platform_println("ERROR: TimedRobot: runCommand: Command references unregistered Subsystem");
                 return;
             }
         }
@@ -351,13 +298,7 @@ namespace atmt {
             }
         }
 
-        // Set Id for later reference
-        // int command_id = m_command_id_counter;
-        // command->setId(command_id);
-        // m_command_id_counter += 1;
-
         m_commands.push_back(command);
-        // return command_id;
     };
     void TimedRobot::registerSubsystem(Subsystem* subsystem) {
         if (!robotHasSubsystem(subsystem)) {
@@ -367,15 +308,7 @@ namespace atmt {
     void TimedRobot::addJoystick(Joystick* joystick) {
         if (!robotHasSubsystem(joystick)) {
             joystick->internal_init(&m_state, m_event_handler);
-// #ifdef AUTOMAT_VEX_ // All Auto Triggers are added manually
-//             if (!m_uses_vex_competition) {
-// #endif
-//                 joystick->bindAutoTrigger((new Trigger(AButton, ButtonPressed))->inMode(atmt::ModeAnyAndAll));
-// #ifdef AUTOMAT_VEX_
-//             }
-// #endif
-            m_subsystems.push_back(joystick);
-            // m_joysticks.push_back(joystick); // To ensure no duplicates
+            m_subsystems.push_back(joystick); // To ensure no duplicates
         }
     };
 #ifdef ATMT_SUBMODULE_SERIAL_
@@ -383,7 +316,6 @@ namespace atmt {
         if (!robotHasSubsystem(serial)) {
             serial->internal_init(&m_state, m_event_handler);
             m_subsystems.push_back(serial); // To ensure no duplicates
-            // m_serial_handlers.push_back(serial);
         }
     };
 #endif
@@ -412,14 +344,6 @@ namespace atmt {
         }
         return false;
     };
-    // bool TimedRobot::robotHasJoystick(Joystick* joystick) {
-    //     for (Joystick* search : m_joysticks) {
-    //         if (search == joystick) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // };
 
     void TimedRobot::endCommand(int command_id) {
         for (int i = 0; i < static_cast<int>(m_commands.size()); i++) {

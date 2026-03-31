@@ -62,7 +62,10 @@ namespace atmt {
             ~Joystick() override;
 
             void init() override;
-            void periodic() override;
+            void systemPeriodic() override;
+            void disabledPeriodic() override;
+            void autonomousPeriodic() override;
+            void teleopPeriodic() override;
 
             // void init(RobotState* robot_state);
             void internal_init(RobotState* robot_state, EventHandler* event_handler);

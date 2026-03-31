@@ -69,21 +69,30 @@ namespace atmt {
         Timestamp time = getSystemTime();
         while (i < connections) {
             if (time > m_ongoing_connections[i]->scheduled_at) {
-                platform_println(std::to_string(time.getTimeMS()));
-                platform_println(std::to_string(m_ongoing_connections[i]->scheduled_at.getTimeMS()));
+                // platform_println(std::to_string(time.getTimeMS()));
+                // platform_println(std::to_string(m_ongoing_connections[i]->scheduled_at.getTimeMS()));
                 // m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->socket);
                 m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->request);
                 delete m_ongoing_connections[i];
                 m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
                 connections -= 1;
-                platform_println("Serviced");
+                // platform_println("Serviced");
             }else {
                 i += 1;
-                platform_println("Skipped for a frame");
+                // platform_println("Skipped for a frame");
             }
         }
 #endif
     };
+
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+    void HTTPServer::systemPeriodic() {
+        periodic();
+    };
+    void HTTPServer::disabledPeriodic() {};
+    void HTTPServer::autonomousPeriodic() {};
+    void HTTPServer::teleopPeriodic() {};
+#endif
 
     void HTTPServer::registerPage_IdentifyAsAutomat() {
         registerPage_IdentifyAsAutomat("");

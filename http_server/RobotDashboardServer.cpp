@@ -30,6 +30,15 @@ namespace atmt {
     void RobotDashboardServer::periodic() {
         m_server->periodic();
     };
+    
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+    void RobotDashboardServer::systemPeriodic() {
+        periodic();
+    };
+    void RobotDashboardServer::disabledPeriodic() {};
+    void RobotDashboardServer::autonomousPeriodic() {};
+    void RobotDashboardServer::teleopPeriodic() {};
+#endif
 
     std::string RobotDashboardServer::getIPAddress() {
         return m_server->getIPAddress();

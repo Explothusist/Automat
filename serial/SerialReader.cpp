@@ -204,6 +204,15 @@ namespace atmt {
     };
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
+    void SerialReader::systemPeriodic() {
+        periodic();
+    };
+    void SerialReader::disabledPeriodic() {};
+    void SerialReader::autonomousPeriodic() {};
+    void SerialReader::teleopPeriodic() {};
+#endif
+    
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
     void SerialReader::internal_init(RobotState* robot_state, EventHandler* event_handler) {
         m_event_handler = event_handler;
         m_robot_state = robot_state;

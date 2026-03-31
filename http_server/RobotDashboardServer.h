@@ -27,15 +27,18 @@ namespace atmt {
             ~RobotDashboardServer() override;
 
             void init() override;
-            void periodic() override;
+            void systemPeriodic() override;
+            void disabledPeriodic() override;
+            void autonomousPeriodic() override;
+            void teleopPeriodic() override;
 
             // void internal_init(RobotState* robot_state, EventHandler* event_handler);
 #else
             ~RobotDashboardServer();
 
             void init();
-            void periodic();
 #endif
+            void periodic();
 
             std::string getIPAddress();
             static const char* getNextDashboardHTMLChunk(int chunk_index, size_t& chunk_length, void* arg);
