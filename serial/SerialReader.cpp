@@ -498,7 +498,7 @@ namespace atmt {
         m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
     void SerialReader::bindAutoTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
+        m_triggers.push_back(new Trigger_Event(StartAutonomous, (trigger)->inMode(ModeDisabled)));
     };
 #endif
 
