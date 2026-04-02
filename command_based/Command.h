@@ -15,7 +15,7 @@ namespace atmt {
     class Command {
         public:
             Command(); // Put subsystems as parameters
-            Command(Command& command); // Copy constructor
+            Command(const Command& command); // Copy constructor
             virtual ~Command();
             virtual Command* clone() const = 0;
 
@@ -29,8 +29,10 @@ namespace atmt {
             std::vector<Subsystem*> getSubsystems();
             bool hasMatchingSubsystems(Command* command);
             bool hasSubsystem(Subsystem* subsystem);
+            bool hasFinished();
 
             void usesSubsystem(Subsystem* subsystem); // Call repeatedly for each subsystem used
+            void usesSubsystems(std::initializer_list<Subsystem*> subsystems); // Call repeatedly for each subsystem used
 
             void setId(int id); // For use by atmt::Joystick
             int getId();
@@ -39,6 +41,7 @@ namespace atmt {
         private:
             bool m_is_first_run;
             bool m_was_interrupted;
+            bool m_has_finished;
 
             std::vector<Subsystem*> m_subsystems;
 

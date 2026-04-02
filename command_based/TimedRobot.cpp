@@ -13,6 +13,8 @@
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
 #include "../http_server/RobotDashboardServer.h"
 #endif
+#include "heartbeat_helpers/Heartbeat.h"
+#include "heartbeat_helpers/HeartbeatMaker.h"
 
 namespace atmt {
 
@@ -25,6 +27,8 @@ namespace atmt {
         m_event_handler{ new EventHandler() },
         m_subsystems{ },
         m_commands{ },
+        m_heartbeats{ },
+        m_heartbeat_makers{ },
         m_autonomous_command{ nullptr },
         m_auto_command_getter_set{ false },
         m_auto_getter{ },
@@ -93,6 +97,13 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
         }
 #endif
+        for (Heartbeat* heartbeat : m_heartbeats) {
+            if (heartbeat->isHeartbeatLost()) {
+                m_state = Disabled;
+            }else if (heartbeat->isStateControlling()) {
+                m_state = heartbeat->getState();
+            }
+        }
 
         if (m_state != m_old_state) {
             m_had_state_change = true;
@@ -120,7 +131,7 @@ namespace atmt {
     void TimedRobot::runLoop() {
         if (!m_has_init) {
             startLoop();
-            m_has_init = true;
+            // m_has_init = true;
         }else {
             robotInternal();
         }
@@ -129,6 +140,7 @@ namespace atmt {
     void TimedRobot::startLoop() {
         if (!m_has_init) {
             m_has_init = true;
+            environmentInit(); // User-made
             for (Subsystem* subsystem : m_subsystems) {
                 subsystem->init(); // User-made
             }
@@ -197,6 +209,10 @@ namespace atmt {
                 }
             }
             if (m_state != Disabled) {
+                
+                for (HeartbeatMaker* heartbeat_maker : m_heartbeat_makers) {
+                    heartbeat_maker->runLoop();
+                }
                 
                 // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
                 // }
@@ -327,6 +343,19 @@ namespace atmt {
         }
     };
 #endif
+    void TimedRobot::addHeartbeat(Heartbeat* heartbeat) {
+        if (!robotHasHeartbeat(heartbeat)) {
+            m_heartbeats.push_back(heartbeat);
+        }
+    };
+    void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
+        if (!robotHasHeartbeatMaker(heartbeat_maker)) {
+            if (heartbeat_maker->isStateControlling()) {
+                heartbeat_maker->stateControllingInit(&m_state);
+            }
+            m_heartbeat_makers.push_back(heartbeat_maker);
+        }
+    };
 
     bool TimedRobot::robotHasSubsystem(Subsystem* subsystem) {
         for (Subsystem* search : m_subsystems) {
@@ -343,6 +372,20 @@ namespace atmt {
             }
         }
         return false;
+    };
+    bool TimedRobot::robotHasHeartbeat(Heartbeat* heartbeat) {
+        for (Heartbeat* search : m_heartbeats) {
+            if (search == heartbeat) {
+                return true;
+            }
+        }
+    };
+    bool TimedRobot::robotHasHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
+        for (HeartbeatMaker* search : m_heartbeat_makers) {
+            if (search == heartbeat_maker) {
+                return true;
+            }
+        }
     };
 
     void TimedRobot::endCommand(int command_id) {
@@ -375,6 +418,7 @@ namespace atmt {
     };
 
 
+    void TimedRobot::environmentInit() {};
     void TimedRobot::robotInit() {};
     void TimedRobot::robotPeriodic() {};
     void TimedRobot::robotExit() {};

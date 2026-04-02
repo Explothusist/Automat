@@ -28,12 +28,16 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
     class RobotDashboardServer;
 #endif
+    class Heartbeat;
+    class HeartbeatMaker;
 
     class TimedRobot {
         public:
             TimedRobot();
             TimedRobot(double autonomous_length);
             ~TimedRobot();
+            
+            virtual void environmentInit(); // User-made
 
             virtual void robotInit(); // User-made
             virtual void robotPeriodic(); // User-made
@@ -62,6 +66,8 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
             void addRobotDashboard(RobotDashboardServer* server);
 #endif
+            void addHeartbeat(Heartbeat* heartbeat);
+            void addHeartbeatMaker(HeartbeatMaker* heartbeat_maker);
 
             void setAutonomousCommand(Command* command);
             void setAutonomousCommandGetter(std::function<Command*(int, void*)> command_getter, std::function<int(void*)> routine_getter, void* arg);
@@ -82,6 +88,8 @@ namespace atmt {
 
             std::vector<Subsystem*> m_subsystems;
             std::vector<Command*> m_commands;
+            std::vector<Heartbeat*> m_heartbeats;
+            std::vector<HeartbeatMaker*> m_heartbeat_makers;
 #ifdef AUTOMAT_ESP32_
             std::vector<Joystick*> m_joysticks;
 #endif
@@ -122,6 +130,8 @@ namespace atmt {
             bool robotHasSubsystem(Subsystem* subsystem);
             // bool robotHasJoystick(Joystick* joystick);
             bool subsystemHasCommand(Subsystem* subsystem);
+            bool robotHasHeartbeat(Heartbeat* heartbeat);
+            bool robotHasHeartbeatMaker(HeartbeatMaker* heartbeat_maker);
     };
 
 }

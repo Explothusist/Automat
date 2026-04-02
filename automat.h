@@ -9,13 +9,23 @@
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
     #include "command_based/Command.h"
-    // #include "InstantCommand.h"
-    #include "command_based/EmptyCommand.h"
-    #include "command_based/SequentialCommandGroup.h"
     #include "command_based/Trigger.h"
     #include "command_based/Joystick.h"        // Uses atmt_platform
     #include "command_based/Subsystem.h"
+    #include "command_based/EventHandler.h"
     #include "command_based/TimedRobot.h"           // Uses atmt_platform
+
+    #include "command_based/command_helpers/EmptyCommand.h"
+    #include "command_based/command_helpers/InstantCommand.h"
+    #include "command_based/command_helpers/ParallelCommandGroup.h"
+    #include "command_based/command_helpers/ParallelRaceCommandGroup.h"
+    #include "command_based/command_helpers/SequentialCommandGroup.h"
+    #include "command_based/command_helpers/WaitCommand.h"
+
+    #include "command_based/heartbeat_helpers/Heartbeat.h"
+    #include "command_based/heartbeat_helpers/Heartbeat_StateMatcher.h"
+    #include "command_based/heartbeat_helpers/HeartbeatMaker.h"
+    #include "command_based/heartbeat_helpers/HeartbeatMaker_StateMatcher.h"
 #endif
 
 #ifdef ATMT_SUBMODULE_SERIAL_
