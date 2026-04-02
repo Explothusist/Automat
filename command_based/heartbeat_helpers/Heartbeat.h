@@ -31,9 +31,10 @@ namespace atmt {
             Heartbeat(int timeout); // Manual
 #ifdef ATMT_SUBMODULE_SERIAL_
             Heartbeat(int timeout, SerialReader* serial, uint8_t message); // Serial
+            Heartbeat(int timeout, SerialReader* serial, uint8_t message, uint8_t sender); // Serial
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
-            Heartbeat(int timeout, RobotDashboardServer* serial); // Serial
+            Heartbeat(int timeout, RobotDashboardServer* server); // Serial
 #endif
 
             void beatHeart();
@@ -45,7 +46,8 @@ namespace atmt {
             HeartbeatType m_type;
 
 #ifdef ATMT_SUBMODULE_SERIAL_
-            SerialReader* m_serial;
+            // SerialReader* m_serial;
+            // uint8_t m_serial_message;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
             RobotDashboardServer* m_server;
