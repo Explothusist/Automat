@@ -1,8 +1,8 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "HeartbeatMaker_StateMatcher.h"
-#include "command_helpers/InstantCommand.h"
+#include "../command_helpers/InstantCommand.h"
 #include "utils.h"
 
 namespace atmt {
@@ -28,10 +28,7 @@ namespace atmt {
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
     HeartbeatMaker_StateMatcher::HeartbeatMaker_StateMatcher(int timeout, RobotDashboardServer* server):
-        m_heartbeat_timeout{ timeout },
-        m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatServer },
-        m_server{ server }
+        HeartbeatMaker(timeout, server)
     {
         m_is_state_controlling = true;
 
@@ -50,7 +47,7 @@ namespace atmt {
                 break;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
-            case HeartbeatServer:
+            case HeartbeatHTTP:
                 break;
 #endif
         }

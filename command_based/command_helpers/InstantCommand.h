@@ -1,4 +1,4 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_INSTANT_COMMAND_
@@ -8,7 +8,7 @@
 #include <utility>
 #include <initializer_list>
 
-#include "Command.h"
+#include "../Command.h"
 
 namespace atmt {
 

@@ -1,9 +1,9 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "Heartbeat.h"
-#include "command_helpers/InstantCommand.h"
-#include "utils.h"
+#include "../command_helpers/InstantCommand.h"
+#include "../../utils.h"
 
 namespace atmt {
     
@@ -45,7 +45,7 @@ namespace atmt {
     Heartbeat::Heartbeat(int timeout, RobotDashboardServer* server):
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatServer },
+        m_type{ HeartbeatHTTP },
         m_server{ server },
         m_is_state_controlling{ false }
     {

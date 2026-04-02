@@ -1,9 +1,9 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "Heartbeat_StateMatcher.h"
-#include "command_helpers/InstantCommand.h"
-#include "utils.h"
+#include "../command_helpers/InstantCommand.h"
+#include "../../utils.h"
 
 namespace atmt {
     
@@ -42,7 +42,7 @@ namespace atmt {
         m_last_state{ Disabled }
     {
         m_is_state_controlling = true;
-        m_type = HeartbeatServer;
+        m_type = HeartbeatHTTP;
     }; // Serial
 #endif
 

@@ -1,4 +1,4 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_WAIT_COMMAND_
@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "Command.h"
+#include "../Command.h"
 
 namespace atmt {
 

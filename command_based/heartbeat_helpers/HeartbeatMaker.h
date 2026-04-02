@@ -1,17 +1,17 @@
-#include "../automat_submodules.h"
+#include "../../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #ifndef AUTOMAT_ROBOT_HEARTBEAT_MAKER_
 #define AUTOMAT_ROBOT_HEARTBEAT_MAKER_
 
 #include "Heartbeat.h"
-#include "../utils.h"
+#include "../../utils.h"
 
 #ifdef ATMT_SUBMODULE_SERIAL_
-#include "../serial/SerialReader.h"
+#include "../../serial/SerialReader.h"
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
-#include "../http_server/RobotDashboardServer.h"
+#include "../../http_server/RobotDashboardServer.h"
 #endif
 
 
