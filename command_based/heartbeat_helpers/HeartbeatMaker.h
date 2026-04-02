@@ -28,11 +28,11 @@ namespace atmt {
             HeartbeatMaker(int timeout, RobotDashboardServer* server); // Serial
 #endif
 
-            virtual void beatHeart();
-            void runLoop();
+            void beatHeart();
+            virtual void runLoop(RobotState state);
 
             bool isStateControlling();
-            void stateControllingInit(RobotState* state);
+            // void stateControllingInit(RobotState* state);
 
         protected:
             int m_heartbeat_timeout; // ms
@@ -48,7 +48,7 @@ namespace atmt {
             RobotDashboardServer* m_server;
 #endif
             bool m_is_state_controlling;
-            RobotState* m_state;
+            // RobotState* m_state;
 
         private:
 

@@ -28,8 +28,8 @@ namespace atmt {
             HeartbeatMaker_StateMatcher(int timeout, RobotDashboardServer* server); // Serial
 #endif
 
-            void beatHeart() override;
-            // void runLoop() override;
+            void beatHeart(RobotState state);
+            void runLoop(RobotState state) override;
 
         private:
             int m_heartbeat_timeout; // ms

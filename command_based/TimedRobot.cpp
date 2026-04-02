@@ -208,11 +208,10 @@ namespace atmt {
                     }
                 }
             }
+            for (HeartbeatMaker* heartbeat_maker : m_heartbeat_makers) {
+                heartbeat_maker->runLoop(m_state);
+            }
             if (m_state != Disabled) {
-                
-                for (HeartbeatMaker* heartbeat_maker : m_heartbeat_makers) {
-                    heartbeat_maker->runLoop();
-                }
                 
                 // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
                 // }
@@ -350,9 +349,9 @@ namespace atmt {
     };
     void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
         if (!robotHasHeartbeatMaker(heartbeat_maker)) {
-            if (heartbeat_maker->isStateControlling()) {
-                heartbeat_maker->stateControllingInit(&m_state);
-            }
+            // if (heartbeat_maker->isStateControlling()) {
+            //     heartbeat_maker->stateControllingInit(&m_state);
+            // }
             m_heartbeat_makers.push_back(heartbeat_maker);
         }
     };

@@ -11,8 +11,8 @@ namespace atmt {
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
         m_type{ HeartbeatManual },
-        m_is_state_controlling{ false },
-        m_state{ nullptr }
+        m_is_state_controlling{ false }//,
+        // m_state{ nullptr }
     {
 
     }; // Manual
@@ -60,19 +60,21 @@ namespace atmt {
         }
     };
 
-    void HeartbeatMaker::runLoop() {
-        if (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout) {
-            beatHeart();
-            m_last_heartbeat = getSystemTime();
+    void HeartbeatMaker::runLoop(RobotState state) {
+        if (state != Disabled) {
+            if (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout) {
+                beatHeart();
+                m_last_heartbeat = getSystemTime();
+            }
         }
     };
     
     bool HeartbeatMaker::isStateControlling() {
         return m_is_state_controlling;
     };
-    void HeartbeatMaker::stateControllingInit(RobotState* state) {
-        m_state = state;
-    };
+    // void HeartbeatMaker::stateControllingInit(RobotState* state) {
+    //     m_state = state;
+    // };
 
 };
 

@@ -35,15 +35,13 @@ namespace atmt {
     }; // Serial
 #endif
 
-    void HeartbeatMaker_StateMatcher::beatHeart() {
+    void HeartbeatMaker_StateMatcher::beatHeart(RobotState state) {
         switch (m_type) {
             case HeartbeatManual:
                 break;
 #ifdef ATMT_SUBMODULE_SERIAL_
             case HeartbeatSerial:
-                if (m_state) {
-                    m_serial->sendMessagePrefixed(m_serial_recipient, m_serial_message, static_cast<uint8_t>(*m_state), 1);
-                }
+                m_serial->sendMessagePrefixed(m_serial_recipient, m_serial_message, static_cast<uint8_t>(state), 1);
                 break;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
@@ -53,12 +51,12 @@ namespace atmt {
         }
     };
 
-    // void HeartbeatMaker_StateMatcher::runLoop() {
-    //     if (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout) {
-    //         beatHeart();
-    //         m_last_heartbeat = getSystemTime();
-    //     }
-    // };
+    void HeartbeatMaker_StateMatcher::runLoop(RobotState state) {
+        if (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout) {
+            beatHeart(state);
+            m_last_heartbeat = getSystemTime();
+        }
+    };
 
 };
 
