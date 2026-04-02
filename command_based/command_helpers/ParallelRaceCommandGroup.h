@@ -1,8 +1,8 @@
 #include "../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
-#ifndef AUTOMAT_INSTANT_COMMAND_
-#define AUTOMAT_INSTANT_COMMAND_
+#ifndef AUTOMAT_PARALLEL_RACE_COMMAND_GROUP_
+#define AUTOMAT_PARALLEL_RACE_COMMAND_GROUP_
 
 #include <vector>
 
@@ -10,11 +10,11 @@
 
 namespace atmt {
 
-    class SequentialCommandGroup : public Command {
+    class ParallelRaceCommandGroup : public Command {
         public:
-            SequentialCommandGroup(std::vector<Command*> commands);
-            SequentialCommandGroup(SequentialCommandGroup& command); // Copy constructor
-            ~SequentialCommandGroup();
+            ParallelRaceCommandGroup(std::vector<Command*> commands);
+            ParallelRaceCommandGroup(const ParallelRaceCommandGroup& command); // Copy constructor
+            ~ParallelRaceCommandGroup();
             Command* clone() const override;
 
             void initialize() override; // User-made
@@ -26,7 +26,6 @@ namespace atmt {
             
         private:
             std::vector<Command*> m_commands;
-            int m_run_index;
     };
 
 }
@@ -34,5 +33,5 @@ namespace atmt {
 #endif
 
 #else
-#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use SequentialCommandGroup"
+#error "Enable ATMT_SUBMODULE_COMMAND_BASED_ in automat_submodules.h to use ParallelRaceCommandGroup"
 #endif

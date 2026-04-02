@@ -83,10 +83,15 @@ namespace atmt {
             bool checkIfMatching(const serial_message &duplicate, const serial_message &original);
 
             bool availableMessages();
-            bool getNextMessage(uint8_t output[], uint8_t &length);
-            bool getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
-            bool getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
-            bool getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool popNextMessage();
+            bool popNextMessage(uint8_t output[], uint8_t &length);
+            bool popNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
+            bool popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekNextMessage(uint8_t output[], uint8_t &length);
+            bool peekNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
+            bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
             // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
             // bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
             bool sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1);

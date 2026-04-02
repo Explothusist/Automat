@@ -363,40 +363,79 @@ namespace atmt {
     bool SerialReader::availableMessages() {
         return (!m_messages.empty());
     };
-    bool SerialReader::getNextMessage(uint8_t output[], uint8_t &length) {
-        uint8_t sender = 0;
-        return getNextMessage(output, length, sender);
-    };
-    bool SerialReader::getNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
+    bool SerialReader::popNextMessage() {
         if (availableMessages()) {
-            const serial_message &message = m_messages.front();
             m_messages.pop();
-            length = message.length;
-            sender = message.sender;
-            memcpy(output, message.data, length);
             return true;
-        }else {
-            return false;
         }
+        return false;
     };
-    bool SerialReader::getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
+    bool SerialReader::popNextMessage(uint8_t output[], uint8_t &length) {
         uint8_t sender = 0;
-        return getNextMessagePrefixed(prefix, output, length, sender);
+        return popNextMessage(output, length, sender);
     };
-    bool SerialReader::getNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        // uint8_t data[kMaxPacketSize];
-        bool success = getNextMessage(output, length, sender);
-        if (!success) {
+    bool SerialReader::popNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
+        bool success = peekNextMessage(output, length, sender);
+        if (success) {
+            return popNextMessage();
+        }
+        return false;
+    };
+    bool SerialReader::popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return popNextMessagePrefixed(prefix, output, length, sender);
+    };
+    bool SerialReader::popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        bool success = peekNextMessagePrefixed(prefix, output, length, sender);
+        if (success) {
+            return popNextMessage();
+        }
+        return false;
+    };
+    bool SerialReader::peekNextMessage(uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return peekNextMessage(output, length, sender);
+    };
+    bool SerialReader::peekNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
+        if (!availableMessages()) {
             return false;
         }
-        if (length == 0) {
-            return false;
-        }
-        prefix = output[0];
-        // output = output + 1;
-        length -= 1;
-        memmove(output, output + 1, length);
+        const serial_message &message = m_messages.front();
+        length = message.length;
+        sender = message.sender;
+        memcpy(output, message.data, length);
         return true;
+    };
+    bool SerialReader::peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return peekNextMessagePrefixed(prefix, output, length, sender);
+    };
+    bool SerialReader::peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        if (!availableMessages()) {
+            return false;
+        }
+        const serial_message &message = m_messages.front();
+        if (message.length == 0) {
+            return false;
+        }
+        prefix = message.data[0];
+        length = message.length - 1;
+        sender = message.sender;
+        memcpy(output, message.data + 1, length);
+        return true;
+        // // uint8_t data[kMaxPacketSize];
+        // bool success = peekNextMessage(output, length, sender);
+        // if (!success) {
+        //     return false;
+        // }
+        // if (length == 0) {
+        //     return false;
+        // }
+        // prefix = output[0];
+        // // output = output + 1;
+        // length -= 1;
+        // memmove(output, output + 1, length);
+        // return true;
     };
     // bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
     //     return sendMessage(recipient_code, message, length, 1);
