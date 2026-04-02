@@ -16,6 +16,10 @@
 #define ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_ // Enables/Disables ThreadsafeBuffer
 // #define ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_ // Enables/Disables KinematicPredictor
 
+#ifdef ATMT_SUBMODULE_COMMAND_BASED_
+
+#endif
+
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
     // Server Platform
     #ifdef AUTOMAT_ESP32_ARDUINO_

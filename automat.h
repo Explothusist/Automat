@@ -23,7 +23,9 @@
     #include "command_based/command_helpers/WaitCommand.h"
 
     #include "command_based/heartbeat_helpers/Heartbeat.h"
+    #include "command_based/heartbeat_helpers/Heartbeat_StateMatcher.h"
     #include "command_based/heartbeat_helpers/HeartbeatMaker.h"
+    #include "command_based/heartbeat_helpers/HeartbeatMaker_StateMatcher.h"
 #endif
 
 #ifdef ATMT_SUBMODULE_SERIAL_
