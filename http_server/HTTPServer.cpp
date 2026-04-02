@@ -6,6 +6,41 @@
 
 namespace atmt {
 
+    std::string getDisconnectReason(uint8_t reason) {
+        switch (reason) {
+            case 1:   return "UNSPECIFIED";               // Unspecified reason
+            case 2:   return "AUTH_EXPIRE";               // Authentication expired
+            case 3:   return "AUTH_LEAVE";                // Leaving (deauth)
+            case 4:   return "ASSOC_EXPIRE";              // Association expired
+            case 5:   return "ASSOC_TOOMANY";             // Too many associations
+            case 6:   return "NOT_AUTHED";                // Not authenticated
+            case 7:   return "NOT_ASSOCED";               // Not associated
+            case 8:   return "ASSOC_LEAVE";               // Left association
+            case 9:   return "ASSOC_NOT_AUTHED";          // Assoc without auth
+            case 10:  return "DISASSOC_PWRCAP_BAD";       // Power capability mismatch
+            case 11:  return "DISASSOC_SUPCHAN_BAD";      // Unsupported channel
+            case 13:  return "IE_INVALID";                // Invalid information element
+            case 14:  return "MIC_FAILURE";               // MIC failure
+            case 15:  return "4WAY_HANDSHAKE_TIMEOUT";    // WPA handshake timeout
+            case 16:  return "GROUP_KEY_UPDATE_TIMEOUT";  // Group key update timeout
+            case 17:  return "IE_IN_4WAY_DIFFERS";        // IE differs in handshake
+            case 18:  return "GROUP_CIPHER_INVALID";      // Invalid group cipher
+            case 19:  return "PAIRWISE_CIPHER_INVALID";   // Invalid pairwise cipher
+            case 20:  return "AKMP_INVALID";              // Invalid AKMP
+            case 21:  return "UNSUPP_RSN_IE_VERSION";     // Unsupported RSN IE version
+            case 22:  return "INVALID_RSN_IE_CAP";        // Invalid RSN IE capabilities
+            case 23:  return "802_1X_AUTH_FAILED";        // 802.1X authentication failed
+            case 24:  return "CIPHER_SUITE_REJECTED";     // Cipher suite rejected
+            case 200: return "BEACON_TIMEOUT";            // Beacon not received
+            case 201: return "NO_AP_FOUND";               // Cannot find AP
+            case 202: return "AUTH_FAIL";                 // Auth failed (wrong password?)
+            case 203: return "ASSOC_FAIL";                // Association failed
+            case 204: return "HANDSHAKE_TIMEOUT";         // WPA handshake timeout (legacy)
+            case 205: return "HANDSHAKE_TIMEOUT_4WAY";    // 4-way handshake timeout
+            default:  return "UNKNOWN_REASON: " + std::to_string(reason);
+        }
+    }
+
     HTTPServer::HTTPServer(std::string wifi_ssid, std::string wifi_password):
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
         m_server{ nullptr },
@@ -49,18 +84,23 @@ namespace atmt {
         wifiInit();
     };
     void HTTPServer::periodic() {
+        // platform_println("Periodic Runs!");
 #ifdef ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_
         if (m_server_init) {
             m_server.handleClient();
         }
 #endif
 #if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
-        if (m_server_init) {
-            if (WiFi.status() != WL_CONNECTED && m_lastReconnectAttempt + kReconnectDelayMS < millis()) {
-                WiFi.reconnect();
-                m_lastReconnectAttempt = millis();
-            }
+        // if (m_wifi_init) {
+            // platform_println("Well, WiFi at least");
+        // }
+        // if (m_server_init) {
+            // platform_println("Init Happened!>>>>>>>>>>>>>>>>>");
+        if (WiFi.status() != WL_CONNECTED && m_lastReconnectAttempt + kReconnectDelayMS < millis()) {
+            WiFi.reconnect();
+            m_lastReconnectAttempt = millis();
         }
+        // }
 #endif
 
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
@@ -139,6 +179,7 @@ namespace atmt {
     };
 
     void HTTPServer::wifiInit() {
+        platform_println("Init begun");
         if (!m_wifi_init) {
 #ifdef ATMT_SUBMODULE_SERVER_ESP32_HTTPD_
             ESP_ERROR_CHECK(nvs_flash_init()); // NVS (Non-Volatile Storage)
@@ -168,13 +209,18 @@ namespace atmt {
             esp_wifi_set_ps(WIFI_PS_NONE); // Turns off power saving measures because we are streaming
 #endif
 #if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
+            platform_println("Starting WiFi stuff");
             WiFi.mode(WIFI_STA);
+            platform_println("That mode thing is done");
             WiFi.onEvent(
                 [this](WiFiEvent_t event, WiFiEventInfo_t info) {
+                    platform_println("Eventer Schedulered Runned");
                     wifiEventHandler(event, info, this);
                 }
             );
+            platform_println("Eventer Schedulered");
             WiFi.begin(m_wifi_ssid.c_str(), m_wifi_password.c_str());
+            platform_println("iFi egun");
             // while (WiFi.status() != WL_CONNECTED) {
             //     delay(500);
             // }
@@ -274,9 +320,16 @@ namespace atmt {
 #endif
 #if defined(ATMT_SUBMODULE_SERVER_ARDUINO_WIFI_) || defined(ATMT_SUBMODULE_SERVER_ARDUINO_ASYNC_WIFI_)
     void HTTPServer::wifiEventHandler(WiFiEvent_t event, WiFiEventInfo_t info, HTTPServer* server) {
+        platform_println("Event: "+std::to_string(event));
+        platform_println("Free heap: " + std::to_string(ESP.getFreeHeap()));
         if (event == ARDUINO_EVENT_WIFI_STA_GOT_IP) {
             server->m_ip_address = std::string(WiFi.localIP().toString().c_str());
+            platform_println("Connected! IP: "+server->m_ip_address);
             server->startServer();
+        }else if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+            platform_println("Disconnected: "+getDisconnectReason(info.wifi_sta_disconnected.reason)+". Retrying...");
+            // WiFi.reconnect();
+            server->m_lastReconnectAttempt = millis();
         }
     };
 #endif

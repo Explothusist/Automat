@@ -120,7 +120,7 @@ namespace atmt {
     void TimedRobot::runLoop() {
         if (!m_has_init) {
             startLoop();
-            m_has_init = true;
+            // m_has_init = true;
         }else {
             robotInternal();
         }
@@ -129,6 +129,7 @@ namespace atmt {
     void TimedRobot::startLoop() {
         if (!m_has_init) {
             m_has_init = true;
+            environmentInit(); // User-made
             for (Subsystem* subsystem : m_subsystems) {
                 subsystem->init(); // User-made
             }
@@ -375,6 +376,7 @@ namespace atmt {
     };
 
 
+    void TimedRobot::environmentInit() {};
     void TimedRobot::robotInit() {};
     void TimedRobot::robotPeriodic() {};
     void TimedRobot::robotExit() {};

@@ -34,6 +34,8 @@ namespace atmt {
             TimedRobot();
             TimedRobot(double autonomous_length);
             ~TimedRobot();
+            
+            virtual void environmentInit(); // User-made
 
             virtual void robotInit(); // User-made
             virtual void robotPeriodic(); // User-made
