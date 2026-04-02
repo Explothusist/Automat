@@ -10,7 +10,8 @@ namespace atmt {
     Heartbeat::Heartbeat(int timeout):
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatManual }
+        m_type{ HeartbeatManual },
+        m_is_state_controlling{ false }
     {
 
     }; // Manual
@@ -18,7 +19,8 @@ namespace atmt {
     Heartbeat::Heartbeat(int timeout, SerialReader* serial, uint8_t message):
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatSerial }
+        m_type{ HeartbeatSerial },
+        m_is_state_controlling{ false }
     {
         serial->bindToMessage(
             new Trigger(SerialReceive, message),
@@ -28,7 +30,10 @@ namespace atmt {
     Heartbeat::Heartbeat(int timeout, SerialReader* serial, uint8_t message, uint8_t sender):
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatSerial }
+        m_type{ HeartbeatSerial },
+        m_serial{ serial },
+        m_serial_message{ message },
+        m_is_state_controlling{ false }
     {
         serial->bindToMessage(
             (new Trigger(SerialReceive, message))->fromSender(sender),
@@ -41,7 +46,8 @@ namespace atmt {
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
         m_type{ HeartbeatServer },
-        m_server{ server }
+        m_server{ server },
+        m_is_state_controlling{ false }
     {
 
     }; // Serial
@@ -49,9 +55,19 @@ namespace atmt {
 
     void Heartbeat::beatHeart() {
         m_last_heartbeat = getSystemTime();
+        if (m_type == HeartbeatSerial) {
+            m_serial->popNextMessage(); // Keep from polluting the message stack
+        }
     };
     bool Heartbeat::isHeartbeatLost() {
         return m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout;
+    };
+
+    bool Heartbeat::isStateControlling() {
+        return m_is_state_controlling;
+    };
+    RobotState Heartbeat::getState() {
+        return Disabled; // For state-controlling heartbeats
     };
 
 };

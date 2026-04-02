@@ -10,7 +10,9 @@ namespace atmt {
     HeartbeatMaker::HeartbeatMaker(int timeout):
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
-        m_type{ HeartbeatManual }
+        m_type{ HeartbeatManual },
+        m_is_state_controlling{ false },
+        m_state{ nullptr }
     {
 
     }; // Manual
@@ -63,6 +65,13 @@ namespace atmt {
             beatHeart();
             m_last_heartbeat = getSystemTime();
         }
+    };
+    
+    bool HeartbeatMaker::isStateControlling() {
+        return m_is_state_controlling;
+    };
+    void HeartbeatMaker::stateControllingInit(RobotState* state) {
+        m_state = state;
     };
 
 };

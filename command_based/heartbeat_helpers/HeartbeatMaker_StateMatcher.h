@@ -1,10 +1,10 @@
 #include "../automat_submodules.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
-#ifndef AUTOMAT_ROBOT_HEARTBEAT_MAKER_
-#define AUTOMAT_ROBOT_HEARTBEAT_MAKER_
+#ifndef AUTOMAT_ROBOT_HEARTBEAT_MAKER_STATE_MATCHER_
+#define AUTOMAT_ROBOT_HEARTBEAT_MAKER_STATE_MATCHER_
 
-#include "Heartbeat.h"
+#include "HeartbeatMaker.h"
 #include "../utils.h"
 
 #ifdef ATMT_SUBMODULE_SERIAL_
@@ -17,24 +17,21 @@
 
 namespace atmt {
 
-    class HeartbeatMaker {
+    class HeartbeatMaker_StateMatcher : public HeartbeatMaker {
         public:
-            HeartbeatMaker(int timeout); // Manual (which has no structure right now)
+            HeartbeatMaker_StateMatcher(int timeout); // Manual (which has no structure right now)
 #ifdef ATMT_SUBMODULE_SERIAL_
-            HeartbeatMaker(int timeout, SerialReader* serial, uint8_t message); // Serial
-            HeartbeatMaker(int timeout, SerialReader* serial, uint8_t message, uint8_t recipient); // Serial
+            HeartbeatMaker_StateMatcher(int timeout, SerialReader* serial, uint8_t message); // Serial
+            HeartbeatMaker_StateMatcher(int timeout, SerialReader* serial, uint8_t message, uint8_t recipient); // Serial
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
-            HeartbeatMaker(int timeout, RobotDashboardServer* server); // Serial
+            HeartbeatMaker_StateMatcher(int timeout, RobotDashboardServer* server); // Serial
 #endif
 
-            virtual void beatHeart();
-            void runLoop();
+            void beatHeart() override;
+            // void runLoop() override;
 
-            bool isStateControlling();
-            void stateControllingInit(RobotState* state);
-
-        protected:
+        private:
             int m_heartbeat_timeout; // ms
             Timestamp m_last_heartbeat;
             HeartbeatType m_type;
@@ -47,10 +44,6 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
             RobotDashboardServer* m_server;
 #endif
-            bool m_is_state_controlling;
-            RobotState* m_state;
-
-        private:
 
     };
 

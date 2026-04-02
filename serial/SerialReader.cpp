@@ -437,33 +437,31 @@ namespace atmt {
         // memmove(output, output + 1, length);
         // return true;
     };
-    // bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length) {
-    //     return sendMessage(recipient_code, message, length, 1);
-    // };
+    void SerialReader::flushMessages() {
+        std::queue<serial_message> empty;
+        std::swap( m_messages, empty );
+    };
+
+    
     bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message, int copies) {
-        return sendMessageInternal(recipient_code, message, true, nullptr, 0, copies);
+        return sendMessageInternal(recipient_code, 0, false, message, true, nullptr, 0, copies);
     };
     bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies) {
-        return sendMessageInternal(recipient_code, 0, false, message, length, copies);
+        return sendMessageInternal(recipient_code, 0, false, 0, false, message, length, copies);
     };
-    // bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length) {
-
-    // };
+    bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message, int copies = 1) {
+        return sendMessageInternal(recipient_code, message_prefix, true, message, true, nullptr, 0, copies);
+    };
     bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
-        return sendMessageInternal(recipient_code, message_prefix, true, message, length, copies);
+        return sendMessageInternal(recipient_code, message_prefix, true, 0, false, message, length, copies);
     };
-    // bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length) {
-    //     return sendMessage(KSerialAddressSendAll, message, length, 1);
-    // };
     bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int copies) {
-        return sendMessageInternal(KSerialAddressSendAll, 0, false, message, length, copies);
-        // return sendMessage(KSerialAddressSendAll, message, length, copies);
+        return sendMessage(KSerialAddressSendAll, message, length, copies);
     };
     bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
-        return sendMessageInternal(KSerialAddressSendAll, message_prefix, true, message, length, copies);
-        // return sendMessage(KSerialAddressSendAll, message, length, copies);
+        return sendMessagePrefixed(KSerialAddressSendAll, message_prefix, message, length, copies);
     };
-    bool SerialReader::sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message[], uint8_t length, int copies) {
+    bool SerialReader::sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message_singleton, bool with_singleton, uint8_t message[], uint8_t length, int copies) {
         if (length > kMaxPacketSize) {
             return false;
         }
@@ -486,6 +484,10 @@ namespace atmt {
                 sendByte(message_prefix);
                 checksum += message_prefix;
             }
+            if (with_singleton) {
+                sendByte(message_singleton);
+                checksum += message_singleton;
+            }
             if (message) {
                 for (int j = 0; j < length; j++) {
                     sendByte(message[j]);
@@ -503,11 +505,7 @@ namespace atmt {
         }
         m_to_send.push(byte);
     };
-    void SerialReader::flushMessages() {
-        std::queue<serial_message> empty;
-        std::swap( m_messages, empty );
-    };
-
+    
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
     void SerialReader::triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length) {

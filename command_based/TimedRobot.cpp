@@ -100,6 +100,8 @@ namespace atmt {
         for (Heartbeat* heartbeat : m_heartbeats) {
             if (heartbeat->isHeartbeatLost()) {
                 m_state = Disabled;
+            }else if (heartbeat->isStateControlling()) {
+                m_state = heartbeat->getState();
             }
         }
 
@@ -348,6 +350,9 @@ namespace atmt {
     };
     void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
         if (!robotHasHeartbeatMaker(heartbeat_maker)) {
+            if (heartbeat_maker->isStateControlling()) {
+                heartbeat_maker->stateControllingInit(&m_state);
+            }
             m_heartbeat_makers.push_back(heartbeat_maker);
         }
     };

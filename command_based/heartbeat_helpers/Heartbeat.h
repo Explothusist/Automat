@@ -37,21 +37,28 @@ namespace atmt {
             Heartbeat(int timeout, RobotDashboardServer* server); // Serial
 #endif
 
-            void beatHeart();
-            bool isHeartbeatLost();
+            virtual void beatHeart();
+            virtual bool isHeartbeatLost();
 
-        private:
+            bool isStateControlling();
+            virtual RobotState getState();
+
+        protected:
             int m_heartbeat_timeout; // ms
             Timestamp m_last_heartbeat;
             HeartbeatType m_type;
 
 #ifdef ATMT_SUBMODULE_SERIAL_
-            // SerialReader* m_serial;
-            // uint8_t m_serial_message;
+            SerialReader* m_serial;
+            uint8_t m_serial_message;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
             RobotDashboardServer* m_server;
 #endif
+
+            bool m_is_state_controlling;
+        
+        private:
 
     };
 

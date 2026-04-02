@@ -97,6 +97,7 @@ namespace atmt {
             bool sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
             // bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length);
+            bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message, int copies = 1);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
             // bool sendMessageAll(uint8_t message[], uint8_t length);
             bool sendMessageAll(uint8_t message[], uint8_t length, int copies = 1);
@@ -156,7 +157,7 @@ namespace atmt {
 
             bool m_part_next_char_escaped;
             
-            bool sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message[], uint8_t length, int duplicates);
+            bool sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message_singleton, bool with_singleton, uint8_t message[], uint8_t length, int copies);
     };
 
 }

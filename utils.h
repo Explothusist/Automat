@@ -14,9 +14,9 @@
 namespace atmt {
 
     typedef enum {
-        Disabled,
-        Autonomous,
-        Teleop
+        Disabled = 0,
+        Autonomous = 1,
+        Teleop = 2
     } RobotState;
 
 #ifdef AUTOMAT_VEX_
