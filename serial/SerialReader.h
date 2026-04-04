@@ -93,7 +93,12 @@ namespace atmt {
             bool peekNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
             bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekNextMessagePrefix(uint8_t &prefix);
             
+            int getNextMessageId();
+            int getMessageId(int index);
+            int availableMessagesCount();
+
             bool popMessage(int id);
             bool popMessage(int id, uint8_t output[], uint8_t &length);
             bool popMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender);
@@ -103,6 +108,7 @@ namespace atmt {
             bool peekMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length);
             bool peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekMessagePrefix(int id, uint8_t &prefix);
 
             bool sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
@@ -173,6 +179,7 @@ namespace atmt {
             bool popMessageInternal(int index);
             bool peekMessageInternal(int index, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixedInternal(int index, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekMessagePrefixInternal(int index, uint8_t &prefix);
     };
 
 }

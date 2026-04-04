@@ -441,6 +441,27 @@ namespace atmt {
         // memmove(output, output + 1, length);
         // return true;
     };
+    bool SerialReader::peekNextMessagePrefix(uint8_t &prefix) {
+        if (!availableMessages()) {
+            return false;
+        }
+        const serial_message &message = m_messages.front();
+        if (message.length == 0) {
+            return false;
+        }
+        prefix = message.data[0];
+        return true;
+    };
+
+    int SerialReader::getNextMessageId() {
+        return m_messages.front().id;
+    };
+    int SerialReader::getMessageId(int index) {
+        return m_messages[index].id;
+    };
+    int SerialReader::availableMessagesCount() {
+        return m_messages.size();
+    };
 
     bool SerialReader::popMessageInternal(int index) {
         if (index < 0 || index >= m_messages.size()) {
@@ -471,6 +492,17 @@ namespace atmt {
         length = message.length - 1;
         sender = message.sender;
         memcpy(output, message.data + 1, length);
+        return true;
+    };
+    bool SerialReader::peekMessagePrefixInternal(int index, uint8_t &prefix) {
+        if (index >= m_messages.size() || index < 0) {
+            return false;
+        }
+        const serial_message &message = m_messages[index];
+        if (message.length == 0) {
+            return false;
+        }
+        prefix = message.data[0];
         return true;
     };
     int SerialReader::findMessageIndex(int id) {
@@ -543,6 +575,13 @@ namespace atmt {
             return false;
         }
         return peekMessagePrefixedInternal(i, prefix, output, length, sender);
+    };
+    bool SerialReader::peekMessagePrefix(int id, uint8_t &prefix) {
+        int i = findMessageIndex(id);
+        if (i < 0) {
+            return false;
+        }
+        return peekMessagePrefixInternal(i, prefix);
     };
 
     void SerialReader::flushMessages() {
