@@ -36,6 +36,8 @@ namespace atmt {
 
             void setId(int id); // For use by atmt::Joystick
             int getId();
+            void setSerialMessageId(int id);
+            int getSerialMessageId();
 
             Command* withTimeout(double seconds);
         private:
@@ -50,6 +52,8 @@ namespace atmt {
             bool m_has_timeout;
             Timestamp m_command_start;
             double m_seconds_to_run;
+
+            int m_serial_message_id;
     };
 
 }

@@ -101,6 +101,12 @@ namespace atmt {
     int Command::getId() {
         return m_id;
     };
+    void Command::setSerialMessageId(int id) {
+        m_serial_message_id = id;
+    };
+    int Command::getSerialMessageId() {
+        return m_serial_message_id;
+    };
 
     Command* Command::withTimeout(double seconds) {
         m_has_timeout = true;

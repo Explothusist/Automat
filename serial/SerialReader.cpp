@@ -87,7 +87,9 @@ namespace atmt {
         m_part_datas_input{ 0 },
         m_part_checksum{ -1 },
         m_part_has_end{ false },
-        m_part_next_char_escaped{ false }
+        m_part_next_char_escaped{ false },
+        
+        m_message_id_counter{ 0 }
     {
         if (m_address_code == KSerialAddressSendAll) {
             platform_print("Cannot Set Address to 0xFF (Reserved for SendMessageAll)");
@@ -297,10 +299,12 @@ namespace atmt {
         }
     };
     void SerialReader::addInterpretedMessage(serial_message message) {
-        m_messages.push(message);
+        message.id = m_message_id_counter;
+        m_message_id_counter += 1;
+        m_messages.push_back(message);
         m_last_message = message;
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-        triggerEvent(SerialReceive, message.sender, message.data, message.length);
+        triggerEvent(SerialReceive, message.sender, message.data, message.length, message.id);
 #endif
     };
     void SerialReader::resetPartialMessage() {
@@ -365,7 +369,7 @@ namespace atmt {
     };
     bool SerialReader::popNextMessage() {
         if (availableMessages()) {
-            m_messages.pop();
+            m_messages.pop_front();
             return true;
         }
         return false;
@@ -437,8 +441,112 @@ namespace atmt {
         // memmove(output, output + 1, length);
         // return true;
     };
+
+    bool SerialReader::popMessageInternal(int index) {
+        if (index < 0 || index >= m_messages.size()) {
+            return false;
+        }
+        dequeDelete(m_messages, index);
+        return true;
+    };
+    bool SerialReader::peekMessageInternal(int index, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        if (index >= m_messages.size() || index < 0) {
+            return false;
+        }
+        const serial_message &message = m_messages[index];
+        length = message.length;
+        sender = message.sender;
+        memcpy(output, message.data, length);
+        return true;
+    };
+    bool SerialReader::peekMessagePrefixedInternal(int index, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        if (index >= m_messages.size() || index < 0) {
+            return false;
+        }
+        const serial_message &message = m_messages[index];
+        if (message.length == 0) {
+            return false;
+        }
+        prefix = message.data[0];
+        length = message.length - 1;
+        sender = message.sender;
+        memcpy(output, message.data + 1, length);
+        return true;
+    };
+    int SerialReader::findMessageIndex(int id) {
+        for (size_t i = 0; i < m_messages.size(); i++) {
+            if (m_messages[i].id == id) {
+                return i;
+            }
+        }
+        return -1;
+    };
+    bool SerialReader::popMessage(int id) {
+        if (availableMessages()) {
+            int i = findMessageIndex(id);
+            if (i < 0) {
+                return false;
+            }
+            popMessageInternal(i);
+            return true;
+        }
+        return false;
+    };
+    bool SerialReader::popMessage(int id, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return popMessage(id, output, length, sender);
+    };
+    bool SerialReader::popMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        int i = findMessageIndex(id);
+        if (i < 0) {
+            return false;
+        }
+        bool success = peekMessageInternal(i, output, length, sender);
+        if (!success) {
+            return false;
+        }
+        return popMessageInternal(i);
+    };
+    bool SerialReader::popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return popMessagePrefixed(id, prefix, output, length, sender);
+    };
+    bool SerialReader::popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        int i = findMessageIndex(id);
+        if (i < 0) {
+            return false;
+        }
+        bool success = peekMessagePrefixedInternal(i, prefix, output, length, sender);
+        if (!success) {
+            return false;
+        }
+        return popMessageInternal(i);
+    };
+    bool SerialReader::peekMessage(int id, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return peekMessage(id, output, length, sender);
+    };
+    bool SerialReader::peekMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        int i = findMessageIndex(id);
+        if (i < 0) {
+            return false;
+        }
+        return peekMessageInternal(i, output, length, sender);
+    };
+    bool SerialReader::peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length) {
+        uint8_t sender = 0;
+        return peekMessagePrefixed(id, prefix, output, length, sender);
+    };
+    bool SerialReader::peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
+        int i = findMessageIndex(id);
+        if (i < 0) {
+            return false;
+        }
+        return peekMessagePrefixedInternal(i, prefix, output, length, sender);
+    };
+
     void SerialReader::flushMessages() {
-        std::queue<serial_message> empty;
+        std::deque<serial_message> empty;
         std::swap( m_messages, empty );
     };
 
@@ -508,7 +616,7 @@ namespace atmt {
     
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-    void SerialReader::triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length) {
+    void SerialReader::triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, int id) {
         if (!m_robot_state) { // Uninitialized
             return;
         }
@@ -516,13 +624,15 @@ namespace atmt {
         for (size_t i = 0; i < m_temp_triggers.size(); ) {
             if (m_temp_triggers[i]->matchesEvent(event, sender, code, length, *m_robot_state)) {
                 // interpretTrigger(m_temp_triggers[i], true);
+                m_temp_triggers[i]->setSerialMessageId(id);
                 Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(m_temp_triggers[i], true);
                 if (temp_trigger) {
                     m_temp_triggers.push_back(temp_trigger);
                 }
                 
                 delete m_temp_triggers[i];
-                m_temp_triggers.erase(m_temp_triggers.begin() + i);
+                vectorDeleteUnordered(m_temp_triggers, i);
+                // m_temp_triggers.erase(m_temp_triggers.begin() + i);
                 // i -= 1;
             }else {
                 i += 1;
@@ -532,6 +642,7 @@ namespace atmt {
         for (Trigger_Event* trigger : m_triggers) {
             if (trigger->matchesEvent(event, sender, code, length, *m_robot_state)) {
                 // interpretTrigger(trigger, true);
+                trigger->setSerialMessageId(id);
                 Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(trigger, true);
                 if (temp_trigger) {
                     m_temp_triggers.push_back(temp_trigger);

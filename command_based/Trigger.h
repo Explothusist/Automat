@@ -152,6 +152,9 @@ namespace atmt {
             TriggerType getTriggerType();
             int getCommandId();
             Trigger* getTrigger();
+
+            void setSerialMessageId(int id);
+
         private:
             TriggerEffect m_effect;
             Trigger* m_trigger;

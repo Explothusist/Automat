@@ -679,7 +679,8 @@ namespace atmt {
                 }
                 
                 delete m_temp_triggers[i];
-                m_temp_triggers.erase(m_temp_triggers.begin() + i);
+                vectorDeleteUnordered(m_temp_triggers, i);
+                // m_temp_triggers.erase(m_temp_triggers.begin() + i);
                 // i -= 1;
             }else {
                 i += 1;
@@ -714,7 +715,8 @@ namespace atmt {
                 }
 
                 delete m_temp_triggers[i];
-                m_temp_triggers.erase(m_temp_triggers.begin() + i);
+                vectorDeleteUnordered(m_temp_triggers, i);
+                // m_temp_triggers.erase(m_temp_triggers.begin() + i);
                 // i -= 1;
             }else {
                 i += 1;

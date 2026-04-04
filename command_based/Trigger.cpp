@@ -220,6 +220,12 @@ namespace atmt {
     Trigger* Trigger_Event::getTrigger() {
         return m_trigger;
     };
+    
+    void Trigger_Event::setSerialMessageId(int id) {
+        if (m_command) {
+            m_command->setSerialMessageId(id);
+        }
+    };
 
 };
 

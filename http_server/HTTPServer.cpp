@@ -114,7 +114,8 @@ namespace atmt {
                 // m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->socket);
                 m_ongoing_connections[i]->page->continue_connection(m_ongoing_connections[i]->request);
                 delete m_ongoing_connections[i];
-                m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
+                vectorDeleteUnordered(m_ongoing_connections, i);
+                // m_ongoing_connections.erase(m_ongoing_connections.begin() + i);
                 connections -= 1;
                 // platform_println("Serviced");
             }else {

@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <deque>
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
@@ -84,6 +85,7 @@ namespace atmt {
         uint8_t data[kMaxPacketSize];
         uint8_t length;
         uint8_t sender;
+        int id;
     } serial_message;
 
     enum class SerialMessage : uint8_t {
@@ -131,6 +133,62 @@ namespace atmt {
     std::string trimTrailingCRLF(const std::string& string);
     inline int hexCharToInt(char c);
     std::string urlDecode(const std::string& string);
+
+    /*
+        Preserves ordering, O(n)
+        If ordering does not matter, see vectorDeleteUnordered
+    */
+    template <typename Type>
+    void vectorDelete(std::vector<Type> &vect, std::size_t i) {
+        if (i < vect.size()) {
+            if (i == vect.size()-1) {
+                vect.pop_back();
+            }else {
+                vect.erase(vect.begin() + i);
+            }
+        }
+    };
+    /*
+        Does not preserve ordering, O(1)
+        If ordering matters, see vectorDelete
+    */
+    template <typename Type>
+    void vectorDeleteUnordered(std::vector<Type> &vect, std::size_t i) {
+        if (i < vect.size()) {
+            if (i != vect.size()-1) {
+                std::swap(vect[i], vect.back());
+            }
+            vect.pop_back();
+        }
+    };
+    
+    /*
+        Preserves ordering, O(n)
+        If ordering does not matter, see vectorDeleteUnordered
+    */
+    template <typename Type>
+    void dequeDelete(std::deque<Type> &vect, std::size_t i) {
+        if (i < vect.size()) {
+            if (i == vect.size()-1) {
+                vect.pop_back();
+            }else {
+                vect.erase(vect.begin() + i);
+            }
+        }
+    };
+    /*
+        Does not preserve ordering, O(1)
+        If ordering matters, see vectorDelete
+    */
+    template <typename Type>
+    void dequeDeleteUnordered(std::deque<Type> &vect, std::size_t i) {
+        if (i < vect.size()) {
+            if (i != vect.size()-1) {
+                std::swap(vect[i], vect.back());
+            }
+            vect.pop_back();
+        }
+    };
 
 };
 

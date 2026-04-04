@@ -5,6 +5,7 @@
 #define AUTOMAT_SERIAL_READER_
 
 #include <queue>
+#include <deque>
 #include <cstdint>
 #include "../automat_platform.h"
 #include "../utils.h"
@@ -92,16 +93,24 @@ namespace atmt {
             bool peekNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length);
             bool peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
-            // void destroyMessage(std::shared_ptr<uint8_t[]> output, uint8_t &length);
-            // bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length);
+            
+            bool popMessage(int id);
+            bool popMessage(int id, uint8_t output[], uint8_t &length);
+            bool popMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length);
+            bool popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekMessage(int id, uint8_t output[], uint8_t &length);
+            bool peekMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length);
+            bool peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
+
             bool sendMessage(uint8_t recipient_code, uint8_t message, int copies = 1);
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
-            // bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message, int copies = 1);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
-            // bool sendMessageAll(uint8_t message[], uint8_t length);
             bool sendMessageAll(uint8_t message[], uint8_t length, int copies = 1);
             bool sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
+
             void sendByte(uint8_t byte);
             void flushMessages();
 
@@ -109,7 +118,7 @@ namespace atmt {
             void bindToMessage(Trigger* trigger, Command* command);
             void bindAutoTrigger(Trigger* trigger);
 
-            void triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length);
+            void triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, int id);
 #endif
 
         private:
@@ -140,7 +149,7 @@ namespace atmt {
 
             std::queue<uint8_t> m_raw_input;
             // std::queue<uint8_t> m_partial_message;
-            std::queue<serial_message> m_messages;
+            std::deque<serial_message> m_messages;
             std::queue<uint8_t> m_to_send;
 
             serial_message m_last_message;
@@ -156,8 +165,14 @@ namespace atmt {
             bool m_part_has_end;
 
             bool m_part_next_char_escaped;
+
+            int m_message_id_counter;
             
             bool sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message_singleton, bool with_singleton, uint8_t message[], uint8_t length, int copies);
+            int findMessageIndex(int id);
+            bool popMessageInternal(int index);
+            bool peekMessageInternal(int index, uint8_t output[], uint8_t &length, uint8_t &sender);
+            bool peekMessagePrefixedInternal(int index, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
     };
 
 }

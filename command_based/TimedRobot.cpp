@@ -268,7 +268,8 @@ namespace atmt {
             bool finished = m_commands[i]->runLoop();
             if (finished) {
                 delete m_commands[i];
-                m_commands.erase(m_commands.begin() + i);
+                vectorDeleteUnordered(m_commands, i);
+                // m_commands.erase(m_commands.begin() + i);
                 i -= 1;
             }
         }
@@ -308,7 +309,8 @@ namespace atmt {
         for (int i = 0; i < static_cast<int>(m_commands.size()); i++) { // End all current commands using said subsystems
             if (command->hasMatchingSubsystems(m_commands[i])) {
                 delete m_commands[i]; // Will run ~Command, which runs end()
-                m_commands.erase(m_commands.begin() + i);
+                vectorDeleteUnordered(m_commands, i);
+                // m_commands.erase(m_commands.begin() + i);
                 i -= 1;
             }
         }
@@ -391,7 +393,8 @@ namespace atmt {
         for (int i = 0; i < static_cast<int>(m_commands.size()); i++) {
             if (m_commands[i]->getId() == command_id) {
                 delete m_commands[i]; // Will run ~Command, which runs end()
-                m_commands.erase(m_commands.begin() + i);
+                vectorDeleteUnordered(m_commands, i);
+                // m_commands.erase(m_commands.begin() + i);
                 i -= 1;
             }
         }
