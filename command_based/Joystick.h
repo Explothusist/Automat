@@ -25,12 +25,13 @@ namespace atmt {
 
 #ifdef AUTOMAT_VEX_
     typedef enum {
+        NotAVexJoystick,
         PrimaryJoystick,
         PartnerJoystick
     } JoystickType;
 #endif
 
-#ifdef AUTOMAT_ESP32_
+// #ifdef AUTOMAT_ESP32_
     struct JoystickState {
         bool buttons[12]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
         int axes[6]; // RY, RX, LY, LX, RT, LT (0, 255)
@@ -39,7 +40,7 @@ namespace atmt {
 
     typedef enum {
         PollMode_Manual,
-        PollMode_Continuous//,
+        PollMode_Continuous//, // Different on Esp32/VEX
         // PollMode_ESPNow
     } PollingMode;
 
@@ -47,13 +48,14 @@ namespace atmt {
         Range_Min,
         Range_Max
     } RangeComp;
-#endif
+// #endif
 
     class Joystick : public Subsystem {
         public:
             // Joystick();
 #ifdef AUTOMAT_VEX_
-            Joystick(JoystickType type);
+            Joystick(PollingMode poll_mode);
+            Joystick(PollingMode poll_mode, JoystickType type);
 #endif
 #ifdef AUTOMAT_ESP32_
             Joystick(PollingMode poll_mode);
@@ -67,37 +69,22 @@ namespace atmt {
             void autonomousPeriodic() override;
             void teleopPeriodic() override;
 
-            // void init(RobotState* robot_state);
             void internal_init(RobotState* robot_state, EventHandler* event_handler);
 
-            // std::vector<Command*> pollEvents();
-            // std::vector<int> pollEventTerminations();
-            // bool pollAutonomousTriggers();
-
-#ifdef AUTOMAT_ESP32_
             void updateState(JoystickState new_state);
             void setStatePollingMode(PollingMode poll_mode);
-            void setStateFunction(std::function<JoystickState()> state_function); // For state = Continuous
-
             void runPollState();
+#ifdef AUTOMAT_ESP32_
+            void setStateFunction(std::function<JoystickState()> state_function); // For state = Continuous
 #endif
 
-            // void bindKey(StickIndicator stick, StickEvent event, Command* command);
-            // void bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command);
-            // void bindKey(ButtonIndicator button, ButtonEvent event, Command* command);
-            // void bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command);
             void bindKey(Trigger* trigger, Command* command);
-
-            // void bindAutoTrigger(StickIndicator stick, StickEvent event);
-            // void bindAutoTrigger(ButtonIndicator button, ButtonEvent event);
             void bindAutoTrigger(Trigger* trigger);
 
             void triggerRawStick(StickIndicator stick, double stick_x, double stick_y);
             void triggerRawAxis(AxisIndicator axis, double value);
             void triggerEvent(StickIndicator stick, StickEvent event);
             void triggerEvent(ButtonIndicator button, ButtonEvent event);
-
-            // void interpretTrigger(Trigger_Event* trigger, bool is_stick);
 
             void setAxisRight(double axis_x, double axis_y);
             void setAxisLeft(double axis_x, double axis_y);
@@ -113,8 +100,8 @@ namespace atmt {
             // std::vector<int> m_command_terminations;
             // bool m_autonomous_triggered;
 
-#ifdef AUTOMAT_ESP32_
             PollingMode m_poll_mode;
+#ifdef AUTOMAT_ESP32_
             std::function<JoystickState()> m_state_function; // For state Continuous
 #endif
 

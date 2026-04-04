@@ -432,7 +432,7 @@ namespace atmt {
 #endif
 
 #ifdef AUTOMAT_VEX_
-    Joystick::Joystick(JoystickType type):
+    Joystick::Joystick(PollingMode poll_mode, JoystickType type):
 #endif
 #ifdef AUTOMAT_ESP32_
     Joystick::Joystick(PollingMode poll_mode, std::function<JoystickState()> state_function):
@@ -442,8 +442,8 @@ namespace atmt {
         // m_triggered_commands{ std::vector<Command*>() },
         // m_command_terminations{ std::vector<int>() },
         // m_autonomous_triggered{ false },
-#ifdef AUTOMAT_ESP32_
         m_poll_mode{ poll_mode },
+#ifdef AUTOMAT_ESP32_
         m_state_function{ state_function },
 #endif
         m_stick_state{ StickCenter, StickCenter },
@@ -466,6 +466,13 @@ namespace atmt {
 
     };
 #endif
+#ifdef AUTOMAT_VEX_
+    Joystick::Joystick(PollingMode poll_mode):
+        Joystick(poll_mode, NotAVexJoystick)
+    {
+
+    };
+#endif
     Joystick::~Joystick() {
         for (Trigger_Event* trigger : m_triggers) {
             delete trigger;
@@ -483,31 +490,11 @@ namespace atmt {
     void Joystick::autonomousPeriodic() {};
     void Joystick::teleopPeriodic() {};
 
-    // void Joystick::init(RobotState* robot_state) {
-    //     m_robot_state = robot_state;
-    // };
     void Joystick::internal_init(RobotState* robot_state, EventHandler* event_handler) {
         m_event_handler = event_handler;
         m_robot_state = robot_state;
     };
 
-    // std::vector<Command*> Joystick::pollEvents() {
-    //     std::vector<Command*> commands = m_triggered_commands;
-    //     m_triggered_commands.clear();
-    //     return commands;
-    // };
-    // std::vector<int> Joystick::pollEventTerminations() {
-    //     std::vector<int> commands = m_command_terminations;
-    //     m_command_terminations.clear();
-    //     return commands;
-    // };
-    // bool Joystick::pollAutonomousTriggers() {
-    //     bool triggered = m_autonomous_triggered;
-    //     m_autonomous_triggered = false;
-    //     return triggered;
-    // };
-
-#ifdef AUTOMAT_ESP32_
     void Joystick::updateState(JoystickState new_state) {
         if (m_read_joystick_events) {
             // Button Handlers
@@ -588,17 +575,19 @@ namespace atmt {
     void Joystick::setStatePollingMode(PollingMode poll_mode) {
         m_poll_mode = poll_mode;
     };
-    void Joystick::setStateFunction(std::function<JoystickState()> state_function) {
-        m_state_function = state_function;
-    };
-
     void Joystick::runPollState() {
+#ifdef AUTOMAT_ESP32_
         if (m_poll_mode == PollMode_Continuous) { // Otherwise manual or event triggered
             if (!m_state_function) {
                 return;
             }
             updateState(m_state_function());
         }
+#endif
+    };
+#ifdef AUTOMAT_ESP32_
+    void Joystick::setStateFunction(std::function<JoystickState()> state_function) {
+        m_state_function = state_function;
     };
 #endif
 
@@ -734,70 +723,9 @@ namespace atmt {
         }
     };
 
-    // void Joystick::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
-    //     switch (trigger->getTriggerEffect()) {
-    //         case StartCommand:
-    //             {
-    //                 Command* baseCommand = trigger->getCommand();
-    //                 if (baseCommand != nullptr) {
-    //                     Command* command = baseCommand->clone();
-    //                     // command->setId(global_command_id_counter);
-    //                     // global_command_id_counter += 1;
-    //                     m_robot->assignCommandId(command);
-    //                     m_triggered_commands.push_back(command);
-
-    //                     if (trigger->getTriggerType() == WhileTrigger) {
-    //                         if (is_stick) {
-    //                             // m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-    //                             // m_temp_triggers.push_back(new Trigger_Event(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-    //                             Trigger* copy = new Trigger(*trigger->getTrigger());
-    //                             m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
-    //                         }else {
-    //                             Trigger* copy = new Trigger(*trigger->getTrigger());
-    //                             m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             break;
-    //         case EndCommand:
-    //             {
-    //                 m_command_terminations.push_back(trigger->getCommandId());
-    //             }
-    //             break;
-    //         case StartAutonomous:
-    //             {
-    //                 m_autonomous_triggered = true;
-    //             }
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // };
-
-    // void Joystick::bindKey(StickIndicator stick, StickEvent event, Command* command) {
-    //     bindKey(stick, event, OnTrigger, command);
-    // };
-    // void Joystick::bindKey(StickIndicator stick, StickEvent event, TriggerType type, Command* command) {
-    //     m_triggers.push_back(new Trigger_Event(StartCommand, stick, event, type, command));
-    // };
-    // void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, Command* command) {
-    //     bindKey(button, event, OnTrigger, command);
-    // };
-    // void Joystick::bindKey(ButtonIndicator button, ButtonEvent event, TriggerType type, Command* command) {
-    //     m_triggers.push_back(new ButtonTrigger(StartCommand, button, event, type, command));
-    // };
     void Joystick::bindKey(Trigger* trigger, Command* command) {
         m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
-
-    // void Joystick::bindAutoTrigger(StickIndicator stick, StickEvent event) {
-    //     // m_temp_triggers.push_back(new StickTrigger(StartAutonomous, stick, event));
-    //     m_temp_triggers.push_back(new Trigger_Event(StartAutonomous, ));
-    // };
-    // void Joystick::bindAutoTrigger(ButtonIndicator button, ButtonEvent event) {
-    //     m_temp_triggers.push_back(new ButtonTrigger(StartAutonomous, button, event));
-    // };
     void Joystick::bindAutoTrigger(Trigger* trigger) {
         m_triggers.push_back(new Trigger_Event(StartAutonomous, (trigger)->inMode(ModeDisabled)));
     };
