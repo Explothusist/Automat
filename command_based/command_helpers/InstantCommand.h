@@ -38,7 +38,7 @@ namespace atmt {
                 m_lambda{ std::bind(std::forward<Callable>(function), std::forward<Args>(args)...) }, // C++11
                 m_continuous{ false }
             {
-                usesSubsystem(subsystems);
+                usesSubsystems(subsystems);
             };
             template<typename Callable, typename... Args>
             InstantCommand(std::initializer_list<Subsystem*> subsystems, bool continuous, Callable&& function, Args&& ...args): 
@@ -46,7 +46,7 @@ namespace atmt {
                 m_lambda{ std::bind(std::forward<Callable>(function), std::forward<Args>(args)...) }, // C++11
                 m_continuous{ continuous }
             {
-                usesSubsystem(subsystems);
+                usesSubsystems(subsystems);
             };
             InstantCommand(const InstantCommand& command) = default; // Copy constructor
             ~InstantCommand() = default;
