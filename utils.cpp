@@ -284,7 +284,7 @@ namespace atmt {
     std::string urlDecode(const std::string& string) {
         std::string result;
         result.reserve(string.length());
-        int code;
+        // int code;
         for (size_t i = 0; i < string.length(); i++) {
             if (string[i] == '+') {
                 result += ' ';
