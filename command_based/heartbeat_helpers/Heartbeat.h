@@ -16,7 +16,7 @@
 
 namespace atmt {
 
-    typedef enum HeartbeatType {
+    typedef enum {
         HeartbeatManual = 0,
 #ifdef ATMT_SUBMODULE_SERIAL_
         HeartbeatSerial = 1,
@@ -24,7 +24,7 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
         HeartbeatHTTP = 2,
 #endif
-    };
+    } HeartbeatType;
 
     class Heartbeat {
         public:

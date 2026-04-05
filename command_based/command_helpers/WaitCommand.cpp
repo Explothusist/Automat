@@ -7,7 +7,7 @@ namespace atmt {
 
     WaitCommand::WaitCommand(double timeout):
         Command(),
-        m_timeout_ms{ timeout * 1000.0 },
+        m_timeout_ms{ static_cast<int>(timeout * 1000.0) },
         m_starting_timestamp{ 0 }
     {
         

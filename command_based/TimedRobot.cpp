@@ -380,6 +380,7 @@ namespace atmt {
                 return true;
             }
         }
+        return false;
     };
     bool TimedRobot::robotHasHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
         for (HeartbeatMaker* search : m_heartbeat_makers) {
@@ -387,6 +388,7 @@ namespace atmt {
                 return true;
             }
         }
+        return false;
     };
 
     void TimedRobot::endCommand(int command_id) {

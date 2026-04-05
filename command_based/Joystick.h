@@ -33,7 +33,7 @@ namespace atmt {
 
 // #ifdef AUTOMAT_ESP32_
     struct JoystickState {
-        bool buttons[12]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
+        bool buttons[14]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
         int axes[6]; // RY, RX, LY, LX, RT, LT (0, 255)
         int axis_range[2]; // min, max (i.e. -100, 100)
     };
