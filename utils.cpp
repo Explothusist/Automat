@@ -67,6 +67,7 @@ namespace atmt {
         ESP_LOGI("GENERAL", "%s", stuff.c_str());
 #endif
     };
+#ifndef AUTOMAT_VEX_
     void platform_print(int stuff) {
         platform_print(std::to_string(stuff));
     };
@@ -79,6 +80,7 @@ namespace atmt {
     void platform_println(double stuff) {
         platform_println(std::to_string(stuff));
     };
+#endif
     
     double degreesToRadians(double angle) {
         return (angle / 180.0) * M_PI;
