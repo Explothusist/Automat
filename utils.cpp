@@ -67,6 +67,18 @@ namespace atmt {
         ESP_LOGI("GENERAL", "%s", stuff.c_str());
 #endif
     };
+    void platform_print(int stuff) {
+        platform_print(std::to_string(stuff));
+    };
+    void platform_println(int stuff) {
+        platform_println(std::to_string(stuff));
+    };
+    void platform_print(double stuff) {
+        platform_print(std::to_string(stuff));
+    };
+    void platform_println(double stuff) {
+        platform_println(std::to_string(stuff));
+    };
     
     double degreesToRadians(double angle) {
         return (angle / 180.0) * M_PI;

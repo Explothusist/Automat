@@ -497,43 +497,26 @@ namespace atmt {
 
     void Joystick::updateState(JoystickState new_state) {
         if (m_read_joystick_events) {
+            auto processButton = [this, &new_state](ButtonIndicator button) {
+                ButtonEvent new_event = new_state.buttons[button] ? ButtonPressed : ButtonReleased;
+                if (new_event != m_button_state[button]) {
+                    triggerEvent(button, new_event);
+                }
+            };
+
             // Button Handlers
-            if (new_state.buttons[AButton] != m_button_state[AButton]) {
-                triggerEvent(AButton, new_state.buttons[AButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[BButton] != m_button_state[BButton]) {
-                triggerEvent(BButton, new_state.buttons[BButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[XButton] != m_button_state[XButton]) {
-                triggerEvent(XButton, new_state.buttons[XButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[YButton] != m_button_state[YButton]) {
-                triggerEvent(YButton, new_state.buttons[YButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[UpButton] != m_button_state[UpButton]) {
-                triggerEvent(UpButton, new_state.buttons[UpButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[LeftButton] != m_button_state[LeftButton]) {
-                triggerEvent(LeftButton, new_state.buttons[LeftButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[DownButton] != m_button_state[DownButton]) {
-                triggerEvent(DownButton, new_state.buttons[DownButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[RightButton] != m_button_state[RightButton]) {
-                triggerEvent(RightButton, new_state.buttons[RightButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[StartButton] != m_button_state[StartButton]) {
-                triggerEvent(StartButton, new_state.buttons[StartButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[SelectButton] != m_button_state[SelectButton]) {
-                triggerEvent(SelectButton, new_state.buttons[SelectButton] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[L1Button] != m_button_state[L1Button]) {
-                triggerEvent(L1Button, new_state.buttons[L1Button] ? ButtonPressed : ButtonReleased);
-            }
-            if (new_state.buttons[R1Button] != m_button_state[R1Button]) {
-                triggerEvent(R1Button, new_state.buttons[R1Button] ? ButtonPressed : ButtonReleased);
-            }
+            processButton(AButton);
+            processButton(BButton);
+            processButton(XButton);
+            processButton(YButton);
+            processButton(UpButton);
+            processButton(LeftButton);
+            processButton(DownButton);
+            processButton(RightButton);
+            processButton(StartButton);
+            processButton(SelectButton);
+            processButton(L1Button);
+            processButton(R1Button);
 
             // Stick Handlers
             if (new_state.axes[RYAxis] != m_axis_position[RYAxis] || new_state.axes[RXAxis] != m_axis_position[RXAxis]) {
@@ -727,7 +710,7 @@ namespace atmt {
         m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
     void Joystick::bindAutoTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartAutonomous, (trigger)->inMode(ModeDisabled)));
+        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
     };
 
     void Joystick::setAxisRight(double axis_x, double axis_y) {
