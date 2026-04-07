@@ -8,6 +8,9 @@
 #endif
 
 #include <cstring>
+#include <string>
+#include <vex.h>
+#include "v5_apiuser.h"
 
 #ifdef AUTOMAT_ESP32_ARDUINO_
 #include <Arduino.h>
@@ -159,13 +162,8 @@ namespace atmt {
     void SerialReader::periodic() {
         // platform_println("Starting Periodic");
 #ifdef AUTOMAT_VEX_
-        // int32_t available_length = vexGenericSerialReceiveAvail(m_index);
-        // for (int i = 0; i < available_length; i++) {
-        //     m_messages.push(vexGenericSerialReadChar(m_index));
-        // }
-        // while (vexGenericSerialReceiveAvail(m_index) > 0) {
         int received_messages = 0;
-        while (received_messages < kMaxMessagesPerFrame) { // Will have a break;
+        while (received_messages < kMaxMessagesPerFrame && vexGenericSerialReceiveAvail(m_index)) { // Will have a break;
             int32_t raw = vexGenericSerialReadChar(m_index);
             if (raw >= 0) { // i.e. != -1 // This has got to be one of the dumbest error codes because it maps to 255...
                 uint8_t processed = static_cast<uint8_t>(raw);
@@ -345,6 +343,9 @@ namespace atmt {
                     for (int i = 0; i < m_part_length; i++) {
                         checksum += m_part_data[i]; // Rollover handled automatically
                     }
+                    checksum += m_part_length;
+                    checksum += m_part_sender;
+                    checksum += m_part_address;
                     if (m_part_checksum != checksum) {
                         resetPartialMessage();
                     }
@@ -785,6 +786,18 @@ namespace atmt {
     };
     void SerialReader::bindAutoTrigger(Trigger* trigger) {
         m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
+    };
+
+    
+    uint8_t computeChecksum(uint8_t length, uint8_t address, uint8_t sender, uint8_t data[]) {
+        uint8_t checksum = 0;
+        checksum += length;
+        checksum += address;
+        checksum += sender;
+        for (size_t i = 0; i < length; i++) {
+            checksum += data[i];
+        }
+        return checksum;
     };
 #endif
 

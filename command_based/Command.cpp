@@ -11,7 +11,9 @@ namespace atmt {
         m_has_finished{ false }, // Set to true when isFinished returns true
         m_id{ -1 },
         m_has_timeout{ false },
-        m_command_start{ Timestamp(0) }
+        m_command_start{ Timestamp(0) },
+        m_seconds_to_run{ 0.0 },
+        m_serial_message_id{ -1 }
     {
         // usesSubsystem(ex_subsystem); // Call repeatedly for each Subsystem used
     };
@@ -23,13 +25,19 @@ namespace atmt {
         m_subsystems = command.m_subsystems;
         m_has_timeout = command.m_has_timeout;
         m_seconds_to_run = command.m_seconds_to_run;
+        m_serial_message_id = command.m_serial_message_id;
     };
     Command::~Command() {
         if (m_was_interrupted) {
             end(true);
         }
     };
-    // DO NOT Define clone() here (pure virtual)
+    Command* Command::clone() const {
+        Command* cmd = cloneSelf();
+        cmd->m_serial_message_id = m_serial_message_id;
+        return cmd;
+    };
+    // DO NOT Define cloneSelf() here (pure virtual)
 
 
     bool Command::runLoop() {

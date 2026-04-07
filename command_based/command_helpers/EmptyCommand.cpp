@@ -18,7 +18,7 @@ namespace atmt {
     EmptyCommand::~EmptyCommand() {
         // Will run ~Command() after this is complete
     };
-    Command* EmptyCommand::clone() const {
+    Command* EmptyCommand::cloneSelf() const {
         return new EmptyCommand();
     };
 

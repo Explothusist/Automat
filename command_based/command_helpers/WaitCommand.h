@@ -15,7 +15,7 @@ namespace atmt {
             WaitCommand(double timeout); // seconds
             WaitCommand(const WaitCommand& command); // Copy constructor
             ~WaitCommand();
-            Command* clone() const override;
+            Command* cloneSelf() const override;
 
             void initialize() override; // User-made
             void execute() override; // User-made
