@@ -26,7 +26,8 @@ namespace atmt {
     EventHandler::EventHandler():
         m_triggered_commands{ std::vector<Command*>() },
         m_command_terminations{ std::vector<int>() },
-        m_autonomous_triggered{ false }//,
+        m_autonomous_triggered{ false },
+        m_teleop_triggered{ false } //,
         // m_robot{ nullptr },
         // m_robot_state{ nullptr }
     {
@@ -57,45 +58,36 @@ namespace atmt {
         m_autonomous_triggered = false;
         return triggered;
     };
+    bool EventHandler::pollTeleopTriggers() {
+        bool triggered = m_teleop_triggered;
+        m_teleop_triggered = false;
+        return triggered;
+    };
 
     Trigger_Event* EventHandler::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
         switch (trigger->getTriggerEffect()) {
-            case StartCommand:
-                {
+            case StartCommand: {
                     Command* baseCommand = trigger->getCommand();
                     if (baseCommand != nullptr) {
                         Command* command = baseCommand->clone();
-                        // command->setId(global_command_id_counter);
-                        // global_command_id_counter += 1;
                         assignCommandId(command);
                         m_triggered_commands.push_back(command);
 
                         if (trigger->getTriggerType() == WhileTrigger) {
-                            // if (is_stick) {
-                                // m_temp_triggers.push_back(new StickEndingTrigger(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
-                                // m_temp_triggers.push_back(new Trigger_Event(EndCommand, static_cast<StickTrigger*>(trigger), command->getId()));
                                 Trigger* copy = new Trigger(*trigger->getTrigger());
-                                // m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
                                 return new Trigger_Event(EndCommand, copy->invert(), command->getId());
-                            // }else {
-                            //     Trigger* copy = new Trigger(*trigger->getTrigger());
-                            //     // m_temp_triggers.push_back(new Trigger_Event(EndCommand, copy->invert(), command->getId()));
-                            //     return new Trigger_Event(EndCommand, copy->invert(), command->getId());
-                            // }
                         }
                     }
-                }
-                break;
-            case EndCommand:
-                {
+                } break;
+            case EndCommand: {
                     m_command_terminations.push_back(trigger->getCommandId());
-                }
-                break;
-            case StartAutonomous:
-                {
+                } break;
+            case StartAutonomous: {
                     m_autonomous_triggered = true;
-                }
-                break;
+                } break;
+            case StartTeleop: {
+                    m_teleop_triggered = true;
+                } break;
             default:
                 break;
         }

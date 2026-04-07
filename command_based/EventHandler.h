@@ -29,6 +29,7 @@ namespace atmt {
             std::vector<Command*> pollEvents();
             std::vector<int> pollEventTerminations();
             bool pollAutonomousTriggers();
+            bool pollTeleopTriggers();
 
             Trigger_Event* interpretTrigger(Trigger_Event* trigger, bool is_stick); // Returns a temp trigger
             int assignCommandId(Command* command);
@@ -36,6 +37,7 @@ namespace atmt {
             std::vector<Command*> m_triggered_commands;
             std::vector<int> m_command_terminations;
             bool m_autonomous_triggered;
+            bool m_teleop_triggered;
 
             // bool m_master_event_enable;
 

@@ -710,7 +710,10 @@ namespace atmt {
         m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
     void Joystick::bindAutoTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
+        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger->inMode(ModeDisabled)));
+    };
+    void Joystick::bindTeleopTrigger(Trigger* trigger) {
+        m_triggers.push_back(new Trigger_Event(StartTeleop, trigger->inMode(ModeDisabledAndAuto)));
     };
 
     void Joystick::setAxisRight(double axis_x, double axis_y) {

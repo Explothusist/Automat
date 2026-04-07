@@ -132,6 +132,7 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
             void bindToMessage(Trigger* trigger, Command* command);
             void bindAutoTrigger(Trigger* trigger);
+            void bindTeleopTrigger(Trigger* trigger);
 
             void triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, int id);
 #endif

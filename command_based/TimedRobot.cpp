@@ -94,6 +94,12 @@ namespace atmt {
                     m_state = Teleop;
                 }
             }
+            if (m_state != Teleop) {
+                bool triggered = m_event_handler->pollTeleopTriggers();
+                if (triggered) {
+                    m_state = Teleop;
+                }
+            }
 #ifdef AUTOMAT_VEX_
         }
 #endif
