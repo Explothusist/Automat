@@ -12,6 +12,7 @@ namespace atmt {
 
     class ParallelRaceCommandGroup : public Command {
         public:
+            ParallelRaceCommandGroup(); // For custom versions of this class
             ParallelRaceCommandGroup(std::vector<Command*> commands);
             ParallelRaceCommandGroup(const ParallelRaceCommandGroup& command); // Copy constructor
             ~ParallelRaceCommandGroup();

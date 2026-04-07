@@ -5,6 +5,13 @@
 
 namespace atmt {
 
+    SequentialCommandGroup::SequentialCommandGroup():
+        Command(),
+        m_commands{ },
+        m_run_index{ 0 }
+    {
+        
+    };
     SequentialCommandGroup::SequentialCommandGroup(std::vector<Command*> commands):
         Command(),
         m_commands{ commands },

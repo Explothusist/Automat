@@ -12,6 +12,7 @@ namespace atmt {
 
     class ParallelCommandGroup : public Command {
         public:
+            ParallelCommandGroup(); // For custom versions of this class
             ParallelCommandGroup(std::vector<Command*> commands);
             ParallelCommandGroup(const ParallelCommandGroup& command); // Copy constructor
             ~ParallelCommandGroup();

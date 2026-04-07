@@ -12,6 +12,7 @@ namespace atmt {
 
     class SequentialCommandGroup : public Command {
         public:
+            SequentialCommandGroup(); // For custom versions of this class
             SequentialCommandGroup(std::vector<Command*> commands);
             SequentialCommandGroup(const SequentialCommandGroup& command); // Copy constructor
             ~SequentialCommandGroup();

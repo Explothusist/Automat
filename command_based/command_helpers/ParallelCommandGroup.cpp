@@ -5,6 +5,12 @@
 
 namespace atmt {
 
+    ParallelCommandGroup::ParallelCommandGroup():
+        Command(),
+        m_commands{ }
+    {
+        
+    };
     ParallelCommandGroup::ParallelCommandGroup(std::vector<Command*> commands):
         Command(),
         m_commands{ commands }
