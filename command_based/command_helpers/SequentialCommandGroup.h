@@ -16,7 +16,7 @@ namespace atmt {
             SequentialCommandGroup(std::vector<Command*> commands);
             SequentialCommandGroup(const SequentialCommandGroup& command); // Copy constructor
             ~SequentialCommandGroup();
-            Command* clone() const override;
+            Command* cloneSelf() const override;
 
             void initialize() override; // User-made
             void execute() override; // User-made

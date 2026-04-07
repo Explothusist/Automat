@@ -43,6 +43,9 @@ namespace atmt {
             bool isStateControlling();
             virtual RobotState getState();
 
+            bool isSerial();
+            void setLastSerialId(int id);
+
         protected:
             int m_heartbeat_timeout; // ms
             Timestamp m_last_heartbeat;
@@ -51,6 +54,7 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_SERIAL_
             SerialReader* m_serial;
             uint8_t m_serial_message;
+            int m_last_serial_id;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
             RobotDashboardServer* m_server;

@@ -20,7 +20,7 @@ namespace atmt {
     WaitCommand::~WaitCommand() {
         // Will run ~Command() after this is complete
     };
-    Command* WaitCommand::clone() const {
+    Command* WaitCommand::cloneSelf() const {
         return new WaitCommand(*this);
     };
 

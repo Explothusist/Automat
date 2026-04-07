@@ -32,18 +32,6 @@ namespace atmt {
             void runLoop(RobotState state) override;
 
         private:
-            int m_heartbeat_timeout; // ms
-            Timestamp m_last_heartbeat;
-            HeartbeatType m_type;
-
-#ifdef ATMT_SUBMODULE_SERIAL_
-            SerialReader* m_serial;
-            uint8_t m_serial_message;
-            uint8_t m_serial_recipient;
-#endif
-#ifdef ATMT_SUBMODULE_HTTP_SERVER_
-            RobotDashboardServer* m_server;
-#endif
 
     };
 

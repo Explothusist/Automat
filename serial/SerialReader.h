@@ -38,6 +38,15 @@ namespace atmt {
     //     uint8_t data[kMaxPacketSize - 1];
     // } PrefixedSerial;
 
+#ifdef AUTOMAT_ESP32_ARDUINO_
+    typedef enum {
+        Interface_Serial0,
+        Interface_Serial1,
+        Interface_Serial2//,
+        // Interface_Serial3
+    } SerialInterface;
+#endif
+
     void SetReadSerialEvents(bool to_read);
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
@@ -50,8 +59,8 @@ namespace atmt {
             SerialReader(uint8_t address_code, int port);
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-            SerialReader(uint8_t address_code);
-            SerialReader(uint8_t address_code, int rx_pin, int tx_pin);
+            SerialReader(SerialInterface serial_interface, uint8_t address_code);
+            SerialReader(SerialInterface serial_interface, uint8_t address_code, int rx_pin, int tx_pin);
 #endif
 #ifdef AUTOMAT_ESP32_ESPIDF_
             SerialReader(uint8_t address_code);
@@ -134,6 +143,7 @@ namespace atmt {
             int m_index;
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
+            SerialInterface m_serial_interface;
             int m_rx_pin;
             int m_tx_pin;
 #endif
@@ -150,7 +160,6 @@ namespace atmt {
             // TimedRobot* m_robot;
             EventHandler* m_event_handler;
 #endif
-
             uint8_t m_address_code;
 
             std::queue<uint8_t> m_raw_input;
@@ -180,6 +189,8 @@ namespace atmt {
             bool peekMessageInternal(int index, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixedInternal(int index, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixInternal(int index, uint8_t &prefix);
+
+            uint8_t computeChecksum(uint8_t length, uint8_t address, uint8_t sender, uint8_t data[]); // Unused right now
     };
 
 }

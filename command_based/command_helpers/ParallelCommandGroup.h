@@ -16,7 +16,7 @@ namespace atmt {
             ParallelCommandGroup(std::vector<Command*> commands);
             ParallelCommandGroup(const ParallelCommandGroup& command); // Copy constructor
             ~ParallelCommandGroup();
-            Command* clone() const override;
+            Command* cloneSelf() const override;
 
             void initialize() override; // User-made
             void execute() override; // User-made

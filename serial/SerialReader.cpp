@@ -8,6 +8,9 @@
 #endif
 
 #include <cstring>
+#include <string>
+#include <vex.h>
+#include "v5_apiuser.h"
 
 #ifdef AUTOMAT_ESP32_ARDUINO_
 #include <Arduino.h>
@@ -34,12 +37,13 @@ namespace atmt {
         m_index{ 0 },
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-    SerialReader::SerialReader(uint8_t address_code):
-        SerialReader(address_code, -1, -1)
+    SerialReader::SerialReader(SerialInterface serial_interface, uint8_t address_code):
+        SerialReader(serial_interface, address_code, -1, -1)
     {
 
     };
-    SerialReader::SerialReader(uint8_t address_code, int rx_pin, int tx_pin):
+    SerialReader::SerialReader(SerialInterface serial_interface, uint8_t address_code, int rx_pin, int tx_pin):
+        m_serial_interface{ serial_interface },
         m_rx_pin{ rx_pin < 0 ? kRXDefaultPin : rx_pin },
         m_tx_pin{ tx_pin < 0 ? kTXDefaultPin : tx_pin },
 #endif
@@ -121,7 +125,20 @@ namespace atmt {
         vexGenericSerialBaudrate(m_index, kBaudrate);
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
-        Serial2.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
+        switch (m_serial_interface) {
+            case Interface_Serial0:
+                Serial.begin(kBaudrate);
+                break;
+            case Interface_Serial1:
+                Serial1.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
+                break;
+            case Interface_Serial2:
+                Serial2.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
+                break;
+            // case Interface_Serial3:
+            //     Serial3.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
+            //     break;
+        }
 #endif
 #ifdef AUTOMAT_ESP32_ESPIDF_
         uart_config_t uart_config = {};
@@ -144,13 +161,8 @@ namespace atmt {
     };
     void SerialReader::periodic() {
 #ifdef AUTOMAT_VEX_
-        // int32_t available_length = vexGenericSerialReceiveAvail(m_index);
-        // for (int i = 0; i < available_length; i++) {
-        //     m_messages.push(vexGenericSerialReadChar(m_index));
-        // }
-        // while (vexGenericSerialReceiveAvail(m_index) > 0) {
         int received_messages = 0;
-        while (received_messages < kMaxMessagesPerFrame) { // Will have a break;
+        while (received_messages < kMaxMessagesPerFrame && vexGenericSerialReceiveAvail(m_index)) { // Will have a break;
             int32_t raw = vexGenericSerialReadChar(m_index);
             if (raw >= 0) { // i.e. != -1 // This has got to be one of the dumbest error codes because it maps to 255...
                 uint8_t processed = static_cast<uint8_t>(raw);
@@ -172,14 +184,74 @@ namespace atmt {
 #endif
 #ifdef AUTOMAT_ESP32_ARDUINO_
         int received_messages = 0;
-        while (Serial2.available() && received_messages < kMaxMessagesPerFrame) {
-            uint8_t raw = Serial2.read();
+        while (received_messages < kMaxMessagesPerFrame) {
+            switch (m_serial_interface) {
+                case Interface_Serial0:
+                    if (!Serial.available()) break;
+                    break;
+                case Interface_Serial1:
+                    if (!Serial1.available()) break;
+                    break;
+                case Interface_Serial2:
+                    if (!Serial2.available()) break;
+                    break;
+                // case Interface_Serial3:
+                //     if (!Serial3.available()) break;
+                //     break;
+            }
+
+            uint8_t raw = 0;
+            switch (m_serial_interface) {
+                case Interface_Serial0:
+                    raw = Serial.read();
+                    break;
+                case Interface_Serial1:
+                    raw = Serial1.read();
+                    break;
+                case Interface_Serial2:
+                    raw = Serial2.read();
+                    break;
+                // case Interface_Serial3:
+                //     raw = Serial3.read();
+                //     break;
+            }
             m_raw_input.push(raw);
             received_messages += 1;
         }
 
-        while (!m_to_send.empty() && Serial2.availableForWrite()) {
-            Serial2.write(m_to_send.front());
+        // while (!m_to_send.empty() && Serial2.availableForWrite()) {
+        while (!m_to_send.empty()) {
+            switch (m_serial_interface) {
+                case Interface_Serial0:
+                    if (!Serial.availableForWrite()) break;
+                    break;
+                case Interface_Serial1:
+                    if (!Serial1.availableForWrite()) break;
+                    break;
+                case Interface_Serial2:
+                    if (!Serial2.availableForWrite()) break;
+                    break;
+                // case Interface_Serial3:
+                //     if (!Serial3.availableForWrite()) break;
+                //     break;
+            }
+            Serial1.write(0Xf0);
+
+
+            switch (m_serial_interface) {
+                case Interface_Serial0:
+                    Serial.write(m_to_send.front());
+                    break;
+                case Interface_Serial1:
+                    Serial1.write(m_to_send.front());
+                    break;
+                case Interface_Serial2:
+                    Serial2.write(m_to_send.front());
+                    break;
+                // case Interface_Serial3:
+                //     Serial3.write(m_to_send.front());
+                //     break;
+            }
             m_to_send.pop();
         }
 #endif
@@ -265,6 +337,9 @@ namespace atmt {
                     for (int i = 0; i < m_part_length; i++) {
                         checksum += m_part_data[i]; // Rollover handled automatically
                     }
+                    checksum += m_part_length;
+                    checksum += m_part_sender;
+                    checksum += m_part_address;
                     if (m_part_checksum != checksum) {
                         resetPartialMessage();
                     }
@@ -619,6 +694,14 @@ namespace atmt {
                 m_to_send.push(static_cast<int>(SerialMessage::StartDuplicate));
             }
 
+            if (with_prefix) {
+                length += 1;
+            }
+            if (with_singleton) {
+                length += 1;
+            }
+
+
             uint8_t checksum = 0;
             checksum += length;
             sendByte(length);
@@ -694,7 +777,19 @@ namespace atmt {
         m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
     };
     void SerialReader::bindAutoTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartAutonomous, (trigger)->inMode(ModeDisabled)));
+        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger));
+    };
+
+    
+    uint8_t computeChecksum(uint8_t length, uint8_t address, uint8_t sender, uint8_t data[]) {
+        uint8_t checksum = 0;
+        checksum += length;
+        checksum += address;
+        checksum += sender;
+        for (size_t i = 0; i < length; i++) {
+            checksum += data[i];
+        }
+        return checksum;
     };
 #endif
 

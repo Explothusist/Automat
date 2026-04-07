@@ -211,15 +211,15 @@ namespace atmt {
             for (HeartbeatMaker* heartbeat_maker : m_heartbeat_makers) {
                 heartbeat_maker->runLoop(m_state);
             }
-            if (m_state != Disabled) {
+            // if (m_state != Disabled) {
                 
-                // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
-                // }
+            //     // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
+            //     // }
 
-                pollEvents(); // Auto starting events are polled in pollState() via another method
+            // }
+            pollEvents(); // Auto starting events are polled in pollState() via another method
 
-                commandScheduler();
-            }
+            commandScheduler();
             // platform_println("Triggers/Commands done"); // DEBUG
 
             Timestamp loopEnd{ getSystemTime() };
@@ -345,11 +345,22 @@ namespace atmt {
     };
 #endif
     void TimedRobot::addHeartbeat(Heartbeat* heartbeat) {
+        if(heartbeat == nullptr){
+            platform_println("ERROR: TimedRobot: addHeartbeat: heartbeat is nullptr");
+            return;
+
+        }
+        
         if (!robotHasHeartbeat(heartbeat)) {
             m_heartbeats.push_back(heartbeat);
         }
     };
     void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
+        if(heartbeat_maker == nullptr){
+            platform_println("ERROR: TimedRobot: addHeartbeatMaker: heartbeat_maker is nullptr");
+            return;
+        } 
+        
         if (!robotHasHeartbeatMaker(heartbeat_maker)) {
             // if (heartbeat_maker->isStateControlling()) {
             //     heartbeat_maker->stateControllingInit(&m_state);
