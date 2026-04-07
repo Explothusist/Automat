@@ -36,7 +36,6 @@ namespace atmt {
 #endif
 
     void HeartbeatMaker_StateMatcher::beatHeart(RobotState state) {
-        platform_println("Beating Heart with state: ");
         switch (m_type) {
             case HeartbeatManual:
                 break;
@@ -53,11 +52,7 @@ namespace atmt {
     };
 
     void HeartbeatMaker_StateMatcher::runLoop(RobotState state) {
-        // platform_println("Running HeartbeatMaker_StateMatcher loop");
-        // platform_println(m_last_heartbeat.getTimeDifferenceMS(getSystemTime()));
-        // platform_println(m_heartbeat_timeout);
         if (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout) {
-            platform_println("Timeout triggered");
             beatHeart(state);
             m_last_heartbeat = getSystemTime();
         }

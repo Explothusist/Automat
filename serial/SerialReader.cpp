@@ -160,7 +160,6 @@ namespace atmt {
 #endif
     };
     void SerialReader::periodic() {
-        // platform_println("Starting Periodic");
 #ifdef AUTOMAT_VEX_
         int received_messages = 0;
         while (received_messages < kMaxMessagesPerFrame && vexGenericSerialReceiveAvail(m_index)) { // Will have a break;
@@ -220,10 +219,7 @@ namespace atmt {
             received_messages += 1;
         }
 
-        // platform_println("Starting to write to Serial2");
         // while (!m_to_send.empty() && Serial2.availableForWrite()) {
-        //platform_print("buff len: ");
-        //platform_println(static_cast<int>(m_to_send.size()));
         while (!m_to_send.empty()) {
             switch (m_serial_interface) {
                 case Interface_Serial0:
@@ -247,8 +243,6 @@ namespace atmt {
                     Serial.write(m_to_send.front());
                     break;
                 case Interface_Serial1:
-                    platform_print("Writing to Serial1: ");
-                    platform_println(m_to_send.front());
                     Serial1.write(m_to_send.front());
                     break;
                 case Interface_Serial2:
@@ -693,8 +687,6 @@ namespace atmt {
         if (length > kMaxPacketSize) {
             return false;
         }
-        platform_println("Setting up message to send");
-        platform_println(std::to_string(m_to_send.size()));
         for (int i = 0; i < copies; i++) {
             if (i == 0) {
                 m_to_send.push(static_cast<int>(SerialMessage::Start));
