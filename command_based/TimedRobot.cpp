@@ -345,11 +345,22 @@ namespace atmt {
     };
 #endif
     void TimedRobot::addHeartbeat(Heartbeat* heartbeat) {
+        if(heartbeat == nullptr){
+            platform_println("ERROR: TimedRobot: addHeartbeat: heartbeat is nullptr");
+            return;
+
+        }
+        
         if (!robotHasHeartbeat(heartbeat)) {
             m_heartbeats.push_back(heartbeat);
         }
     };
     void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
+        if(heartbeat_maker == nullptr){
+            platform_println("ERROR: TimedRobot: addHeartbeatMaker: heartbeat_maker is nullptr");`
+            return;
+        } 
+        
         if (!robotHasHeartbeatMaker(heartbeat_maker)) {
             // if (heartbeat_maker->isStateControlling()) {
             //     heartbeat_maker->stateControllingInit(&m_state);
