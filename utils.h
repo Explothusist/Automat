@@ -28,6 +28,10 @@ namespace atmt {
     void platform_clear_screen();
     void platform_print(std::string stuff);
     void platform_println(std::string stuff);
+    void platform_print(int stuff);
+    void platform_println(int stuff);
+    void platform_print(double stuff);
+    void platform_println(double stuff);
 
     double degreesToRadians(double angle);
     double radiansToDegrees(double angle);

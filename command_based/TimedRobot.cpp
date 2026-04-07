@@ -357,7 +357,7 @@ namespace atmt {
     };
     void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
         if(heartbeat_maker == nullptr){
-            platform_println("ERROR: TimedRobot: addHeartbeatMaker: heartbeat_maker is nullptr");`
+            platform_println("ERROR: TimedRobot: addHeartbeatMaker: heartbeat_maker is nullptr");
             return;
         } 
         
