@@ -9,8 +9,10 @@
 
 #include <cstring>
 #include <string>
+#ifdef AUTOMAT_VEX_
 #include <vex.h>
 #include "v5_apiuser.h"
+#endif
 
 #ifdef AUTOMAT_ESP32_ARDUINO_
 #include <Arduino.h>
