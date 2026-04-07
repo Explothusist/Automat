@@ -180,6 +180,8 @@ namespace atmt {
             bool peekMessageInternal(int index, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixedInternal(int index, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender);
             bool peekMessagePrefixInternal(int index, uint8_t &prefix);
+
+            uint8_t computeChecksum(uint8_t length, uint8_t address, uint8_t sender, uint8_t data[]); // Unused right now
     };
 
 }

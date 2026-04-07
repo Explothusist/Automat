@@ -2,6 +2,7 @@
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
 #include "Heartbeat.h"
+#include "HeartbeatCommand.h"
 #include "../command_helpers/InstantCommand.h"
 #include "../../utils.h"
 
@@ -20,11 +21,13 @@ namespace atmt {
         m_heartbeat_timeout{ timeout },
         m_last_heartbeat{ getSystemTime() },
         m_type{ HeartbeatSerial },
+        m_serial{ serial },
         m_is_state_controlling{ false }
     {
         serial->bindToMessage(
-            new Trigger(SerialReceive, message),
-            new InstantCommand({}, &Heartbeat::beatHeart, this)
+            (new Trigger(SerialReceive, message))->allowPartial()->inMode(ModeAnyAndAll),
+            // new InstantCommand({}, &Heartbeat::beatHeart, this)
+            new HeartbeatCommand(this)
         );
     }; // Serial
     Heartbeat::Heartbeat(int timeout, SerialReader* serial, uint8_t message, uint8_t sender):
@@ -36,8 +39,9 @@ namespace atmt {
         m_is_state_controlling{ false }
     {
         serial->bindToMessage(
-            (new Trigger(SerialReceive, message))->fromSender(sender),
-            new InstantCommand({}, &Heartbeat::beatHeart, this)
+            (new Trigger(SerialReceive, message))->fromSender(sender)->allowPartial()->inMode(ModeAnyAndAll),
+            // new InstantCommand({}, &Heartbeat::beatHeart, this)
+            new HeartbeatCommand(this)
         );
     }; // Serial
 #endif
@@ -55,9 +59,11 @@ namespace atmt {
 
     void Heartbeat::beatHeart() {
         m_last_heartbeat = getSystemTime();
+#ifdef ATMT_SUBMODULE_SERIAL_
         if (m_type == HeartbeatSerial) {
-            m_serial->popNextMessage(); // Keep from polluting the message stack
+            m_serial->popMessage(m_last_serial_id); // Keep from polluting the message stack
         }
+#endif
     };
     bool Heartbeat::isHeartbeatLost() {
         return m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout;
@@ -68,6 +74,22 @@ namespace atmt {
     };
     RobotState Heartbeat::getState() {
         return Disabled; // For state-controlling heartbeats
+    };
+
+    
+    bool Heartbeat::isSerial() {
+#ifdef ATMT_SUBMODULE_SERIAL_
+        return m_type == HeartbeatSerial;
+#else   
+        return false;
+#endif
+    };
+    void Heartbeat::setLastSerialId(int id) {
+#ifdef ATMT_SUBMODULE_SERIAL_
+        if (m_type == HeartbeatSerial) {
+            m_last_serial_id = id;
+        }
+#endif
     };
 
 };

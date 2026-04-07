@@ -50,7 +50,7 @@ namespace atmt {
             };
             InstantCommand(const InstantCommand& command) = default; // Copy constructor
             ~InstantCommand() = default;
-            Command* clone() const override {
+            Command* cloneSelf() const override {
                 return new InstantCommand(*this);
             };
 
@@ -80,7 +80,7 @@ namespace atmt {
     //         InstantCommand(std::function<void(void*)> lambda, void* arg, bool continuous);
     //         InstantCommand(InstantCommand& command); // Copy constructor
     //         ~InstantCommand();
-    //         Command* clone() const override;
+    //         Command* cloneSelf() const override;
 
     //         void initialize() override; // User-made
     //         void execute() override; // User-made

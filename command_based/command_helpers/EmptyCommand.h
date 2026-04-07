@@ -13,7 +13,7 @@ namespace atmt {
             EmptyCommand(); // Put subsystems as parameters
             EmptyCommand(EmptyCommand& command); // Copy constructor
             ~EmptyCommand();
-            Command* clone() const override;
+            Command* cloneSelf() const override;
 
             void initialize() override; // User-made
             void execute() override; // User-made

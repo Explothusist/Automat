@@ -17,7 +17,8 @@ namespace atmt {
             Command(); // Put subsystems as parameters
             Command(const Command& command); // Copy constructor
             virtual ~Command();
-            virtual Command* clone() const = 0;
+            Command* clone() const;
+            virtual Command* cloneSelf() const = 0;
 
             bool runLoop();
 

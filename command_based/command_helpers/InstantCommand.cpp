@@ -27,7 +27,7 @@
 //     InstantCommand::~InstantCommand() {
 //         // Will run ~Command() after this is complete
 //     };
-//     Command* InstantCommand::clone() const {
+//     Command* InstantCommand::cloneSelf() const {
 //         return new InstantCommand(m_lambda);
 //     };
 

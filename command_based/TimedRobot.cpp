@@ -211,15 +211,15 @@ namespace atmt {
             for (HeartbeatMaker* heartbeat_maker : m_heartbeat_makers) {
                 heartbeat_maker->runLoop(m_state);
             }
-            if (m_state != Disabled) {
+            // if (m_state != Disabled) {
                 
-                // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
-                // }
+            //     // if (m_state != Autonomous) { // Note: Default Commands do not run during Autonomous
+            //     // }
 
-                pollEvents(); // Auto starting events are polled in pollState() via another method
+            // }
+            pollEvents(); // Auto starting events are polled in pollState() via another method
 
-                commandScheduler();
-            }
+            commandScheduler();
             // platform_println("Triggers/Commands done"); // DEBUG
 
             Timestamp loopEnd{ getSystemTime() };

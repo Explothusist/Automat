@@ -32,7 +32,7 @@ namespace atmt {
         }
         m_commands.clear();
     };
-    Command* SequentialCommandGroup::clone() const {
+    Command* SequentialCommandGroup::cloneSelf() const {
         // std::vector<Command*> cloned;
         // for (Command* command : m_commands) {
         //     cloned.push_back(command->clone());
