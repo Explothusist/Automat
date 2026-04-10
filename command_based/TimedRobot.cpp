@@ -412,8 +412,9 @@ namespace atmt {
     void TimedRobot::endCommand(int command_id) {
         for (int i = 0; i < static_cast<int>(m_commands.size()); i++) {
             if (m_commands[i]->getId() == command_id) {
+                m_commands[i]->end(true);
                 delete m_commands[i]; // Will run ~Command, which runs end()
-                vectorDeleteUnordered(m_commands, i);
+                vectorDelete(m_commands, i);
                 // m_commands.erase(m_commands.begin() + i);
                 i -= 1;
             }
