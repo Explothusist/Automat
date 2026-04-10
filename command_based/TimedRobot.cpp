@@ -282,6 +282,7 @@ namespace atmt {
     };
     void TimedRobot::clearCommands() {
         for (Command* command : m_commands) {
+            command->end(true);
             delete command; // Remember, these are pointers!
         }
         m_commands.clear();
