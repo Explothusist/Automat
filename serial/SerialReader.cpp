@@ -679,8 +679,14 @@ namespace atmt {
     bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
         return sendMessageInternal(recipient_code, message_prefix, true, 0, false, message, length, copies);
     };
+    bool SerialReader::sendMessageAll(uint8_t message, int copies) {
+        return sendMessage(KSerialAddressSendAll, message, copies);
+    };
     bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int copies) {
         return sendMessage(KSerialAddressSendAll, message, length, copies);
+    };
+    bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message, int copies) {
+        return sendMessagePrefixed(KSerialAddressSendAll, message_prefix, message, copies);
     };
     bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
         return sendMessagePrefixed(KSerialAddressSendAll, message_prefix, message, length, copies);

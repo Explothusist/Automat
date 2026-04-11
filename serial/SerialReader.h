@@ -123,7 +123,9 @@ namespace atmt {
             bool sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies = 1);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message, int copies = 1);
             bool sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
+            bool sendMessageAll(uint8_t message, int copies = 1);
             bool sendMessageAll(uint8_t message[], uint8_t length, int copies = 1);
+            bool sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message, int copies = 1);
             bool sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies = 1);
 
             void sendByte(uint8_t byte);
