@@ -24,6 +24,11 @@ namespace atmt {
     {
 
     };
+    SlewRateLimiter::SlewRateLimiter(double pos_rate_limit, double neg_rate_limit, double initial_value, double pos_bound, double neg_bound):
+        SlewRateLimiter(pos_rate_limit, neg_rate_limit, initial_value)
+    {
+        setBounds(pos_bound, neg_bound);
+    };
 
     double SlewRateLimiter::calculateFiltered(double input) {
         Timestamp now = getSystemTime();
@@ -31,6 +36,11 @@ namespace atmt {
 
         double output = std::min(input, m_last_value + (m_pos_rate_limit * elapsed));
         output = std::max(output, m_last_value + (m_neg_rate_limit * elapsed));
+
+        if (m_bounds_set) {
+            output = std::min(output, m_pos_bound);
+            output = std::max(output, m_neg_bound);
+        }
 
         m_last_timestamp = now;
         m_last_value = output;
@@ -50,6 +60,19 @@ namespace atmt {
     void SlewRateLimiter::setRateLimit(double pos_rate_limit, double neg_rate_limit) {
         m_pos_rate_limit = pos_rate_limit;
         m_neg_rate_limit = neg_rate_limit;
+    };
+    void SlewRateLimiter::setBounds(double bounds) {
+        m_pos_bound = bounds;
+        m_neg_bound = -bounds;
+        m_bounds_set = true;
+    };
+    void SlewRateLimiter::setBounds(double pos_bound, double neg_bound) {
+        m_pos_bound = pos_bound;
+        m_neg_bound = neg_bound;
+        m_bounds_set = true;
+    };
+    void SlewRateLimiter::removeBounds() {
+        m_bounds_set = false;
     };
 
 };
