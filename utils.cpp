@@ -35,7 +35,7 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
 #endif
     };
-    void platform_print(std::string stuff) {
+    void platform_print(const std::string& stuff) {
 #ifdef AUTOMAT_VEX_
         m_brain.Screen.print(stuff.c_str());
 #endif
@@ -48,7 +48,7 @@ namespace atmt {
 #endif
 // #endif
     };
-    void platform_println(std::string stuff) {
+    void platform_println(const std::string& stuff) {
 #ifdef AUTOMAT_VEX_
         m_line_on_screen += 1;
         if (m_line_on_screen > 12) { // Nevermind, this is FAR worse
@@ -67,7 +67,18 @@ namespace atmt {
         ESP_LOGI("GENERAL", "%s", stuff.c_str());
 #endif
     };
-#ifndef AUTOMAT_VEX_
+    void platform_printf(const char* format, ...) {
+        va_list argument_pointer;
+        va_start(argument_pointer, format);
+        platform_vprintf(format, argument_pointer);
+        va_end(argument_pointer);
+    };
+    void platform_vprintf(const char* format, va_list argument_pointer) {
+        char buffer[256];
+        vsnprintf(buffer, sizeof(buffer), format, argument_pointer);
+        platform_print(buffer);
+    };
+// #ifndef AUTOMAT_VEX_
     void platform_print(int stuff) {
         platform_print(std::to_string(stuff));
     };
@@ -80,7 +91,7 @@ namespace atmt {
     void platform_println(double stuff) {
         platform_println(std::to_string(stuff));
     };
-#endif
+// #endif
     
     double degreesToRadians(double angle) {
         return (angle / 180.0) * M_PI;

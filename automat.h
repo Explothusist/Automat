@@ -59,6 +59,9 @@
 #ifdef ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_
     #include "utilities/KinematicPredictor.h"
 #endif
+#ifdef ATMT_SUBMODULE_UTILITIES_SLEW_RATE_LIMITER_
+    #include "utilities/SlewRateLimiter.h"
+#endif
 
 
 #endif

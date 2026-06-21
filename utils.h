@@ -26,8 +26,10 @@ namespace atmt {
 #endif
 
     void platform_clear_screen();
-    void platform_print(std::string stuff);
-    void platform_println(std::string stuff);
+    void platform_print(const std::string& stuff);
+    void platform_println(const std::string& stuff);
+    void platform_printf(const char* format, ...);
+    void platform_vprintf(const char* format, va_list argument_pointer);
     void platform_print(int stuff);
     void platform_println(int stuff);
     void platform_print(double stuff);
