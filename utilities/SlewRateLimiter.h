@@ -4,7 +4,7 @@
 #ifndef AUTOMAT_SLEW_RATE_LIMITER_
 #define AUTOMAT_SLEW_RATE_LIMITER_
 
-#include "utils.h"
+#include "../utils.h"
 
 namespace atmt {
 
