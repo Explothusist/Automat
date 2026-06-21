@@ -62,6 +62,9 @@
 #ifdef ATMT_SUBMODULE_UTILITIES_SLEW_RATE_LIMITER_
     #include "utilities/SlewRateLimiter.h"
 #endif
+#ifdef ATMT_SUBMODULE_UTILITIES_TIMEOUT_MANAGER_
+    #include "utilities/TimeoutManager.h"
+#endif
 
 
 #endif

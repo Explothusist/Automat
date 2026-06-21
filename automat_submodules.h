@@ -16,6 +16,7 @@
 #define ATMT_SUBMODULE_UTILITIES_THREADSAFE_BUFFER_ // Enables/Disables ThreadsafeBuffer
 #define ATMT_SUBMODULE_UTILITIES_KINEMATIC_PREDICTOR_ // Enables/Disables KinematicPredictor
 #define ATMT_SUBMODULE_UTILITIES_SLEW_RATE_LIMITER_ // Enables/Disables SlewRateLimiter
+#define ATMT_SUBMODULE_UTILITIES_TIMEOUT_MANAGER_ // Enables/Disables TimeoutManager
 
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
 
