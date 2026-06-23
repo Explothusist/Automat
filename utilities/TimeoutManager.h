@@ -12,7 +12,8 @@ namespace atmt {
         public:
             TimeoutManager(double min_timeout_sec);
 
-            bool checkTimeout(); // Checks whether enough time has passed
+            bool checkTimeout(); // Checks whether enough time has passed, reseting if enough has passed
+            bool checkTimeoutWithoutReset(); // Checks whether enough time has passed, not reseting if enough has passed
             bool forceTimeout(); // Checks, ignoring how much time has passed
             void resetTimeout(); // Resets how much time has passed
             void setMinTimeout(double min_timeout_sec); // Sets minimum timeout

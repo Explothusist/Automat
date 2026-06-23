@@ -25,6 +25,15 @@ namespace atmt {
             return false;
         }
     };
+    bool TimeoutManager::checkTimeoutWithoutReset() {
+        Timestamp now = getSystemTime();
+        double elapsed = m_last_timestamp.getTimeDifference(now);
+        if (elapsed > m_min_timeout_sec || m_timeout_unset) {
+            return true;
+        }else {
+            return false;
+        }
+    };
     bool TimeoutManager::forceTimeout() {
         m_last_timestamp = getSystemTime();
         m_timeout_unset = false;
