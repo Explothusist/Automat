@@ -737,6 +737,7 @@ namespace atmt {
         }
         return m_stick_state[stick];
     };
+    // Output Range -1 to 1
     double Joystick::getRawAxis(AxisIndicator axis) {
         return m_axis_position[axis];
     };
