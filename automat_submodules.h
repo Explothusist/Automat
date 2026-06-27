@@ -7,7 +7,11 @@
 #define ATMT_SUBMODULE_COMMAND_BASED_ // Enables/Disables TimedRobot, Subsystem, Command, etc.
 #define ATMT_SUBMODULE_SERIAL_ // Enables/Disables SerialReader
 #ifdef AUTOMAT_ESP32_
+    #define ATMT_SUBMODULE_ESPNOW_ // Enables/Disables ESPNowReceiver
     // #define ATMT_SUBMODULE_HTTP_SERVER_ // Enables/Disables HTTPServer, RobotDashboard, CameraServer
+#endif
+#if defined(ATMT_SUBMODULE_SERIAL_) || defined(ATMT_SUBMODULE_ESPNOW_)
+    #define ATMT_SUBMODULE_PACKET_HANDLING_
 #endif
 
 // Utilities

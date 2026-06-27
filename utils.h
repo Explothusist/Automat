@@ -91,10 +91,11 @@ namespace atmt {
         uint8_t data[kMaxPacketSize];
         uint8_t length;
         uint8_t sender;
-        int id;
-    } serial_message;
+        uint8_t sent_id; // Sender specific, can be used to order
+        int id; // Receiver specific
+    } SerialMessage;
 
-    enum class SerialMessage : uint8_t {
+    enum class SerialFlags : uint8_t {
         // Get_Status = 0xfb,
         // Status_Processing = 0xfc,
         // Status_Complete = 0xfd,
