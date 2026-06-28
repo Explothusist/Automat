@@ -56,6 +56,10 @@ namespace atmt {
         SerialReceive = 0
     } SerialEvent;
     typedef enum {
+        NULLESPNow = -1,
+        ESPNowReceive = 0
+    } ESPNowEvent;
+    typedef enum {
         NULLTrigger = -1,
         OnTrigger = 0,
         WhileTrigger = 1

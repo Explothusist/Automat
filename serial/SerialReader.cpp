@@ -3,10 +3,6 @@
 
 #include "SerialReader.h"
 
-#ifdef ATMT_SUBMODULE_COMMAND_BASED_
-#include "../command_based/EventHandler.h"
-#endif
-
 #include <cstring>
 #include <string>
 #ifdef AUTOMAT_VEX_
@@ -23,14 +19,6 @@
 #endif
 
 namespace atmt {
-    
-#ifdef ATMT_SUBMODULE_COMMAND_BASED_
-    bool m_read_serial_events{ false };
-    
-    void SetReadSerialEvents(bool to_read) {
-        m_read_serial_events = to_read;
-    };
-#endif
 
 #ifdef AUTOMAT_VEX_
     SerialReader::SerialReader(uint8_t address_code, int port):
@@ -71,13 +59,8 @@ namespace atmt {
         m_buffer_size{ buffer_size < 0 ? kUARTDefaultBufferSize : buffer_size },
         m_uart_port{ uart_port < 0 ? kUARTDefaultPort : uart_port }
 #endif
-#ifdef ATMT_SUBMODULE_COMMAND_BASED_
-        m_triggers{ std::vector<Trigger_Event*>() },
-        m_temp_triggers{ std::vector<Trigger_Event*>() },
-        m_robot_state{ nullptr },
-        m_event_handler{ nullptr },
-#endif
-        m_packet_handler{ PacketHandler(address_code) }
+        packet{ address_code },
+        event{ }
     {
         
     };
@@ -85,16 +68,6 @@ namespace atmt {
 #ifdef AUTOMAT_VEX_
         delete m_fake_motor;
         m_fake_motor = nullptr;
-#endif
-#ifdef ATMT_SUBMODULE_COMMAND_BASED_
-        for (Trigger_Event* trigger : m_triggers) {
-            delete trigger;
-        }
-        m_triggers.clear();
-        for (Trigger_Event* trigger : m_temp_triggers) {
-            delete trigger;
-        }
-        m_temp_triggers.clear();
 #endif
     };
 
@@ -149,7 +122,7 @@ namespace atmt {
                 uint8_t processed = static_cast<uint8_t>(raw);
                 // if (message != static_cast<uint8_t>(SerialFlags::Invalid)) {
                 // m_raw_input.push(processed);
-                m_packet_handler.inputReceivedRawByte(processed);
+                packet.inputReceivedRawByte(processed);
                 // }
                 received_messages += 1;
             }else {
@@ -159,9 +132,9 @@ namespace atmt {
 
         // int32_t = available_length = vexGenericSerialWriteFree(m_index);
         // while (!m_to_send.empty() && vexGenericSerialWriteFree(m_index) > 0) {
-        while (m_packet_handler.hasRawBytesToSend() && vexGenericSerialWriteFree(m_index) > 0) {
+        while (packet.hasRawBytesToSend() && vexGenericSerialWriteFree(m_index) > 0) {
             uint8_t byte;
-            m_packet_handler.getNextRawByteToSend(byte);
+            packet.getNextRawByteToSend(byte);
             vexGenericSerialWriteChar(m_index, byte);
             // m_to_send.pop();
             // available_length -= 1;
@@ -181,9 +154,6 @@ namespace atmt {
                 case Interface_Serial2:
                     serial_available = Serial2.available();
                     break;
-                // case Interface_Serial3:
-                //     serial_available = Serial2.available();
-                //     break;
             }
             if (!serial_available) break;
 
@@ -198,18 +168,15 @@ namespace atmt {
                 case Interface_Serial2:
                     raw = Serial2.read();
                     break;
-                // case Interface_Serial3:
-                //     raw = Serial3.read();
-                //     break;
             }
             // m_raw_input.push(raw);
-            m_packet_handler.inputReceivedRawByte(raw);
+            packet.inputReceivedRawByte(raw);
             received_messages += 1;
         }
 
         // while (!m_to_send.empty() && Serial2.availableForWrite()) {
         // while (!m_to_send.empty()) {
-        while (m_packet_handler.hasRawBytesToSend()) {
+        while (packet.hasRawBytesToSend()) {
             bool serial_available = false;
             switch (m_serial_interface) {
                 case Interface_Serial0:
@@ -233,7 +200,7 @@ namespace atmt {
 
 
             uint8_t byte;
-            m_packet_handler.getNextRawByteToSend(byte);
+            packet.getNextRawByteToSend(byte);
             switch (m_serial_interface) {
                 case Interface_Serial0:
                     Serial.write(byte);
@@ -256,25 +223,25 @@ namespace atmt {
         int len = uart_read_bytes(m_uart_port, buf, sizeof(buf), 0); // timeout 0 = non-blocking
         for (int i = 0; i < len; i++) {
             // m_raw_input.push(buf[i]);
-            m_packet_handler.inputReceivedRawByte(buf[i]);
+            packet.inputReceivedRawByte(buf[i]);
         }
 
-        while (m_packet_handler.hasRawBytesToSend()) {
+        while (packet.hasRawBytesToSend()) {
             uint8_t byte;
-            m_packet_handler.peekNextRawByteToSend(byte);
+            packet.peekNextRawByteToSend(byte);
             // uint8_t b = static_cast<uint8_t>(m_to_send.front());
 
             int written = uart_write_bytes(m_uart_port, (const char*)&byte, 1);
             if (written > 0) {
                 // m_to_send.pop();
-                m_packet_handler.getNextRawByteToSend(byte); // To pop
+                packet.getNextRawByteToSend(byte); // To pop
             } else {
                 break; // UART TX full
             }
         }
 #endif
 
-        m_packet_handler.periodic();
+        packet.periodic();
     };
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
@@ -288,170 +255,12 @@ namespace atmt {
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
     void SerialReader::internal_init(RobotState* robot_state, EventHandler* event_handler) {
-        m_event_handler = event_handler;
-        m_robot_state = robot_state;
+        // m_event_handler = event_handler;
+        // m_robot_state = robot_state;
+        event.internal_init(robot_state, event_handler);
+        packet.internal_init(&event);
     };
 #endif
-    
-#ifdef ATMT_SUBMODULE_COMMAND_BASED_
-    void SerialReader::triggerEvent(SerialEvent event, uint8_t sender, uint8_t code[], uint8_t length, int id) {
-        if (!m_robot_state) { // Uninitialized
-            return;
-        }
-        // for (size_t i = 0; i < m_temp_triggers.size(); i++) {
-        for (size_t i = 0; i < m_temp_triggers.size(); ) {
-            if (m_temp_triggers[i]->matchesEvent(event, sender, code, length, *m_robot_state)) {
-                // interpretTrigger(m_temp_triggers[i], true);
-                m_temp_triggers[i]->setSerialMessageId(id);
-                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(m_temp_triggers[i], true);
-                if (temp_trigger) {
-                    m_temp_triggers.push_back(temp_trigger);
-                }
-                
-                delete m_temp_triggers[i];
-                vectorDeleteUnordered(m_temp_triggers, i);
-                // m_temp_triggers.erase(m_temp_triggers.begin() + i);
-                // i -= 1;
-            }else {
-                i += 1;
-            }
-        }
-
-        for (Trigger_Event* trigger : m_triggers) {
-            if (trigger->matchesEvent(event, sender, code, length, *m_robot_state)) {
-                // interpretTrigger(trigger, true);
-                trigger->setSerialMessageId(id);
-                Trigger_Event* temp_trigger = m_event_handler->interpretTrigger(trigger, true);
-                if (temp_trigger) {
-                    m_temp_triggers.push_back(temp_trigger);
-                }
-            }
-        }
-    };
-
-    void SerialReader::bindToMessage(Trigger* trigger, Command* command) {
-        m_triggers.push_back(new Trigger_Event(StartCommand, trigger, command));
-    };
-    void SerialReader::bindAutoTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartAutonomous, trigger->inMode(ModeDisabled)));
-    };
-    void SerialReader::bindTeleopTrigger(Trigger* trigger) {
-        m_triggers.push_back(new Trigger_Event(StartTeleop, trigger->inMode(ModeDisabledAndAuto)));
-    };
-#endif
-
-
-    // Expose through protocol
-    bool SerialReader::availableMessages() {
-        return m_packet_handler.availableMessages();
-    };
-    bool SerialReader::popNextMessage() {
-        return m_packet_handler.popNextMessage();
-    };
-    bool SerialReader::popNextMessage(uint8_t output[], uint8_t &length) {
-        return m_packet_handler.popNextMessage(output, length);
-    };
-    bool SerialReader::popNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.popNextMessage(output, length, sender);
-    };
-    bool SerialReader::popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.popNextMessagePrefixed(prefix, output, length);
-    };
-    bool SerialReader::popNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.popNextMessagePrefixed(prefix, output, length, sender);
-    };
-    bool SerialReader::peekNextMessage(uint8_t output[], uint8_t &length) {
-        return m_packet_handler.peekNextMessage(output, length);
-    };
-    bool SerialReader::peekNextMessage(uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.peekNextMessage(output, length, sender);
-    };
-    bool SerialReader::peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.peekNextMessagePrefixed(prefix, output, length);
-    };
-    bool SerialReader::peekNextMessagePrefixed(uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.peekNextMessagePrefixed(prefix, output, length, sender);
-    };
-    bool SerialReader::peekNextMessagePrefix(uint8_t &prefix) {
-        return m_packet_handler.peekNextMessagePrefix(prefix);
-    }
-    
-    // Expose through protocol
-    bool SerialReader::getNextMessageId(int &id) {
-        return m_packet_handler.getNextMessageId(id);
-    }
-    bool SerialReader::getMessageId(int index, int &id) {
-        return m_packet_handler.getMessageId(index, id);
-    }
-    int SerialReader::availableMessagesCount() {
-        return m_packet_handler.availableMessagesCount();
-    }
-
-    // Expose through protocol
-    bool SerialReader::popMessage(int id) {
-        return m_packet_handler.popMessage(id);
-    }
-    bool SerialReader::popMessage(int id, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.popMessage(id, output, length);
-    }
-    bool SerialReader::popMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.popMessage(id, output, length, sender);
-    }
-    bool SerialReader::popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.popMessagePrefixed(id, prefix, output, length);
-    }
-    bool SerialReader::popMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.popMessagePrefixed(id, prefix, output, length, sender);
-    }
-    bool SerialReader::peekMessage(int id, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.peekMessage(id, output, length);
-    }
-    bool SerialReader::peekMessage(int id, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.peekMessage(id, output, length, sender);
-    }
-    bool SerialReader::peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length) {
-        return m_packet_handler.peekMessagePrefixed(id, prefix, output, length);
-    }
-    bool SerialReader::peekMessagePrefixed(int id, uint8_t &prefix, uint8_t output[], uint8_t &length, uint8_t &sender) {
-        return m_packet_handler.peekMessagePrefixed(id, prefix, output, length, sender);
-    }
-    bool SerialReader::peekMessagePrefix(int id, uint8_t &prefix) {
-        return m_packet_handler.peekMessagePrefix(id, prefix);
-    }
-
-    // Expose through protocol
-    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message, int copies) {
-        return m_packet_handler.sendMessage(recipient_code, message, copies);
-    }
-    bool SerialReader::sendMessage(uint8_t recipient_code, uint8_t message[], uint8_t length, int copies) {
-        return m_packet_handler.sendMessage(recipient_code, message, length, copies);
-    }
-    bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message, int copies) {
-        return m_packet_handler.sendMessagePrefixed(recipient_code, message_prefix, message, copies);
-    }
-    bool SerialReader::sendMessagePrefixed(uint8_t recipient_code, uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
-        return m_packet_handler.sendMessagePrefixed(recipient_code, message_prefix, message, length, copies);
-    }
-    bool SerialReader::sendMessageAll(uint8_t message, int copies) {
-        return m_packet_handler.sendMessageAll(message, copies);
-    }
-    bool SerialReader::sendMessageAll(uint8_t message[], uint8_t length, int copies) {
-        return m_packet_handler.sendMessageAll(message, length, copies);
-    }
-    bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message, int copies) {
-        return m_packet_handler.sendMessagePrefixedAll(message_prefix, message, copies);
-    }
-    bool SerialReader::sendMessagePrefixedAll(uint8_t message_prefix, uint8_t message[], uint8_t length, int copies) {
-        return m_packet_handler.sendMessagePrefixedAll(message_prefix, message, length, copies);
-    }
-
-    // Expose through protocol
-    void SerialReader::sendByte(uint8_t byte) {
-        return m_packet_handler.sendByte(byte);
-    }
-    void SerialReader::flushMessages() {
-        return m_packet_handler.flushMessages();
-    }
     
 };
 

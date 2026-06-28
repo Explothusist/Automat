@@ -39,11 +39,13 @@
                            |
                         Protocol --> Add Raw Input
                                            |
-          Receive   -->  (Pass)  <--    Parsed
+(Event)  <-- Receive <--  (Pass)  <--    Parsed
 
 */
 
 namespace atmt {
+
+    class PacketEventHandler;
 
     enum class ParsingState {
         FindStart,
@@ -72,7 +74,7 @@ namespace atmt {
             void autonomousPeriodic() override;
             void teleopPeriodic() override;
 
-            void internal_init();
+            void internal_init(PacketEventHandler* event_handler);
 #else
             ~PacketHandler();
 
@@ -85,10 +87,11 @@ namespace atmt {
             bool getNextRawByteToSend(uint8_t &raw_byte);
             bool peekNextRawByteToSend(uint8_t &raw_byte);
             int getAllRawBytesToSend(uint8_t byte_buffer[], int buffer_length);
+            int peekAllRawBytesToSend(uint8_t byte_buffer[], int buffer_length);
 
             // For use by protocol, bytes received
             void inputReceivedRawByte(uint8_t raw_byte);
-            void inputReceivedRawBytes(uint8_t byte_buffer[], int buffer_length);
+            void inputReceivedRawBytes(const uint8_t byte_buffer[], int buffer_length);
 
             // For internal use
             void interpretMessages();
@@ -170,6 +173,8 @@ namespace atmt {
 
             uint8_t m_sent_message_id_counter;
             int m_received_message_id_counter;
+
+            PacketEventHandler* m_packet_event_handler;
             
             // Internal use
             bool sendMessageInternal(uint8_t recipient_code, uint8_t message_prefix, bool with_prefix, uint8_t message_singleton, bool with_singleton, uint8_t message[], uint8_t length, int copies);

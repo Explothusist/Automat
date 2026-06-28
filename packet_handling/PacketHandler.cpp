@@ -2,6 +2,7 @@
 #ifdef ATMT_SUBMODULE_PACKET_HANDLING_
 
 #include "PacketHandler.h"
+#include "PacketEventHandler.h"
 
 #include <cstring>
 #include <string>
@@ -31,7 +32,8 @@ namespace atmt {
         m_part_next_char_escaped{ false },
         
         m_sent_message_id_counter{ 0 },
-        m_received_message_id_counter{ 0 }
+        m_received_message_id_counter{ 0 },
+        m_packet_event_handler{ nullptr }
     {
         if (m_address_code == KSerialAddressSendAll) {
             platform_print("Cannot Set Address to 0xFF (Reserved for SendMessageAll)");
@@ -59,8 +61,8 @@ namespace atmt {
 #endif
     
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
-    void PacketHandler::internal_init() {
-        
+    void PacketHandler::internal_init(PacketEventHandler* event_handler) {
+        m_packet_event_handler = event_handler;
     };
 #endif
 
@@ -87,12 +89,20 @@ namespace atmt {
         }
         return count;
     };
+    int PacketHandler::peekAllRawBytesToSend(uint8_t byte_buffer[], int buffer_length) {
+        int count = 0;
+        while (hasRawBytesToSend() && count < buffer_length) {
+            peekNextRawByteToSend(byte_buffer[count]);
+            count += 1;
+        }
+        return count;
+    };
 
     // For use by protocol, bytes received
     void PacketHandler::inputReceivedRawByte(uint8_t raw_byte) {
         m_raw_input.push(raw_byte);
     };
-    void PacketHandler::inputReceivedRawBytes(uint8_t byte_buffer[], int buffer_length) {
+    void PacketHandler::inputReceivedRawBytes(const uint8_t byte_buffer[], int buffer_length) {
         for (int i = 0; i < buffer_length; i++) {
             inputReceivedRawByte(byte_buffer[i]);
         }
@@ -205,6 +215,9 @@ namespace atmt {
         m_messages.push_back(message);
         // m_last_message = message;
         updateLastFromSender(message);
+        if (m_packet_event_handler) {
+            m_packet_event_handler->triggerEvent(SerialReceive, message.sender, message.data, message.length, message.id);
+        }
     };
     void PacketHandler::resetPartialMessage() {
         m_parsing_state = ParsingState::FindStart;
