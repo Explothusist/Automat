@@ -2,7 +2,15 @@
 #ifndef AUTOMAT_PLATFORM_
 #define AUTOMAT_PLATFORM_
 
-// // #define AUTOMAT_ESP32_ // Select which platform here
+// // #define AUTOMAT_ESP32_ // To override if needed
+// #ifdef AUTOMAT_ESP32_
+//     // #define AUTOMAT_ESP32_ARDUINO_
+//     // #define AUTOMAT_ESP32_ESPIDF_
+
+//     #if defined(AUTOMAT_ESP32_ARDUINO_) + defined(AUTOMAT_ESP32_ESPIDF_) != 1
+//         #error "Automat: Exactly one AUTOMAT ESP32 framework must be defined"
+//     #endif
+// #endif
 // // #define AUTOMAT_VEX_ 
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP32) || defined(ESP_PLATFORM)
