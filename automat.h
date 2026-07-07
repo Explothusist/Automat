@@ -28,8 +28,15 @@
     #include "command_based/heartbeat_helpers/HeartbeatMaker_StateMatcher.h"
 #endif
 
+#ifdef ATMT_SUBMODULE_PACKET_HANDLING_
+    #include "packet_handling/PacketHandler.h"
+    #include "packet_handling/PacketEventHandler.h"
+#endif
 #ifdef ATMT_SUBMODULE_SERIAL_
     #include "serial/SerialReader.h"
+#endif
+#ifdef ATMT_SUBMODULE_ESPNOW_
+    #include "espnow/ESPNowHandler.h"
 #endif
 
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
