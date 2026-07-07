@@ -1,13 +1,31 @@
 # Automat
 
-Automat is a partial imitation of the FRC (FIRST Robotics Competition) robot control library WPILib, an open source library built and maintained by the Worchester Polytechnic Institute. WPILib's most outstanding benefit is its simple and efficient command-based robot framework dividing the robot into commands and subsystems. Automat provides most of the basic functionality of WPILib to VEX and Esp32 architectures.
+Automat is a robot control library designed to be a simple and powerful standalone tool for rapidly developing robust robot codebases. The library's core is a command based framework, but the library also includes a number of utility features and built-in communication protocols.
 
-Automat is still in production and does not include all WPILib features, but it contains all of the basic building blocks. A  catalogue (work in progress) of the slight differences from WPILib paradigms and syntax can be found under documentation.md. More complete documentation is in progress.
+Automat's command_based module, the original core of the library, is based on the FRC (FIRST Robotics Competition) robot control library WPILib, an open source library built and maintained by the Worchester Polytechnic Institute. WPILib's most outstanding benefit is its simple and efficient command-based robot framework dividing the robot into commands and subsystems. Automat provides most of the basic functionality of WPILib to VEX, Esp32, and Arduino environments.
 
-Examples of the Automat library in use can be found in Explothusist/Automat-Example-Code, linked below.
+## Supported Environments
+
+ - **VEX V5** (some functionality limited, not tested on other VEX platforms)
+ - **ESPIDF** 
+ - **Arduino** (so far, only tested on ESP32 using Arduino framework)
+
+The code automatically detects the environment, but this feature is not exhaustively tested. If detection errors occur, manually specify environment in `automat_platform.h`.
+
+## Submodules
+
+ - **Command-based** (derived from WPILib)
+ - **Packet Handling** (Used by ESPNow, Serial, available for custom protocols)
+ - **ESPNow** (Arduino/ESPIDF on ESP32 only)
+ - **Serial** (UART on Arduino/ESPIDF, RS485 on VEX V5)
+ - **HTTP Server** (Arduino/ESPIDF only, requires a plugin for async functionality on Arduino)
+
+## Examples and Starter Code
+
+Automat-Example-Code: https://github.com/Explothusist/Automat-Example-Code
+
+## WPILib and Command-Based Architectures
 
 WPILib: https://docs.wpilib.org/en/stable/docs/software/what-is-wpilib.html
 
 Command-based architecture: https://docs.wpilib.org/en/stable/docs/software/commandbased/what-is-command-based.html
-
-Automat-Example-Code: https://github.com/Explothusist/Automat-Example-Code

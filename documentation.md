@@ -1,22 +1,34 @@
-# Automat Documentation
+# Documentation Structure
 
-Automat derives most of its interface and functionality from WPILib, the FRC (FIRST Robotics Competition) robot control library. For more information on WPILib, see the links below. For those already familiar with WPILib, this documentation highlights all differences in interface and syntax. For those unfamiliar, read WPILib's introduction to their command-based robot framework below.
+Under `documentation/` there are files for each class, organized in the same file structure as the the library itself (i.e. the documentation for `command_based/TimedRobot.h` is found under `documentation/command_based/TimedRobot.md`).
 
-Examples of the Automat library in use can be found in `Explothusist/Automat-Example-Code`, linked below.
+## Supported Environments
+
+ - **VEX V5** (some functionality limited, not tested on other VEX platforms)
+ - **ESPIDF** 
+ - **Arduino** (so far, only tested on ESP32 using Arduino framework)
+
+The code automatically detects the environment, but this feature is not exhaustively tested. If detection errors occur, manually specify environment in `automat_platform.h`.
+
+## Submodules
+
+ - **Command-based** (derived from WPILib)
+ - **Packet Handling** (Used by ESPNow, Serial, available for custom protocols)
+ - **ESPNow** (Arduino/ESPIDF on ESP32 only)
+ - **Serial** (UART on Arduino/ESPIDF, RS485 on VEX V5)
+ - **HTTP Server** (Arduino/ESPIDF only, requires a plugin for async functionality on Arduino)
+
+## Examples and Starter Code
+
+Automat-Example-Code: https://github.com/Explothusist/Automat-Example-Code
+
+## WPILib and Command-Based Architectures
 
 WPILib: https://docs.wpilib.org/en/stable/docs/software/what-is-wpilib.html
 
 Command-based architecture: https://docs.wpilib.org/en/stable/docs/software/commandbased/what-is-command-based.html
 
-Automat-Example-Code: https://github.com/Explothusist/Automat-Example-Code
-
-# Supported Architectures
-
-Automat supports the VEX environment and the ESP32 environment, the latter in both the ESPIDF and Arduino frameworks. The code is most tested in the VEX and Arduino environments. The code should run in Arduino frameworks outside of the ESP32 environment, but that functionality has not been tested.
-
-The code should automatically detect the architecture in `automat_platform.h`, but if errors occur, the platform may be manually specified in that file instead.
-
-# Main Differences from WPILib
+## Main Differences from WPILib ***WORKING HERE***
 
 The functionality of `CommandScheduler` are combined into the `TimedRobot` class (i.e. there is no need to directly call the `CommandScheduler`). The  `RobotContainer` file is more or less unchanged. Read the `TimedRobot` class carefully, as Autonomous and Teleop are handled differently and setup is somewhat different.
 
@@ -24,7 +36,7 @@ The `Joystick` class is heavily modified, as is the `Trigger` class. The `Trigge
 
 Additional Serial and HTTP Server functionality has been added beyond WPILib's builtin functionality, as have a number of other helper classes in the utilities folder. See the documentation for more details. 
 
-# General Structure
+## General Structure
 
 The general structure for an Automat project looks something like the following:
 
@@ -56,7 +68,3 @@ The `src/Robot.h` and `src/Robot.cpp` file holds a class derived from `TimedRobo
 The `src/main.cpp` file instantiates the class in `src/Robot.h` and starts the robot's main loop.  
 
 This setup is by no means binding, but seems to work well. For an actual implementation as an example, see examples under `Explothusist/Automat-Example-Code` (linked above).
-
-# Documentation Structure
-
-Under `documentation/` there are files for each class, organized in the same file structure as the the library itself (i.e. the documentation for `command_based/TimedRobot.h` is found under `documentation/command_based/TimedRobot.md`).
