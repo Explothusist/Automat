@@ -212,6 +212,10 @@ namespace atmt {
     void ESPNowHandler::ReceiveCallback(const uint8_t* mac_info, const uint8_t* incoming_data, int data_length) {
         packet.inputReceivedRawBytes(incoming_data, data_length);
     }
+    
+    const uint8_t* ESPNowHandler::GetMACAddress() {
+        return g_ESPNowSystem.GetMACAddress();
+    };
 
 };
 

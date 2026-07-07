@@ -85,6 +85,8 @@ namespace atmt {
             int setTargetMACAddress(const uint8_t* mac_address);
             void ReceiveCallback(const uint8_t* mac_info, const uint8_t* incoming_data, int data_length);
 
+            const uint8_t* GetMACAddress();
+
             PacketHandler packet;
             PacketEventHandler event;
         private:
