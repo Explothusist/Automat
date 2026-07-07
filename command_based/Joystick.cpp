@@ -30,6 +30,19 @@ namespace atmt {
     constexpr double joystick_threshold = 0.3; // Percent
 
     bool m_read_joystick_events{ false };
+    
+    void setJoystickStateButton(JoystickState &state, ButtonIndicator button, bool value) {
+        if (button == NULLButton) return;
+        if (value) {
+            state.buttons |= uint16_t(1u) << static_cast<uint8_t>(button);
+        }else {
+            state.buttons &= ~(uint16_t(1u) << static_cast<uint8_t>(button));
+        }
+    };
+    bool getJoystickStateButton(const JoystickState &state, ButtonIndicator button) {
+        if (button == NULLButton) return false;
+        return (state.buttons & (uint16_t(1u) << static_cast<uint8_t>(button))) != 0;
+    };
 
 #ifdef AUTOMAT_VEX_
     vex::controller m_controller_primary = vex::controller(vex::primary);
@@ -498,7 +511,7 @@ namespace atmt {
     void Joystick::updateState(JoystickState new_state) {
         if (m_read_joystick_events) {
             auto processButton = [this, &new_state](ButtonIndicator button) {
-                ButtonEvent new_event = new_state.buttons[button] ? ButtonPressed : ButtonReleased;
+                ButtonEvent new_event = getJoystickStateButton(new_state, button) /* new_state.buttons[button] */ ? ButtonPressed : ButtonReleased;
                 if (new_event != m_button_state[button]) {
                     triggerEvent(button, new_event);
                 }
@@ -520,8 +533,8 @@ namespace atmt {
 
             // Stick Handlers
             if (new_state.axes[RYAxis] != m_axis_position[RYAxis] || new_state.axes[RXAxis] != m_axis_position[RXAxis]) {
-                const double range_min = new_state.axis_range[Range_Min]; // Cast to double
-                const double range_max = new_state.axis_range[Range_Max];
+                const float range_min = new_state.axis_range[Range_Min]; // Cast to double
+                const float range_max = new_state.axis_range[Range_Max];
                 double axis_x = (new_state.axes[RXAxis] - range_min) / (range_max - range_min);
                 double axis_y = (new_state.axes[RYAxis] - range_min) / (range_max - range_min);
                 axis_x = (axis_x * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
@@ -529,10 +542,10 @@ namespace atmt {
                 triggerRawStick(RightStick, axis_x, axis_y);
             }
             if (new_state.axes[LYAxis] != m_axis_position[LYAxis] || new_state.axes[LXAxis] != m_axis_position[LXAxis]) {
-                const double range_min = new_state.axis_range[Range_Min]; // Cast to double
-                const double range_max = new_state.axis_range[Range_Max];
-                double axis_x = (new_state.axes[LXAxis] - range_min) / (range_max - range_min);
-                double axis_y = (new_state.axes[LYAxis] - range_min) / (range_max - range_min);
+                const float range_min = new_state.axis_range[Range_Min]; // Cast to double
+                const float range_max = new_state.axis_range[Range_Max];
+                float axis_x = (new_state.axes[LXAxis] - range_min) / (range_max - range_min);
+                float axis_y = (new_state.axes[LYAxis] - range_min) / (range_max - range_min);
                 axis_x = (axis_x * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 axis_y = (axis_y * 2.0) - 1.0; // 0-1 scale -> -1-1 scale
                 triggerRawStick(LeftStick, axis_x, axis_y);

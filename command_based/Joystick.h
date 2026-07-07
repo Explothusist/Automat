@@ -33,12 +33,21 @@ namespace atmt {
 
 // #ifdef AUTOMAT_ESP32_
     // Packed so it can be sent over serial
+    // struct __attribute__((packed)) JoystickState {
+    //     bool buttons[14]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
+    //     double axes[6]; // RY, RX, LY, LX, RT, LT
+    //     double axis_range[2]; // min, max (i.e. -100, 100)
+    // };
     struct __attribute__((packed)) JoystickState {
-        bool buttons[14]; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
-        double axes[6]; // RY, RX, LY, LX, RT, LT
-        double axis_range[2]; // min, max (i.e. -100, 100)
+        uint16_t buttons; // A, B, X, Y, Up, Left, Down, Right, S, s, LB, RB
+        float axes[6]; // RY, RX, LY, LX, RT, LT
+        float axis_range[2]; // min, max (i.e. -100, 100)
     };
-    static_assert(sizeof(JoystickState) == 78, "Atmt Struct Packing Error: JoystickState");
+    // static_assert(sizeof(JoystickState) == 78, "Atmt Struct Packing Error: JoystickState");
+    static_assert(sizeof(JoystickState) == 34, "Atmt Struct Packing Error: JoystickState");
+
+    void setJoystickStateButton(JoystickState &state, ButtonIndicator button, bool value);
+    bool getJoystickStateButton(const JoystickState &state, ButtonIndicator button);
 
     typedef enum {
         PollMode_Manual,
