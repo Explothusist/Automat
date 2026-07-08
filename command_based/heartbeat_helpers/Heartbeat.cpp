@@ -24,7 +24,7 @@ namespace atmt {
         m_serial{ serial },
         m_is_state_controlling{ false }
     {
-        serial->bindToMessage(
+        serial->event.bindToMessage(
             (new Trigger(SerialReceive, message))->allowPartial()->inMode(ModeAnyAndAll),
             // new InstantCommand({}, &Heartbeat::beatHeart, this)
             new HeartbeatCommand(this)
@@ -38,7 +38,7 @@ namespace atmt {
         m_serial_message{ message },
         m_is_state_controlling{ false }
     {
-        serial->bindToMessage(
+        serial->event.bindToMessage(
             (new Trigger(SerialReceive, message))->fromSender(sender)->allowPartial()->inMode(ModeAnyAndAll),
             // new InstantCommand({}, &Heartbeat::beatHeart, this)
             new HeartbeatCommand(this)
@@ -61,7 +61,7 @@ namespace atmt {
         m_last_heartbeat = getSystemTime();
 #ifdef ATMT_SUBMODULE_SERIAL_
         if (m_type == HeartbeatSerial) {
-            m_serial->popMessage(m_last_serial_id); // Keep from polluting the message stack
+            m_serial->packet.popMessage(m_last_serial_id); // Keep from polluting the message stack
         }
 #endif
     };
