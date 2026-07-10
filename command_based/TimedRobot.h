@@ -59,15 +59,18 @@ namespace atmt {
 
             void runCommand(Command* command);
             void registerSubsystem(Subsystem* subsystem);
-            void addJoystick(Joystick* joystick);
+            void registerJoystick(Joystick* joystick);
 #ifdef ATMT_SUBMODULE_SERIAL_
-            void addSerialReader(SerialReader* serial);
+            void registerSerialReader(SerialReader* serial);
+#endif
+#ifdef ATMT_SUBMODULE_ESPNOW_
+            void registerESPNowHandler(ESPNowHandler* espnow);
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
-            void addRobotDashboard(RobotDashboardServer* server);
+            void registerRobotDashboard(RobotDashboardServer* server);
 #endif
-            void addHeartbeat(Heartbeat* heartbeat);
-            void addHeartbeatMaker(HeartbeatMaker* heartbeat_maker);
+            void registerHeartbeat(Heartbeat* heartbeat);
+            void registerHeartbeatMaker(HeartbeatMaker* heartbeat_maker);
 
             void setAutonomousCommand(Command* command);
             void setAutonomousCommandGetter(std::function<Command*(int, void*)> command_getter, std::function<int(void*)> routine_getter, void* arg);
