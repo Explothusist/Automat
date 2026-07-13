@@ -4,6 +4,8 @@ Automat is a robot control library designed to be a simple and powerful standalo
 
 Automat's command_based module, the original core of the library, is based on the FRC (FIRST Robotics Competition) robot control library WPILib, an open source library built and maintained by the Worchester Polytechnic Institute. WPILib's most outstanding benefit is its simple and efficient command-based robot framework dividing the robot into commands and subsystems. Automat provides most of the basic functionality of WPILib to VEX, Esp32, and Arduino environments.
 
+For detailed documentation, see `documentation.md`.
+
 ## Supported Environments
 
  - **VEX V5** (some functionality limited, not tested on other VEX platforms)
@@ -19,6 +21,7 @@ The code automatically detects the environment, but this feature is not exhausti
  - **ESPNow** (Arduino/ESPIDF on ESP32 only)
  - **Serial** (UART on Arduino/ESPIDF, RS485 on VEX V5)
  - **HTTP Server** (Arduino/ESPIDF only, requires a plugin for async functionality on Arduino)
+ - **Other Utilies** (See `documentation.md`)
 
 ## Examples and Starter Code
 
