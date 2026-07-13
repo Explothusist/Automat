@@ -41,7 +41,7 @@ namespace atmt {
                 break;
 #ifdef ATMT_SUBMODULE_SERIAL_
             case HeartbeatSerial:
-                m_serial->sendMessagePrefixed(m_serial_recipient, m_serial_message, static_cast<uint8_t>(state), 1);
+                m_serial->packet.sendMessagePrefixed(m_serial_recipient, m_serial_message, static_cast<uint8_t>(state), 1);
                 break;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_

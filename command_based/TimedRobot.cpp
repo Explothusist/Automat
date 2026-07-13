@@ -10,6 +10,9 @@
 #ifdef ATMT_SUBMODULE_SERIAL_
 #include "../serial/SerialReader.h"
 #endif
+#ifdef ATMT_SUBMODULE_SERIAL_
+#include "../espnow/ESPNowHandler.h"
+#endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
 #include "../http_server/RobotDashboardServer.h"
 #endif
@@ -329,31 +332,39 @@ namespace atmt {
             m_subsystems.push_back(subsystem); // To ensure no duplicates
         }
     };
-    void TimedRobot::addJoystick(Joystick* joystick) {
+    void TimedRobot::registerJoystick(Joystick* joystick) {
         if (!robotHasSubsystem(joystick)) {
             joystick->internal_init(&m_state, m_event_handler);
             m_subsystems.push_back(joystick); // To ensure no duplicates
         }
     };
 #ifdef ATMT_SUBMODULE_SERIAL_
-    void TimedRobot::addSerialReader(SerialReader* serial) {
+    void TimedRobot::registerSerialReader(SerialReader* serial) {
         if (!robotHasSubsystem(serial)) {
             serial->internal_init(&m_state, m_event_handler);
             m_subsystems.push_back(serial); // To ensure no duplicates
         }
     };
 #endif
+#ifdef ATMT_SUBMODULE_ESPNOW_
+    void TimedRobot::registerESPNowHandler(ESPNowHandler* espnow) {
+        if (!robotHasSubsystem(espnow)) {
+            espnow->internal_init(&m_state, m_event_handler);
+            m_subsystems.push_back(espnow); // To ensure no duplicates
+        }
+    };
+#endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
-    void TimedRobot::addRobotDashboard(RobotDashboardServer* server) {
+    void TimedRobot::registerRobotDashboard(RobotDashboardServer* server) {
         if (!robotHasSubsystem(server)) {
             // Probably will do something more here eventually
             m_subsystems.push_back(server); // To ensure no duplicates
         }
     };
 #endif
-    void TimedRobot::addHeartbeat(Heartbeat* heartbeat) {
+    void TimedRobot::registerHeartbeat(Heartbeat* heartbeat) {
         if(heartbeat == nullptr){
-            platform_println("ERROR: TimedRobot: addHeartbeat: heartbeat is nullptr");
+            platform_println("ERROR: TimedRobot: registerHeartbeat: heartbeat is nullptr");
             return;
 
         }
@@ -362,9 +373,9 @@ namespace atmt {
             m_heartbeats.push_back(heartbeat);
         }
     };
-    void TimedRobot::addHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
+    void TimedRobot::registerHeartbeatMaker(HeartbeatMaker* heartbeat_maker) {
         if(heartbeat_maker == nullptr){
-            platform_println("ERROR: TimedRobot: addHeartbeatMaker: heartbeat_maker is nullptr");
+            platform_println("ERROR: TimedRobot: registerHeartbeatMaker: heartbeat_maker is nullptr");
             return;
         } 
         

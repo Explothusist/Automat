@@ -91,8 +91,10 @@ namespace atmt {
     };
     int PacketHandler::peekAllRawBytesToSend(uint8_t byte_buffer[], int buffer_length) {
         int count = 0;
-        while (hasRawBytesToSend() && count < buffer_length) {
-            peekNextRawByteToSend(byte_buffer[count]);
+        std::queue<uint8_t> copy = m_to_send;
+        while (!copy.empty() && count < buffer_length) {
+            byte_buffer[count] = copy.front();
+            copy.pop();
             count += 1;
         }
         return count;

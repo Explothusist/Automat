@@ -60,7 +60,7 @@ namespace atmt {
         if (m_type == HeartbeatSerial) {
             uint8_t output[kMaxPacketSize];
             uint8_t length = 0;
-            m_serial->popMessage(m_last_serial_id, output, length); // Keep from polluting the message stack
+            m_serial->packet.popMessage(m_last_serial_id, output, length); // Keep from polluting the message stack
             if (length == 2) {
                 m_last_state = static_cast<RobotState>(output[1]);
             }

@@ -50,7 +50,7 @@ namespace atmt {
                 break;
 #ifdef ATMT_SUBMODULE_SERIAL_
             case HeartbeatSerial:
-                m_serial->sendMessage(m_serial_recipient, m_serial_message);
+                m_serial->packet.sendMessage(m_serial_recipient, m_serial_message);
                 break;
 #endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_
