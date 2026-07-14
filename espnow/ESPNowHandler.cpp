@@ -213,8 +213,11 @@ namespace atmt {
         packet.inputReceivedRawBytes(incoming_data, data_length);
     }
     
-    const uint8_t* ESPNowHandler::GetMACAddress() {
+    const uint8_t* ESPNowHandler::GetSystemMACAddress() {
         return g_ESPNowSystem.GetMACAddress();
+    };
+    const uint8_t* ESPNowHandler::GetTargetMACAddress() {
+        return m_target_mac_address;
     };
 
 };
