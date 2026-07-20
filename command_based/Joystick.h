@@ -56,8 +56,8 @@ namespace atmt {
     } PollingMode;
 
     typedef enum {
-        Range_Min,
-        Range_Max
+        Range_Min = 0,
+        Range_Max = 1
     } RangeComp;
 // #endif
 
