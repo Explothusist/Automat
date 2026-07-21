@@ -94,42 +94,42 @@ Used by the `CommandScheduler` to copy the `Commmand` when the `Trigger` returns
 
 ### Method `initialize()`
 
-    virtual void initialize();
+    virtual void atmt::Command::initialize();
 
 Called once immediately after the `Commmand` is scheduled.
 
 ### Method `execute()`
 
-    virtual void execute();
+    virtual void atmt::Command::execute();
 
 Called every loop of the `CommandScheduler` until the `Commmand` is interrupted or `is_finished()` returns `true`.
 
 ### Method `is_finished()`
 
-    virtual bool is_finished();
+    virtual bool atmt::Command::is_finished();
 
 Called every loop of the `CommandScheduler`, immediately following `execute()`. If it returns `true`, then `Command` terminates, immediately calling `end(false)` before being removed from the `CommandScheduler`. If it returns `false`, the `Command` remains scheduled and will be called again on the next loop of the `CommandScheduler`.
 
 ### Method `end()`
 
-    virtual void end(bool interrupted);
+    virtual void atmt::Command::end(bool interrupted);
 
 Called once immediately before the `Command` is removed from the `CommandScheduler`. If the `Command` was interrupted by another `Command` being scheduled that uses the same `Subsystem`(s), `interrupted` will be `true`. If the `Command` finished normally via `is_finished()` returning `true`, `interrupted` will be `false`.
 
 ### Method `usesSubsystem()`
 
-    void usesSubsystem(Subsystem* subsystem);
+    void atmt::Command::usesSubsystem(Subsystem* subsystem);
 
 Used in the constructor to specify individual `Subsystem` instances which this `Command` requires. Exclusive ownership of all required `Subsystem`(s) is guarenteed while the `Command` is running. When scheduled, all older `Command` instances using any of the same `Subsystem` instances will be interrupted.
 
 ### Method `usesSubsystems()`
 
-    void usesSubsystems(std::initializer_list<Subsystem*> subsystems);
+    void atmt::Command::usesSubsystems(std::initializer_list<Subsystem*> subsystems);
 
 Used in the constructor to specify a list of `Subsystem` instances which this `Command` requires. Exclusive ownership of all required `Subsystem`(s) is guarenteed while the `Command` is running. When scheduled, all older `Command` instances using any of the same `Subsystem` instances will be interrupted.
 
 ### Method `withTimeout()`
 
-    Command* withTimeout(double seconds);
+    Command* atmt::Command::withTimeout(double seconds);
 
 Used to specify a maximum run time for an individual instance of a `Command`. If the `Command` has not terminated normally or been interrupted by the time the timeout has elapsed, the `Command` will be interrupted.

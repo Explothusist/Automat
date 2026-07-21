@@ -154,20 +154,60 @@ For `PollingMode_Manual`, use the `Joystick(PollingMode poll_mode)` constructor.
 
 ### Method `updateState()`
 
-    void updateState(atmt::JoystickState new_state);
+    void atmt::Joystick::updateState(atmt::JoystickState new_state);
 
 This method is for `PollMode_Manual` on non-VEX platforms. Updates the internally stored state of the `Joystick` to what is specified by the `JoystickState` object, immediately triggering events for all state changes. See `atmt::JoystickState` for more details.
 
 ### Method `setStatePollingMode()`
 
-    void setStatePollingMode(atmt::PollingMode poll_mode);
+    void atmt::Joystick::setStatePollingMode(atmt::PollingMode poll_mode);
 
 Used to change the `PollingMode` of the `Joystick`. See `atmt::PollingMode` for more details. Changing the `PollingMode` to `PollMode_Continuous` in non-VEX environments will require a call to `setStateFunction()` as well.
 
 ### Method `setStateFunction()` **Non-VEX only**
 
-    void setStateFunction(std::function<atmt::JoystickState()> state_function);
+    void atmt::Joystick::setStateFunction(std::function<atmt::JoystickState()> state_function);
 
 Used to change the `state_function` of the `Joystick` in `PollMode_Continuous` in non-VEX environments. The `state_function` is called periodically to update the `Joystick` state and trigger events. See `atmt::PollingMode` for more details.
 
-### Method `bindKey()` ***WORKING HERE***
+### Method `bindKey()`
+
+    void atmt::Joystick::bindKey(Trigger* trigger, Command* command);
+
+Specifies a `Command` to be run every time the provided `Trigger` returns `true`. Create a new `Command` instance and `Trigger` instance for every call of `bindKey()`. The `Command` will be copied every time it is triggered, meaning the bind does not need recreated and will work repeatedly.
+
+### Method `bindAutoTrigger()`
+
+    void atmt::Joystick::bindAutoTrigger(atmt::Trigger* trigger);
+
+Adds the `Trigger` to the list of `Trigger`(s) which cause `TimedRobot` to enter Autonomous mode from Disabled mode. When `TimedRobot` changes state, all commands are interrupted. When `TimedRobot` enters Autonomous, the specified Autonomous command is run. In Autonomous, standard `Trigger`s will not return `true`. These state change binding methods are the only ways to affect `TimedRobot` state.
+
+### Method `bindTeleopTrigger()`
+
+    void atmt::Joystick::bindAutoTrigger(atmt::Trigger* trigger);
+
+Adds the `Trigger` to the list of `Trigger`(s) which cause `TimedRobot` to enter Teleop mode from Disabled mode or Autonomous mode. When `TimedRobot` changes state, all commands are interrupted. These state change binding methods are the only ways to affect `TimedRobot` state.
+
+### Method `bindDisabledTrigger()`
+
+    void atmt::Joystick::bindDisabledTrigger(atmt::Trigger* trigger);
+
+Adds the `Trigger` to the list of `Trigger`(s) which cause `TimedRobot` to enter Disabled mode from Autonomous mode or Teleip mode. When `TimedRobot` changes state, all commands are interrupted. In Disabled, standard `Trigger`s will not return `true`. These state change binding methods are the only ways to affect `TimedRobot` state.
+
+### Method `getStickState()`
+
+    atmt::StickEvent atmt::Joystick::getStickState(atmt::StickIndicator stick);
+
+Returns a `StickEvent` representing the current state of the joystick indicated by `StickIndicator` as specified by the most recent `JoystickState`. See enums `StickIndicator` and `StickEvent` in `Trigger.md` for more details.
+
+### Method `getButtonState()`
+
+    atmt::ButtonEvent atmt::Joystick::getButtonState(atmt::ButtonIndicator button);
+
+Returns a `ButtonEvent` representing the current state of the button indicated by `ButtonIndicator` as specified by the most recent `JoystickState`. See enums `ButtonIndicator` and `ButtonEvent` in `Trigger.md` for more details.
+
+### Method `getRawAxis()`
+
+    double atmt::Joystick::getRawAxis(atmt::AxisIndicator axis);
+
+Returns a `double` representing the current raw percentage value of the axis indicated by `AxisIndicator` as specified by the most recent `JoystickState`. See enum `AxisIndicator` in `Trigger.md` for more details.
