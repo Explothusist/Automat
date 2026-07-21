@@ -728,6 +728,9 @@ namespace atmt {
     void Joystick::bindTeleopTrigger(Trigger* trigger) {
         m_triggers.push_back(new Trigger_Event(StartTeleop, trigger->inMode(ModeDisabledAndAuto)));
     };
+    void Joystick::bindDisabledTrigger(Trigger* trigger) {
+        m_triggers.push_back(new Trigger_Event(ForceDisabled, trigger->inMode(ModeTeleopAndAuto)));
+    };
 
     void Joystick::setAxisRight(double axis_x, double axis_y) {
         m_axis_position[RYAxis] = axis_y; // RYAxis

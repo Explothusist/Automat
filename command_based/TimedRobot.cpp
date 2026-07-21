@@ -103,6 +103,12 @@ namespace atmt {
                     m_state = Teleop;
                 }
             }
+            if (m_state != Disabled) {
+                bool triggered = m_event_handler->pollDisabledTriggers();
+                if (triggered) {
+                    m_state = Disabled;
+                }
+            }
 #ifdef AUTOMAT_VEX_
         }
 #endif

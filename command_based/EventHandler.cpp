@@ -27,7 +27,8 @@ namespace atmt {
         m_triggered_commands{ std::vector<Command*>() },
         m_command_terminations{ std::vector<int>() },
         m_autonomous_triggered{ false },
-        m_teleop_triggered{ false } //,
+        m_teleop_triggered{ false },
+        m_force_disabled{ false } //,
         // m_robot{ nullptr },
         // m_robot_state{ nullptr }
     {
@@ -63,6 +64,11 @@ namespace atmt {
         m_teleop_triggered = false;
         return triggered;
     };
+    bool EventHandler::pollDisabledTriggers() {
+        bool triggered = m_force_disabled;
+        m_force_disabled = false;
+        return triggered;
+    };
 
     Trigger_Event* EventHandler::interpretTrigger(Trigger_Event* trigger, bool is_stick) {
         switch (trigger->getTriggerEffect()) {
@@ -87,6 +93,9 @@ namespace atmt {
                 } break;
             case StartTeleop: {
                     m_teleop_triggered = true;
+                } break;
+            case StartTeleop: {
+                    m_force_disabled = true;
                 } break;
             default:
                 break;

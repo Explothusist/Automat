@@ -92,6 +92,7 @@ namespace atmt {
             void bindKey(Trigger* trigger, Command* command);
             void bindAutoTrigger(Trigger* trigger);
             void bindTeleopTrigger(Trigger* trigger);
+            void bindDisabledTrigger(Trigger* trigger);
 
             void triggerRawStick(StickIndicator stick, double stick_x, double stick_y);
             void triggerRawAxis(AxisIndicator axis, double value);

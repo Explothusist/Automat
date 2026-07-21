@@ -87,7 +87,8 @@ namespace atmt {
         StartCommand = 0,
         EndCommand = 1,
         StartAutonomous = 2,
-        StartTeleop = 3
+        StartTeleop = 3,
+        ForceDisabled = 4,
     } TriggerEffect;
 
     class Trigger {

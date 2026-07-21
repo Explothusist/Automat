@@ -87,6 +87,9 @@ namespace atmt {
     void PacketEventHandler::bindTeleopTrigger(Trigger* trigger) {
         m_triggers.push_back(new Trigger_Event(StartTeleop, trigger->inMode(ModeDisabledAndAuto)));
     };
+    void PacketEventHandler::bindDisabledTrigger(Trigger* trigger) {
+        m_triggers.push_back(new Trigger_Event(ForceDisabled, trigger->inMode(ModeTeleopAndAuto)));
+    };
 #endif
     
 };
