@@ -51,7 +51,7 @@ Usage example (taken from `TimedRobot-Kampf-Starter-Esp32/src/commands/ArmWeapon
             kmpf::WeaponMotor* m_weapon;
     };
 
-With the corresponding source code(taken from `TimedRobot-Kampf-Starter-Esp32/src/commands/ArmWeaponCommand.cpp` in [Explothusist/Automat-Example-Code](https://github.com/Explothusist/Automat-Example-Code)):
+With the corresponding source code (taken from `TimedRobot-Kampf-Starter-Esp32/src/commands/ArmWeaponCommand.cpp` in [Explothusist/Automat-Example-Code](https://github.com/Explothusist/Automat-Example-Code)):
 
     ArmWeaponCommand::ArmWeaponCommand(kmpf::WeaponMotor* weapon):
         atmt::Command(),
