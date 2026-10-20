@@ -7,12 +7,16 @@
 #include <cstdint>
 #include <vector>
 #include <deque>
+#include <algorithm>
+#include <random>
 
 #ifdef AUTOMAT_VEX_
 #include "vex.h"
 #endif
 
 namespace atmt {
+
+    std::mt19937 g_random_generator( std::random_device{}() );
 
     typedef enum {
         Disabled = 0,
