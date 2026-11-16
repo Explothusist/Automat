@@ -39,14 +39,17 @@ namespace atmt {
             return result;
         }
         esp_now_register_recv_cb(ESPNowSystem::SystemReceiveCallback);
+#endif
+
+        m_has_init = true;
+        
+#ifdef AUTOMAT_ESP32_ARDUINO_
         result = AddPeer(k_ESPNowBroadcastAddress);
         if (result != ESP_OK) {
             atmt::platform_printf("Broadcast Address Add As Peer Failed\n");
             return result;
         }
 #endif
-
-        m_has_init = true;
         return ESP_OK;
     };
     bool ESPNowSystem::ESPNowIsInitialized() {
