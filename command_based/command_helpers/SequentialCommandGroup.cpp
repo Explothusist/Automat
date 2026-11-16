@@ -88,7 +88,7 @@ namespace atmt {
             std::shuffle(m_indexes.begin(), m_indexes.end(), g_random_generator);
         }
         if (m_is_continuous) {
-            m_copy = clone();
+            m_copy = static_cast<SequentialCommandGroup*>(clone());
         }
     };
     void SequentialCommandGroup::execute() {

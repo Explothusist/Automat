@@ -36,7 +36,7 @@ namespace atmt {
     class ESPNowSystem {
         public:
             ESPNowSystem();
-            ~ESPNowSystem();
+            // ~ESPNowSystem();
 
             int InitESPNow();
             bool ESPNowIsInitialized();

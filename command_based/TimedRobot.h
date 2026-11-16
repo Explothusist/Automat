@@ -25,6 +25,9 @@ namespace atmt {
 #ifdef ATMT_SUBMODULE_SERIAL_
     class SerialReader;
 #endif
+#ifdef ATMT_SUBMODULE_ESPNOW_
+    class ESPNowHandler;
+#endif
 #ifdef ATMT_SUBMODULE_HTTP_SERVER_ROBOT_DASHBOARD_SERVER_
     class RobotDashboardServer;
 #endif

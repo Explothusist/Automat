@@ -21,7 +21,7 @@ namespace atmt {
 
     class EventHandler;
 
-    void SetReadSerialEvents(bool to_read);
+    // void SetReadSerialEvents(bool to_read);
 
     class PacketEventHandler {
         public:

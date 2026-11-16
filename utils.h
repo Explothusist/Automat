@@ -16,7 +16,7 @@
 
 namespace atmt {
 
-    std::mt19937 g_random_generator( std::random_device{}() );
+    extern std::mt19937 g_random_generator;
 
     typedef enum {
         Disabled = 0,

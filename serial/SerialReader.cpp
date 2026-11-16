@@ -86,9 +86,11 @@ namespace atmt {
             case Interface_Serial1:
                 Serial1.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
                 break;
+#if SOC_UART_NUM > 2
             case Interface_Serial2:
                 Serial2.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
                 break;
+#endif
             // case Interface_Serial3:
             //     Serial3.begin(kBaudrate, SERIAL_8N1, m_rx_pin, m_tx_pin);
             //     break;
@@ -151,9 +153,11 @@ namespace atmt {
                 case Interface_Serial1:
                     serial_available = Serial1.available();
                     break;
+#if SOC_UART_NUM > 2
                 case Interface_Serial2:
                     serial_available = Serial2.available();
                     break;
+#endif
             }
             if (!serial_available) break;
 
@@ -165,9 +169,11 @@ namespace atmt {
                 case Interface_Serial1:
                     raw = Serial1.read();
                     break;
+#if SOC_UART_NUM > 2
                 case Interface_Serial2:
                     raw = Serial2.read();
                     break;
+#endif
             }
             // m_raw_input.push(raw);
             packet.inputReceivedRawByte(raw);
@@ -187,10 +193,12 @@ namespace atmt {
                     // if (!Serial1.availableForWrite()) break;
                     serial_available = Serial1.availableForWrite();
                     break;
+#if SOC_UART_NUM > 2
                 case Interface_Serial2:
                     // if (!Serial2.availableForWrite()) break;
                     serial_available = Serial2.availableForWrite();
                     break;
+#endif
                 // case Interface_Serial3:
                 //     if (!Serial3.availableForWrite()) break;
                 //     break;
@@ -208,9 +216,11 @@ namespace atmt {
                 case Interface_Serial1:
                     Serial1.write(byte);
                     break;
+#if SOC_UART_NUM > 2
                 case Interface_Serial2:
                     Serial2.write(byte);
                     break;
+#endif
                 // case Interface_Serial3:
                 //     Serial3.write(byte);
                 //     break;

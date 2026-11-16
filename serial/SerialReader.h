@@ -9,6 +9,9 @@
 #include <cstdint>
 #include "../automat_platform.h"
 #include "../utils.h"
+#ifdef AUTOMAT_ESP32_ARDUINO_
+#include <soc/soc_caps.h>
+#endif
 #include "../packet_handling/PacketHandler.h"
 #include "../packet_handling/PacketEventHandler.h"
 #ifdef ATMT_SUBMODULE_COMMAND_BASED_
@@ -30,7 +33,9 @@ namespace atmt {
     typedef enum {
         Interface_Serial0,
         Interface_Serial1,
+#if SOC_UART_NUM > 2
         Interface_Serial2
+#endif
     } SerialInterface;
 #endif
 

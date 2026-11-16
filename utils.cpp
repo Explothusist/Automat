@@ -17,6 +17,8 @@
 
 namespace atmt {
     
+    std::mt19937 g_random_generator( std::random_device{}() );
+    
 #ifdef AUTOMAT_VEX_
     vex::competition m_competition;
     vex::brain m_brain;

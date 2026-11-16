@@ -18,9 +18,9 @@ namespace atmt {
     
     void SetReadEvents(bool to_read) {
         SetReadJoystickEvents(to_read);
-#ifdef ATMT_SUBMODULE_SERIAL_
-        SetReadSerialEvents(to_read);
-#endif
+// #ifdef ATMT_SUBMODULE_SERIAL_
+//         SetReadSerialEvents(to_read);
+// #endif
     };
 
     EventHandler::EventHandler():
@@ -94,7 +94,7 @@ namespace atmt {
             case StartTeleop: {
                     m_teleop_triggered = true;
                 } break;
-            case StartTeleop: {
+            case ForceDisabled: {
                     m_force_disabled = true;
                 } break;
             default:
