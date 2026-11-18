@@ -117,6 +117,10 @@ namespace atmt {
     constexpr const Type& clamp(const Type& value, const Type& low, const Type& high) {
         return (value < low) ? low : (high < value) ? high : value;
     }
+    template <typename Type>
+    constexpr const Type& apply_deadband(const Type& value, const Type& lock_value, const Type& range) {
+        return (value < (lock_value - range) || value > (lock_value + range) ? value : lock_value);
+    }
 
     constexpr double kZeroEpsilon = 1e-12;
 

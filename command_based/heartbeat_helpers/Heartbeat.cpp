@@ -58,6 +58,7 @@ namespace atmt {
 #endif
 
     void Heartbeat::beatHeart() {
+        // atmt::platform_printf("Heartbeat!!!\n");
         m_last_heartbeat = getSystemTime();
 #ifdef ATMT_SUBMODULE_SERIAL_
         if (m_type == HeartbeatSerial) {
@@ -66,6 +67,8 @@ namespace atmt {
 #endif
     };
     bool Heartbeat::isHeartbeatLost() {
+        // atmt::platform_printf("Lost: %s\n", (m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout ? "Yes" : "No"));
+        // atmt::platform_printf("Lost: %d - %d > %d \n", m_last_heartbeat.getTimeMS(), getSystemTime().getTimeMS(), m_heartbeat_timeout);
         return m_last_heartbeat.getTimeDifferenceMS(getSystemTime()) > m_heartbeat_timeout;
     };
 
