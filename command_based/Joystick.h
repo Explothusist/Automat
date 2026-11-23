@@ -59,6 +59,12 @@ namespace atmt {
         Range_Min = 0,
         Range_Max = 1
     } RangeComp;
+
+    typedef enum {
+        AxisAdjustment_None = 0,
+        AxisAdjustment_Offset = 1,
+        AxisAdjustment_Rescale = 2
+    } AxisAdjustment;
 // #endif
 
     class Joystick : public Subsystem {
@@ -105,6 +111,14 @@ namespace atmt {
             StickEvent getStickState(StickIndicator stick);
             ButtonEvent getButtonState(ButtonIndicator button);
             double getRawAxis(AxisIndicator axis);
+
+            void setAxisOffset(AxisIndicator axis);
+            void setAxisRescale(AxisIndicator axis);
+            void resetAxis(AxisIndicator axis);
+            void setAllAxisOffset();
+            void setAllAxisRescale();
+            void resetAllAxis();
+
         private:
             std::vector<Trigger_Event*> m_triggers;
             std::vector<Trigger_Event*> m_temp_triggers;
@@ -121,6 +135,9 @@ namespace atmt {
             StickEvent m_stick_state[3];
             double m_axis_position[7]; // ESP32 and VEX use different subsets, but this is all (enums)
             ButtonEvent m_button_state[15];
+
+            AxisAdjustment m_axis_adjustment_type[7];
+            double m_axis_adjustment_value[7];
 
             RobotState* m_robot_state;
             // TimedRobot* m_robot;

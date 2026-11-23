@@ -459,9 +459,11 @@ namespace atmt {
 #ifdef AUTOMAT_ESP32_
         m_state_function{ state_function },
 #endif
-        m_stick_state{ StickCenter, StickCenter },
-        m_axis_position{ 0, 0, 0, 0 },
-        m_button_state{ ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased }
+        m_stick_state{ StickCenter, StickCenter, StickCenter },
+        m_axis_position{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        m_button_state{ ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased, ButtonReleased },
+        m_axis_adjustment_type{ AxisAdjustment_None, AxisAdjustment_None, AxisAdjustment_None, AxisAdjustment_None, AxisAdjustment_None, AxisAdjustment_None, AxisAdjustment_None },
+        m_axis_adjustment_value{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
     {
         
 #ifdef AUTOMAT_VEX_
@@ -755,8 +757,53 @@ namespace atmt {
     };
     // Output Range -1 to 1
     double Joystick::getRawAxis(AxisIndicator axis) {
+        switch (m_axis_adjustment_type[axis]) {
+            case AxisAdjustment_None:
+                return m_axis_position[axis];
+            case AxisAdjustment_Offset:
+                return m_axis_position[axis]-m_axis_adjustment_value[axis];
+            case AxisAdjustment_Rescale: {
+                double adjusted = m_axis_position[axis]-m_axis_adjustment_value[axis];
+                // atmt::platform_printf("pos (%f) - adj (%f) = %f\n", m_axis_position[axis], m_axis_adjustment_value[axis], adjusted);
+                if (adjusted > 0) {
+                    // atmt::platform_printf("> 0 = %f\n", ((adjusted) / (1.0 - m_axis_adjustment_value[axis])));
+                    return (adjusted) / (1.0 - m_axis_adjustment_value[axis]);
+                }else {
+                    // atmt::platform_printf("< 0 = %f\n", ((adjusted) / (1.0 + m_axis_adjustment_value[axis])));
+                    return (adjusted) / (1.0 + m_axis_adjustment_value[axis]);
+                }
+            }
+        }
         return m_axis_position[axis];
     };
+
+    void Joystick::setAxisOffset(AxisIndicator axis) {
+        m_axis_adjustment_type[axis] = AxisAdjustment_Offset;
+        m_axis_adjustment_value[axis] = m_axis_position[axis];
+    }
+    void Joystick::setAxisRescale(AxisIndicator axis) {
+        m_axis_adjustment_type[axis] = AxisAdjustment_Rescale;
+        m_axis_adjustment_value[axis] = m_axis_position[axis];
+    }
+    void Joystick::resetAxis(AxisIndicator axis) {
+        m_axis_adjustment_type[axis] = AxisAdjustment_None;
+        m_axis_adjustment_value[axis] = 0.0;
+    }
+    void Joystick::setAllAxisOffset() {
+        for (int i = 0; i < 7; i++) {
+            setAxisOffset(static_cast<AxisIndicator>(i));
+        }
+    }
+    void Joystick::setAllAxisRescale() {
+        for (int i = 0; i < 7; i++) {
+            setAxisRescale(static_cast<AxisIndicator>(i));
+        }
+    }
+    void Joystick::resetAllAxis() {
+        for (int i = 0; i < 7; i++) {
+            resetAxis(static_cast<AxisIndicator>(i));
+        }
+    }
 
 };
 
